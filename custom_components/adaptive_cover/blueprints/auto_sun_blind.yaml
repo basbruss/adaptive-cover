@@ -1,0 +1,355 @@
+---
+#version 1.1.2
+blueprint:
+  name: Cover Height
+  description: "`version 1.1.2` \n
+    Set cover position based on direct sunlight exposed to window \n\n
+    Calculations are done internally in the blueprint removing the need to use a sensor to input a value
+    \n for in depth information on the calculations and variables, check this forum [post](https://community.home-assistant.io/t/automatic-blinds-sunscreen-control-based-on-sun-platform/573818)
+    \n **Code Owner:** [`@langestefan`](https://community.home-assistant.io/u/langestefan/)
+    \n **Blueprint by:** [`@basbruss`](https://community.home-assistant.io/u/basbruss/)\n
+    ![Azimuth/Elevation](https://community-assets.home-assistant.io/original/4X/9/f/9/9f973bf5477df545015516e08fe050f279846b9b.jpeg)"
+
+  domain: automation
+  input:
+    cover_entity:
+      name: Cover
+      description: "Cover(s) to change position based on sun. \n *Only select entities. Devices will not work!*"
+      selector:
+        target:
+          entity:
+            domain: cover
+    azimuth:
+      name: Azimuth
+      description: The azimuth of the window/cover [**?**](https://community-assets.home-assistant.io/original/4X/5/2/7/527029c7c138eb6146aac68d34e92376b4560fb6.png)
+      default: 180
+      selector:
+        number:
+          min: 0
+          max: 359
+          mode: slider
+          step: 1
+    distance:
+      name: Distance
+      description: Distance from the cover to shaded area ![**?**](https://community-assets.home-assistant.io/original/4X/f/2/6/f26221689c32f55b731c5931de5a52791b760e90.jpeg).
+      default: 0.5
+      selector:
+        number:
+          min: 0.1
+          max: 3
+          mode: slider
+          step: 0.1
+          unit_of_measurement: "M"
+    max_height:
+      name: Cover Height
+      description: Max height of the cover in Meters.
+      default: 2.1
+      selector:
+        number:
+          min: 0.1
+          max: 4
+          step: 0.1
+          unit_of_measurement: "M"
+    min_height:
+      name: Minimun Height
+      description: The minimum height in meters when the blinds are fully open. This will be 0 in most cases.
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 4
+          step: 0.1
+          unit_of_measurement: "M"
+    default_height:
+      name: Default Cover Height
+      description: The default height of the cover when the sun is not within the range of the window/cover
+      default: 60
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: slider
+          step: 1
+          unit_of_measurement: "%"
+    default_template:
+      name: Default height template
+      description: Overrules set value in **Default Cover Height**
+      default: ""
+      selector:
+        template:
+    minimum_position:
+      name: Minimum position cover
+      description: The lowest position allowed to change the cover to.
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: slider
+          step: 1
+          unit_of_measurement: "%"
+    degrees:
+      name: Field of view
+      description: Amount of degrees relative to the sun' azimuth; (90 degrees equals 180 fov)
+      default: 90
+      selector:
+        number:
+          min: 0
+          max: 90
+          mode: slider
+          step: 1
+          unit_of_measurement: "°"
+    azimuth_left:
+      name: "Field of view Left"
+      description: "**Only change when left and right angles are different**
+        \n Amount of degrees from left side of the window \n
+        Only use when left and right angles are not equal"
+      default: 90
+      selector:
+        number:
+          min: 0
+          max: 90
+          mode: slider
+          step: 1
+          unit_of_measurement: "°"
+    azimuth_right:
+      name: "Field of view Right"
+      description: "**Only change when left and right angles are different**
+        \n Amount of degrees from left side of the window \n
+        Only use when left and right angles are not equal"
+      default: 90
+      selector:
+        number:
+          min: 0
+          max: 90
+          mode: slider
+          step: 1
+          unit_of_measurement: "°"
+    max_elevation:
+      name: Maximum Elevation
+      description: Maximum angle of elevation
+      default: 90
+      selector:
+        number:
+          min: 0
+          max: 90
+          mode: slider
+          step: 1
+          unit_of_measurement: "°"
+    min_elevation:
+      name: Minimum Elevation
+      description: Minimum angle of elevation
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 90
+          mode: slider
+          step: 1
+          unit_of_measurement: "°"
+    change_threshold:
+      name: Minimun percentage change
+      description: The minimum percentage change to current position of the cover(s) to change position (to save battery)
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 100
+          mode: slider
+          step: 1
+          unit_of_measurement: "%"
+    time_out:
+      name: Time-out
+      description: Minimum time between updates (to save battery)
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 60
+          mode: slider
+          step: 1
+          unit_of_measurement: minutes
+    condition_mode:
+      name: Condition mode
+      description: Set mode of above conditions to AND or OR
+      default: and
+      selector:
+        select:
+          options:
+            - label: AND
+              value: and
+            - label: OR
+              value: or
+    condition:
+      name: Extra Conditions
+      description: Extra conditions for the automation
+      default: []
+      selector:
+        action: {}
+    action:
+      name: Extra Actions
+      description: Extra actions to run before intial service
+      default: []
+      selector:
+        action: {}
+variables:
+  cover_entity: !input cover_entity
+  azimuth: !input azimuth
+  distance: !input distance
+  max_height: !input max_height
+  min_height: !input min_height
+  default_height: !input default_height
+  min_position: !input minimum_position
+  degrees: !input degrees
+  default_template: !input default_template
+  azimuth_left: !input azimuth_left
+  azimuth_right: !input azimuth_right
+  max_elevation: !input max_elevation
+  min_elevation: !input min_elevation
+  cover_height: >
+    {%- set deg2rad = pi/180 -%}
+    {# normalize in range [0,1] #}
+    {%- macro norm(x, min, max) %}
+      {{ (x - min) / (max - min) }}
+    {%- endmacro %}
+    {# convert blind height h to percentage [0,100] #}
+    {%- macro h2perc(x) %}
+      {{ 100 * float(norm(x, h_min, h_max)) }}
+    {%- endmacro %}
+    {# clip value between [min, max] #}
+    {%- macro clipv(x, x_min, x_max) %}
+      {{ max(min(x, x_max), x_min) }}
+    {%- endmacro %}
+    {# constants #}
+    {%- set win_azi = azimuth -%}
+    {%- set left_azi = azimuth_left | default(90) -%}
+    {%- set right_azi = azimuth_right | default(90) -%}
+    {%- set elev_high = deg2rad * (max_elevation | default(90)) -%} {# Maximum: 90 #}
+    {%- set elev_low = deg2rad * (min_elevation| default(0)) -%} {# Minimum: 0 #}
+    {%- set d = distance | default(0.5) -%}
+    {%- set h_max = max_height | default(2.10) -%}
+    {%- set h_min = min_height | default(0) -%}
+    {%- set deg = degrees | default(90) -%}
+    {%- set def = default_height | default(60) -%}
+    {%- set min_pos = min_position | default(0) -%}
+    {%- set def_temp = default_template | default('') -%}
+    {% if def_temp | int(-1) >= 0 %}
+      {% set def = def_temp %}
+    {%endif%}
+
+    {# FOV #}
+    {%- if left_azi != right_azi-%}
+      {%- set azi_left = deg2rad * -left_azi -%} {# Minimum: -90 #}
+      {%- set azi_right = deg2rad * right_azi -%} {# Maximum: 90 #}
+    {%-else-%}
+      {%- set azi_left = deg2rad * -deg -%} {# Minimum: -90 #}
+      {%- set azi_right = deg2rad * deg -%} {# Maximum: 90 #}
+    {%-endif-%}
+    {%- set fov = deg2rad * deg -%}
+    {# get sun elevation / azimuth from sun.sun #}
+    {%- set sun_azi = state_attr('sun.sun', 'azimuth') -%}
+    {%- set sun_ele = state_attr('sun.sun', 'elevation') -%}
+    {# default height, when automatic control is off. #}
+    {%- set def_h = def / 100 * h_max -%}
+    {%- set alpha = deg2rad * sun_ele -%}
+    {% set gamma = deg2rad * ((win_azi - sun_azi + 180) % 360 - 180) %}    
+    {%- set h = (d / cos(gamma)) * tan(alpha) -%}
+    {# gamma is outside of FOV #}
+    {%- if gamma < azi_left or gamma > azi_right or alpha < elev_low or alpha > elev_high -%}
+      {{ clipv(h2perc(def_h) | round(0) | int , 0, 100) }}
+    {# gamma is inside of FOV #}
+    {%- else -%}  
+      {{ clipv(h2perc(h) | round(0) | int , min_pos, 100) }}
+    {%- endif -%}
+  change_threshold: !input change_threshold
+  time_out: !input time_out
+  condition_mode: !input condition_mode
+  dict_var: >
+    {%- set ns = namespace(list_1=[],name_1=[],list_2=[],name_2=[]) %}
+    {%- set  entity = cover_entity['entity_id'] -%}
+    {%- if entity is iterable and (entity is not string and entity is not mapping) -%}
+      {%- set cover = entity -%}
+    {%- else -%}
+      {%- set cover = [entity] -%}
+    {%- endif -%}
+    {%- for c in cover %}
+      {%- set position = state_attr(c,'current_position') | int -%}
+      {%- set con_1 = ((position - cover_height | float) | abs >= change_threshold)
+      or (cover_height in [default_height, default_template] and position not in [default_height, default_template])%}
+      {%- set ns.list_1 = ns.list_1 + [con_1]  -%}
+      {%- set con_2 = now() - timedelta(minutes=time_out) >= states[c].last_updated %}
+      {%- set ns.list_2 = ns.list_2 + [con_2] %}
+      {%- if con_1 == true -%}
+        {%- set ns.name_1 = ns.name_1 + [c] -%}
+      {% endif %}
+      {%if con_2 == true%}
+        {%- set ns.name_2 = ns.name_2 + [c] -%}
+      {% endif %}
+    {%endfor%}
+    {%- set dict = {
+      'condition_1':ns.list_1,
+      'condition_2':ns.list_2,
+      'names_1':ns.name_1,
+      'names_2':ns.name_2
+      } %}
+    {{dict}}
+  condition_1: >
+    {{true is in dict_var['condition_1']}}
+  condition_2: >
+    {{true is in dict_var['condition_2']}}
+  entities_1: >
+    {{dict_var['names_1']}}
+  entities_2: >
+    {{dict_var['names_2']}}
+trigger:
+  - platform: state
+    entity_id:
+      - sun.sun
+condition: !input condition
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{condition_mode == 'and'}}"
+        sequence:
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{condition_1}}"
+              - condition: template
+                value_template: "{{condition_2}}"
+          - choose: []
+            default: !input action
+          - service: cover.set_cover_position
+            data:
+              position: "{{ cover_height | int(0) }}"
+            target:
+              entity_id: >
+                {%- if condition_1 == true -%}
+                  {{entities_1}}
+                {%- else -%}
+                  {{entities_2}}
+                {%endif%}
+      - conditions:
+          - condition: template
+            value_template: "{{condition_mode == 'or'}}"
+        sequence:
+          - condition: or
+            conditions:
+              - condition: template
+                value_template: "{{condition_1}}"
+              - condition: template
+                value_template: "{{condition_2}}"
+          - choose: []
+            default: !input action
+          - service: cover.set_cover_position
+            data:
+              position: "{{ cover_height | int(0) }}"
+            target:
+              entity_id: >
+                {%- if condition_1 == true -%}
+                  {{entities_1}}
+                {%- else -%}
+                  {{entities_2}}
+                {%endif%}
+mode: single

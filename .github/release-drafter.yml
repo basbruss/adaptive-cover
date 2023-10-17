@@ -1,0 +1,66 @@
+---
+name-template: "v$RESOLVED_VERSION ⛅"
+tag-template: "v$RESOLVED_VERSION"
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+sort-direction: ascending
+
+categories:
+  - title: "🚨 Breaking changes"
+    labels:
+      - "🚨 breaking-change"
+  - title: "✨ New features"
+    labels:
+      - "✨ new-feature"
+  - title: "🐛 Bug fixes"
+    labels:
+      - "🐛 bugfix"
+  - title: "🚀 Enhancements"
+    labels:
+      - "🚀 enhancement"
+      - "refactor"
+      - "performance"
+  - title: "🧰 Maintenance"
+    labels:
+      - "maintenance"
+      - "ci"
+  - title: "📚 Documentation"
+    labels:
+      - "📚 documentation"
+  - title: "⬆️ Dependency updates"
+    labels:
+      - "dependencies"
+
+version-resolver:
+  major:
+    labels:
+      - "major"
+      - "🚨 breaking-change"
+  minor:
+    labels:
+      - "minor"
+      - "✨ new-feature"
+  patch:
+    labels:
+      - "🐛 bugfix"
+      - "chore"
+      - "ci"
+      - "dependencies"
+      - "📚 documentation"
+      - "enhancement"
+      - "performance"
+      - "refactor"
+  default: patch
+
+prereleas-identifier: 'beta'
+
+exlude-contributors:
+  - "dependabot"
+
+template: |
+  # Adaptive Cover ⛅ v$RESOLVED_VERSION 
+  ## Changes
+
+  $CHANGES
+
+  ## THANKS TO ALL CONTRIBUTORS
+  $CONTRIBUTORS

@@ -1,0 +1,121 @@
+blueprint:
+  name: Adaptive Cover
+  description: "`version 0.0.1` \n
+    Set cover position based on direct sunlight exposed to window \n\n
+    Calculations are done internally in the blueprint removing the need to use a sensor to input a value
+    \n for in depth information on the calculations and variables, check this forum [post](https://community.home-assistant.io/t/automatic-blinds-sunscreen-control-based-on-sun-platform/573818)
+    \n **Code Owner:** [`@langestefan`](https://community.home-assistant.io/u/langestefan/)
+    \n **Blueprint by:** [`@basbruss`](https://community.home-assistant.io/u/basbruss/)\n
+    ![Azimuth/Elevation](https://community-assets.home-assistant.io/original/4X/9/f/9/9f973bf5477df545015516e08fe050f279846b9b.jpeg)"
+
+  domain: automation
+  input:
+    adaptive_cover_entity:
+      name: Adaptive Cover sensor
+      description: "Sensor for corresponding the azimuth"
+      selector:
+        entity:
+          filter:
+            integration: adaptive_cover
+    cover_entity:
+      name: Cover
+      description: "Additional cover(s) not yet configured from the Adaptive Cover integration"
+      default: []
+      selector:
+        entity:
+          multiple: true
+          filter:
+            domain: cover
+    change_threshold:
+      name: Minimun percentage change
+      description: The minimum percentage change to current position of the cover(s) to change position (to save battery)
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 100
+          mode: slider
+          step: 1
+          unit_of_measurement: "%"
+    time_out:
+      name: Time-out
+      description: Minimum time between updates (to save battery)
+      default: 5
+      selector:
+        number:
+          min: 0
+          max: 60
+          mode: slider
+          step: 1
+          unit_of_measurement: minutes
+    conditions:
+      name: Additional conditions
+      description: Add conditions to prevent changes in position
+      default: []
+      selector:
+        condition: {}
+    action:
+      name: Extra Actions
+      description: Extra actions to run before intial service
+      default: []
+      selector:
+        action: {}
+variables:
+  adaptive_cover_entity: !input adaptive_cover_entity
+  cover_entity: !input cover_entity
+  entities: >
+    {%set list1 = state_attr(adaptive_cover_entity,'entity_id') %}
+    {%set list2 = cover_entity %}
+    {{(list1 + list2) |unique |list}}
+  change_threshold: !input change_threshold
+  time_out: !input time_out
+  sensor_state: "{{states(adaptive_cover_entity)}}"
+  default_height: "{{state_attr(adaptive_cover_entity,'default_height')}}"
+  dict_var: >
+    {%- set ns = namespace(con_1=[],con_2=[]) %}
+    {%- for entity in entities %}
+      {%- set position = state_attr(entity,'current_position') | int -%}
+      {%- set con_1 = ((position - sensor_state | float) | abs >= change_threshold)
+      or (sensor_state == default_height and position != default_height)%}
+      {%- set ns.con_1 = ns.con_1 + [con_1]  -%}
+      {%- set con_2 = now() - timedelta(minutes=time_out) >= states[entity].last_updated
+      or (sensor_state == default_height and position != default_height) %}
+      {%- set ns.con_2 = ns.con_2 + [con_2] %}
+    {%endfor%}
+    {%- set dict = {
+      'condition_1':ns.con_1,
+      'condition_2':ns.con_2,
+      } %}
+    {{dict}}
+trigger:
+  - platform: state
+    entity_id: !input adaptive_cover_entity
+condition: !input conditions
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{entities|count==0}}"
+        sequence:
+          - stop: No entities configured!
+            error: true
+      - conditions:
+          - condition: template
+            value_template: "{{entities|count>0}}"
+        sequence:
+          - condition: and
+            conditions:
+              - condition: template
+                value_template: "{{true is in dict_var['condition_1']}}"
+              - condition: template
+                value_template: "{{true is in dict_var['condition_2']}}"
+              - condition: time
+                after: "00:01:00"
+                before: "23:59:00"
+          - service: cover.set_cover_position
+            data:
+              position: "{{states(adaptive_cover_entity)}}"
+            target:
+              entity_id: "{{entities}}"
+          - choose: []
+            default: !input action
