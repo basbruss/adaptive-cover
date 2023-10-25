@@ -54,7 +54,7 @@ version-resolver:
 prereleas-identifier: 'beta'
 
 exlude-contributors:
-  - "@dependabot"
+  - "dependabot"
 
 template: |
   # Adaptive Cover ⛅ v$RESOLVED_VERSION 
