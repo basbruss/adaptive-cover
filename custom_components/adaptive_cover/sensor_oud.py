@@ -6,13 +6,9 @@ from datetime import timedelta
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, EVENT_HOMEASSISTANT_STARTED
-from homeassistant.core import HomeAssistant, CoreState, callback
+from homeassistant.core import HomeAssistant, CoreState
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import UndefinedType, EventType
-from homeassistant.helpers.event import (
-    EventStateChangedData,
-    async_track_state_change_event,
-)
+from homeassistant.helpers.typing import UndefinedType
 
 from .calculation import AdaptiveCoverCalculator
 
@@ -37,6 +33,9 @@ from .const import (
     SensorType,
 )
 
+SCAN_INTERVAL = timedelta(seconds=10)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -56,6 +55,7 @@ async def async_setup_entry(
 
     async_add_entities([sensor], False)
 
+
 class AdaptiveCoverSensorEntity(SensorEntity):
     """adaptive_cover Sensor."""
 
@@ -63,7 +63,6 @@ class AdaptiveCoverSensorEntity(SensorEntity):
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_icon = "mdi:sun-compass"
     _attr_has_entity_name = True
-    _attr_should_poll = False
 
     def __init__(
         self,
@@ -86,26 +85,14 @@ class AdaptiveCoverSensorEntity(SensorEntity):
         self._attr_name = f"Adaptive Cover {name} {type[self.config_entry.data[CONF_SENSOR_TYPE]]}"
         self._name = f"Adaptive Cover {name}"
 
-    @callback
-    def async_on_state_change(self, event: EventType[EventStateChangedData]) -> None:
-        """Update supported features and state when a new state is received."""
-        self.async_set_context(event.context)
-
-        self.async_update_state()
-
     async def async_added_to_hass(self) -> None:
-        "Handle added to Hass"
-        async_track_state_change_event(
-            self.hass, ["sun.sun"], self.async_on_state_change
-        )
-        self.async_update_state()
-
-    @callback
-    def async_update_state(self) -> None:
-        "Determine state after push"
-        self._cover_data.update()
-
-        self.async_write_ha_state()
+        """Handle when entity is added."""
+        if self.hass.state != CoreState.running:
+            self.hass.bus.async_listen_once(
+                EVENT_HOMEASSISTANT_STARTED, self.first_update
+            )
+        else:
+            await self.first_update()
 
     @property
     def native_value(self) -> str | None:
@@ -137,6 +124,16 @@ class AdaptiveCoverSensorEntity(SensorEntity):
             ]
             dict_attributes["distance"] = self.config_entry.options[CONF_DISTANCE]
         return dict_attributes
+
+    async def first_update(self, _=None) -> None:
+        """Run first update and write state."""
+        await self.hass.async_add_executor_job(self.update)
+        self.async_write_ha_state()
+
+    def update(self) -> None:
+        """Fetch new state data for the sensor."""
+        self._cover_data.update()
+
 
 class AdaptiveCoverData:
     """AdaptiveCover data object"""
