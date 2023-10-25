@@ -20,8 +20,10 @@ jobs:
       - name: "Adjust version number"
         shell: "bash"
         run: |
-          yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
-            "${{ github.workspace }}/custom_components/adaptive_cover/manifest.json"
+          version="${{ github.event.release.tag_name }}"
+          yq e -P -o=json \
+            -i ".version = \"${version}\"" \
+            "${{ github.workspace }}/custom_components/spook/manifest.json"
 
       - name: "ZIP the integration directory"
         shell: "bash"
