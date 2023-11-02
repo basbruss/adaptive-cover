@@ -61,8 +61,14 @@ class AdaptiveCoverCalculator(
         """Determine start/end times"""
         df_today = pd.DataFrame({"azimuth":self.sun_data.solar_azimuth, "elevation":self.sun_data.solar_elevation})
         solpos = df_today.set_index(self.sun_data.times)
-        frame = (solpos["azimuth"] > self.azi_min_abs) & (solpos["azimuth"] < self.azi_max_abs) & (solpos["elevation"] > 0)
-        return solpos[frame].index[0].to_pydatetime(), solpos[frame].index[-1].to_pydatetime()
+
+        alpha = solpos["azimuth"]
+        frame = ((alpha - self.azi_min_abs) % 360 <= (self.azi_max_abs - self.azi_min_abs) % 360) & (solpos["elevation"] > 0)
+
+        if solpos[frame].empty:
+            return None, None
+        else:
+            return solpos[frame].index[0].to_pydatetime(), solpos[frame].index[-1].to_pydatetime()
 
     def value(self, value: any):
         """Return input value"""
