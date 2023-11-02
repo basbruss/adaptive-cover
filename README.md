@@ -24,7 +24,7 @@ Restart Home-Assistant and add the integration.
 
 ## Setup
 
-Adaptive Cover supports (for now) two types of covers/blinds; Vertical and Horizontal.
+Adaptive Cover supports (for now) three types of covers/blinds; Vertical and Horizontal and Venetian (Tilted) blinds.
 Each type has its own specific parameters to setup a sensor. To setup the sensor you first need to find out the azimuth of the window(s). This can be done by finding your location on [Open Street Map Compass](https://osmcompass.com/).
 
 ### Simulation
