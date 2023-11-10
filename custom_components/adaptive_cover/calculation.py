@@ -1,4 +1,4 @@
-"""Generate values for all types of covers"""
+"""Generate values for all types of covers."""
 from datetime import timedelta, datetime
 import numpy as np
 import pandas as pd
@@ -9,9 +9,9 @@ from .sun import SunData
 
 
 class AdaptiveGeneralCover:
-    """Collect common data"""
+    """Collect common data."""
 
-    def __init__(
+    def __init__(  # noqa: D107
         self,
         hass,
         sol_azi,
@@ -37,7 +37,7 @@ class AdaptiveGeneralCover:
         self.sun_data = SunData(self.hass, timezone)
 
     def solar_times(self):
-        """Determine start/end times"""
+        """Determine start/end times."""
         df_today = pd.DataFrame(
             {
                 "azimuth": self.sun_data.solar_azimuth,
@@ -62,26 +62,26 @@ class AdaptiveGeneralCover:
 
     @property
     def azi_min_abs(self) -> int:
-        """Calculate min azimuth"""
+        """Calculate min azimuth."""
         azi_min_abs = (self.win_azi - self.fov_left + 360) % 360
         return azi_min_abs
 
     @property
     def azi_max_abs(self) -> int:
-        """Calculate max azimuth"""
+        """Calculate max azimuth."""
         azi_max_abs = (self.win_azi + self.fov_right + 360) % 360
         return azi_max_abs
 
     @property
     def gamma(self) -> float:
-        """Calculate Gamma"""
+        """Calculate Gamma."""
         # surface solar azimuth
         gamma = (self.win_azi - self.sol_azi + 180) % 360 - 180
         return gamma
 
     @property
     def valid(self) -> bool:
-        """Determine if sun infront of window"""
+        """Determine if sun infront of window."""
         # clip azi_min and azi_max to 90
         azi_min = min(self.fov_left, 90)
         azi_max = min(self.fov_right, 90)
@@ -92,7 +92,7 @@ class AdaptiveGeneralCover:
 
     @property
     def default_pos(self) -> tuple:
-        """Change default position at sunset"""
+        """Change default position at sunset."""
         default = self.h_def
         sunset = self.sun_data.sunset().replace(tzinfo=None)
         condition = datetime.utcnow() > sunset + timedelta(minutes=self.sunset_off)
@@ -101,14 +101,14 @@ class AdaptiveGeneralCover:
         return default, condition
 
     def fov(self) -> list:
-        """Return field of view"""
+        """Return field of view."""
         return [self.azi_min_abs, self.azi_max_abs]
 
 
 class AdaptiveVerticalCover(AdaptiveGeneralCover):
-    """Calculate state for Vertical blinds"""
+    """Calculate state for Vertical blinds."""
 
-    def __init__(
+    def __init__(  # noqa: D107
         self,
         hass,
         sol_azi,
@@ -139,7 +139,7 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
         self.h_win = h_win
 
     def calculate_blind_height(self) -> float:
-        """Calculate blind height"""
+        """Calculate blind height."""
         # calculate blind height
         blind_height = np.clip(
             (self.distance / cos(rad(self.gamma))) * tan(rad(self.sol_elev)),
@@ -149,7 +149,7 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
         return blind_height
 
     def blind_state_perc(self) -> float:
-        """Convert blind height to percentage or default value"""
+        """Convert blind height to percentage or default value."""
         default_pos, time_con = self.default_pos
         blind_height = np.where(
             (self.valid) & (not time_con),
@@ -161,9 +161,9 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
 
 
 class AdaptiveHorizontalCover(AdaptiveVerticalCover):
-    """Calculate state for Horizontal blinds"""
+    """Calculate state for Horizontal blinds."""
 
-    def __init__(
+    def __init__(  # noqa: D107
         self,
         hass,
         sol_azi,
@@ -199,7 +199,7 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
 
     @property
     def calculate_awning_length(self) -> float:
-        """Calculate awn length from blind height"""
+        """Calculate awn length from blind height."""
         awn_angle = 90 - self.awn_angle
         a_angle = 90 - self.sol_elev
         c_angle = 180 - awn_angle - a_angle
@@ -210,7 +210,7 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
         return length
 
     def awn_state_perc(self) -> float:
-        """Convert awn length to percentage or default value"""
+        """Convert awn length to percentage or default value."""
         default_pos, time_con = self.default_pos
         awn_length = np.where(
             (self.valid) & (not time_con),
@@ -222,9 +222,9 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
 
 
 class AdaptiveTiltCover(AdaptiveGeneralCover):
-    """Calculate state for tilted blinds"""
+    """Calculate state for tilted blinds."""
 
-    def __init__(
+    def __init__(  # noqa: D107
         self,
         hass,
         sol_azi,
@@ -258,8 +258,7 @@ class AdaptiveTiltCover(AdaptiveGeneralCover):
 
     @property
     def calculate_tilt_angle(self) -> float:
-        """
-        Calculate tilt angle of venetian blinds
+        """Calculate tilt angle of venetian blinds.
 
         https://www.mdpi.com/1996-1073/13/7/1731
         """
@@ -279,7 +278,7 @@ class AdaptiveTiltCover(AdaptiveGeneralCover):
         return result
 
     def tilt_state_perc(self):
-        """Convert tilt angle to percentages or default value"""
+        """Convert tilt angle to percentages or default value."""
         default_pos, time_con = self.default_pos
         # 0 degrees is closed, 90 degrees is open, 180 degrees is closed
         percentage_single = self.calculate_tilt_angle / 90 * 100  # single directional

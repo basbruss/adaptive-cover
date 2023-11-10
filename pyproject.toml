@@ -1,0 +1,89 @@
+[tool.poetry]
+authors = ["Bas Brussee"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Framework :: AsyncIO",
+  "Intended Audience :: Developers",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3",
+]
+description = "Adaptive Cover"
+documentation = "https://github.com/basbruss/adaptive_cover"
+homepage = "https://github.com/basbruss/adaptive_cover"
+license = "Passive Aggressive License"
+maintainers = ["Bas Brussee"]
+name = "adaptive_cover"
+packages = []
+readme = "README.md"
+repository = "https://github.com/basbruss/adaptive_cover"
+version = "0.0.0"
+
+[tool.poetry.dependencies]
+homeassistant = "2023.11.1"
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+hass-nabucasa = "0.74.0"
+pre-commit = "3.5.0"
+pre-commit-hooks = "4.5.0"
+pylint = "3.0.2"
+ruff = "0.1.5"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/basbruss/adaptive_cover/issues"
+Changelog = "https://github.com/basbruss/adaptive_cover/releases"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
+
+[tool.ruff]
+ignore = [
+  "ANN101", # Self... explanatory
+  "ANN401", # Opiniated warning on disallowing dynamically typed expressions
+  "D203", # Conflicts with other rules
+  "D213", # Conflicts with other rules
+  "TID252", # Relative imports
+  "RUF012", # Just broken
+
+  # Formatter conflicts
+  "COM812",
+  "COM819",
+  "D206",
+  "E501",
+  "ISC001",
+  "Q000",
+  "Q001",
+  "Q002",
+  "Q003",
+  "W191",
+]
+select = ["ALL"]
+src = ["custom_components/adaptive_cover"]
+
+[tool.ruff.flake8-import-conventions.extend-aliases]
+"homeassistant.helpers.area_registry" = "ar"
+"homeassistant.helpers.config_validation" = "cv"
+"homeassistant.helpers.device_registry" = "dr"
+"homeassistant.helpers.entity_registry" = "er"
+"homeassistant.helpers.issue_registry" = "ir"
+voluptuous = "vol"
+
+[tool.ruff.isort]
+force-sort-within-sections = true
+known-first-party = [
+    "homeassistant",
+]
+combine-as-imports = true
+
+[tool.pylint."MESSAGES CONTROL"]
+# Reasons disabled:
+# format - handled by ruff
+# duplicate-code - unavoidable
+# used-before-assignment - false positives with TYPE_CHECKING structures
+disable = [
+  "format",
+  "duplicate-code",
+  "used-before-assignment",
+]

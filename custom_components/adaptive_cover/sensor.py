@@ -100,7 +100,7 @@ class AdaptiveCoverSensorEntity(SensorEntity):
         self.async_update_state()
 
     async def async_added_to_hass(self) -> None:
-        "Handle added to Hass"
+        """Handle added to Hass."""
         async_track_state_change_event(
             self.hass, ["sun.sun"], self.async_on_state_change
         )
@@ -108,7 +108,7 @@ class AdaptiveCoverSensorEntity(SensorEntity):
 
     @callback
     def async_update_state(self) -> None:
-        "Determine state after push"
+        """Determine state after push."""
         self._cover_data.update()
         if self.cover_type == "cover_blind":
             self._cover_data.update_vertical()
@@ -121,11 +121,11 @@ class AdaptiveCoverSensorEntity(SensorEntity):
 
     @property
     def native_value(self) -> str | None:
-        """Handle when entity is added"""
+        """Handle when entity is added."""
         return self._cover_data.state
 
     @property
-    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:  # noqa: D102
         dict_attributes = {
             "azimuth_window": self.config_entry.options[CONF_AZIMUTH],
             "default_height": self.config_entry.options[CONF_DEFAULT_HEIGHT],
@@ -152,9 +152,9 @@ class AdaptiveCoverSensorEntity(SensorEntity):
 
 
 class AdaptiveCoverData:
-    """Adaptive Cover data Collector"""
+    """Adaptive Cover data Collector."""
 
-    def __init__(
+    def __init__(  # noqa: D107
         self,
         hass,
         config_entry: ConfigEntry,
@@ -184,7 +184,7 @@ class AdaptiveCoverData:
         self.win_azi = 180
 
     def update(self):
-        """update all common parameters"""
+        """Update all common parameters."""
         self.inverse_state = self.config_entry.options[CONF_INVERSE_STATE]
         self.sol_azi = self.hass.states.get("sun.sun").attributes["azimuth"]
         self.sol_elev = self.hass.states.get("sun.sun").attributes["elevation"]
@@ -197,7 +197,7 @@ class AdaptiveCoverData:
         self.h_def = self.config_entry.options[CONF_DEFAULT_HEIGHT]
 
     def update_vertical(self):
-        """Update values for vertical blind"""
+        """Update values for vertical blind."""
         self.distance = self.config_entry.options[CONF_DISTANCE]
         self.h_win = self.config_entry.options[CONF_HEIGHT_WIN]
         values = AdaptiveVerticalCover(
@@ -217,7 +217,7 @@ class AdaptiveCoverData:
         self.state_perc = values.blind_state_perc()
 
     def update_horizontal(self):
-        """Update values for horizontal blind"""
+        """Update values for horizontal blind."""
         self.awn_length = self.config_entry.options[CONF_LENGTH_AWNING]
         self.awn_angle = self.config_entry.options[CONF_AWNING_ANGLE]
         values = AdaptiveHorizontalCover(
@@ -239,7 +239,7 @@ class AdaptiveCoverData:
         self.state_perc = values.awn_state_perc()
 
     def update_tilt(self):
-        """Update values for tilted blind"""
+        """Update values for tilted blind."""
         self.slat_distance = self.config_entry.options[CONF_TILT_DISTANCE]
         self.depth = self.config_entry.options[CONF_TILT_DEPTH]
         self.mode = self.config_entry.options[CONF_TILT_MODE]
@@ -262,13 +262,14 @@ class AdaptiveCoverData:
 
     @property
     def state(self):
-        """Get state from cover type class"""
+        """Get state from cover type class."""
         state = self.state_perc
         if state is not None:
             return round(state)
 
     @state.setter
     def inverse_state(self, value):
+        """Inverse state."""
         if self.inverse_state:
             return 100 - value
         return value
