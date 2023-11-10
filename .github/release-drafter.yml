@@ -1,7 +1,7 @@
 ---
 name-template: "v$RESOLVED_VERSION ⛅"
 tag-template: "v$RESOLVED_VERSION"
-change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+change-template: "- $TITLE in (#$NUMBER) by @$AUTHOR "
 sort-direction: ascending
 
 categories:
@@ -18,7 +18,7 @@ categories:
     labels:
       - "🚀 enhancement"
       - "refactor"
-      - "performance"
+      - "📈 performance"
   - title: "🧰 Maintenance"
     labels:
       - "maintenance"
@@ -47,7 +47,7 @@ version-resolver:
       - "dependencies"
       - "📚 documentation"
       - "enhancement"
-      - "performance"
+      - "📈 performance"
       - "refactor"
   default: patch
 
