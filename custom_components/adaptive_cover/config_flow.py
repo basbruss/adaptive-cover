@@ -1,8 +1,7 @@
 """Config flow for Adaptive Cover integration."""
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Any, cast
+from typing import Any
 
 import voluptuous as vol
 
@@ -10,7 +9,6 @@ from homeassistant.components.sensor import DOMAIN
 from homeassistant.helpers import selector
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.core import callback
-from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import (
     ConfigFlow,
     OptionsFlowWithConfigEntry,
@@ -42,11 +40,7 @@ from .const import (
 
 DEFAULT_NAME = "Adaptive Cover"
 
-SENSOR_TYPE_MENU = [
-    SensorType.BLIND,
-    SensorType.AWNING,
-    SensorType.TILT
-    ]
+SENSOR_TYPE_MENU = [SensorType.BLIND, SensorType.AWNING, SensorType.TILT]
 
 
 CONFIG_SCHEMA = vol.Schema(
@@ -80,7 +74,6 @@ OPTIONS = vol.Schema(
             selector.EntitySelectorConfig(domain="cover", multiple=True)
         ),
         vol.Required(CONF_INVERSE_STATE, default=False): bool,
-
     }
 )
 
@@ -120,9 +113,11 @@ TILT_OPTIONS = vol.Schema(
         vol.Required(CONF_TILT_DISTANCE, default=2): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0, max=15, step=0.1, mode="slider")
         ),
-        vol.Required(CONF_TILT_MODE, default='mode2'): selector.SelectSelector(
-            selector.SelectSelectorConfig(options=['mode1','mode2'], translation_key='tilt_mode')
-        )
+        vol.Required(CONF_TILT_MODE, default="mode2"): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=["mode1", "mode2"], translation_key="tilt_mode"
+            )
+        ),
     }
 ).extend(OPTIONS.schema)
 
@@ -134,7 +129,7 @@ CONFIG_TILT = CONFIG_SCHEMA.extend(TILT_OPTIONS.schema)
 class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle ConfigFlow."""
 
-    def __init__(self) -> None:
+    def __init__(self) -> None:  # noqa: D107
         super().__init__()
         self.type_blind: str | None = None
 
@@ -206,8 +201,8 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             },
         )
 
-    async def async_step_cover_tilt(self,user_input):
-        """Show config for tilted blinds"""
+    async def async_step_cover_tilt(self, user_input):
+        """Show config for tilted blinds."""
         self.type_blind = SensorType.TILT
         return self.async_show_form(step_id="tilt", data_schema=CONFIG_TILT)
 

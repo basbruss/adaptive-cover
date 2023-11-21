@@ -1,13 +1,11 @@
 {
   "domain": "adaptive_cover",
   "name": "Adaptive Cover",
-  "codeowners": [
-    "@basbruss"
-  ],
+  "codeowners": ["@basbruss"],
   "config_flow": true,
   "documentation": "https://github.com/basbruss/test",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/basbruss/adaptive-cover/issues",
-  "requirements": ["astral","pandas"],
+  "requirements": ["astral", "pandas"],
   "version": "0.0.1"
 }

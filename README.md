@@ -28,6 +28,7 @@ Adaptive Cover supports (for now) three types of covers/blinds; Vertical and Hor
 Each type has its own specific parameters to setup a sensor. To setup the sensor you first need to find out the azimuth of the window(s). This can be done by finding your location on [Open Street Map Compass](https://osmcompass.com/).
 
 ### Simulation
+
 ![combined_simulation](custom_components/adaptive_cover/simulation/sim_plot.png)
 
 ### Blueprint

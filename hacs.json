@@ -1,7 +1,7 @@
 {
-    "name": "Adaptive Cover",
-    "filename": "adaptive_cover.zip",
-    "homeassistant": "2022.1.0",
-    "render_readme": true,
-    "zip_release": true
+  "name": "Adaptive Cover",
+  "filename": "adaptive_cover.zip",
+  "homeassistant": "2022.1.0",
+  "render_readme": true,
+  "zip_release": true
 }

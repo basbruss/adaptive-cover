@@ -51,7 +51,7 @@ version-resolver:
       - "refactor"
   default: patch
 
-prereleas-identifier: 'beta'
+prereleas-identifier: "beta"
 
 exlude-contributors:
   - "dependabot"

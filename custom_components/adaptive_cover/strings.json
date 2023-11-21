@@ -1,148 +1,147 @@
 {
-    "title": "Adaptive Cover",
-    "config": {
-        "step": {
-            "user": {
-                "description": "New Adaptive Cover Sensor",
-                "menu_options": {
-                    "cover_blind": "Vertical blind",
-                    "cover_awning": "Horizontal blind",
-                    "cover_tilt": "Tilted blind"
-                }
-            },
-            "vertical": {
-                "data": {
-                    "name": "Name",
-                    "blueprint": "Add blueprint to HomeAssistant",
-                    "set_azimuth": "Window Azimuth",
-                    "window_height": "Window Height",
-                    "distance_shaded_area": "Shaded area",
-                    "default_percentage": "Default Position",
-                    "fov_left": "Field of view left",
-                    "fov_right": "Field of view right",
-                    "group": "Cover Entities",
-                    "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-                    "sunset_position": "Sunset Position",
-                    "sunset_offset": "Sunset Offset"
-
-                },
-                "data_description": {
-                    "set_azimuth": "Set the Azimuth",
-                    "window_height": "Set the height of the window(s) in meters",
-                    "distance_shaded_area": "Distance from cover to shaded area in meters",
-                    "default_percentage": "Default posistion of cover in percentages",
-                    "fov_left": "Degrees to take in account from the left side of the center of the window",
-                    "fov_right": "Degrees to take in account from the right side of the center of the window",
-                    "group": "Select entities to be controlled with the Blueprint",
-                    "sunset_position": "Position to change to after sunset",
-                    "sunset_offset": "Offset (+-) from sunset in minutes"
-                }
-            },
-            "horizontal": {
-                "data": {
-                    "name": "Name",
-                    "blueprint": "Add blueprint to HomeAssistant",
-                    "set_azimuth": "Window Azimuth",
-                    "height_awning": "Awning Height",
-                    "lenght_awning": "Awning Span Length",
-                    "angle": "Awning Angle",
-                    "distance_shaded_area": "Shaded area",
-                    "default_percentage": "Default Position",
-                    "fov_left": "Field of view left",
-                    "fov_right": "Field of view right",
-                    "group": "Cover Entities",
-                    "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-                    "sunset_position": "Sunset Position",
-                    "sunset_offset": "Sunset Offset"
-                },
-                "data_description": {
-                    "set_azimuth": "Set the Azimuth",
-                    "height_awning": "Set the height of the awning from the floor",
-                    "lenght_awning": "The total length of the span in meters",
-                    "angle": "The angle of the attached awning measured perpendicular from the wall downward to the floor",
-                    "distance_shaded_area": "Distance from cover to shaded area in meters",
-                    "default_percentage": "Default posistion of cover in percentages",
-                    "fov_left": "Degrees to take in account from the left side of the center of the window",
-                    "fov_right": "Degrees to take in account from the right side of the center of the window",
-                    "group": "Select entities to be controlled with the Blueprint",
-                    "sunset_position": "Position to change to after sunset",
-                    "sunset_offset": "Offset (+-) from sunset in minutes"
-                }
-            },
-            "tilt": {
-                "data": {
-                    "name": "Name",
-                    "blueprint": "Add blueprint to HomeAssistant",
-                    "set_azimuth": "Window Azimuth",
-                    "slat_depth": "Slat Depth",
-                    "slat_distance": "Slat Spacing",
-                    "default_percentage": "Default Position",
-                    "fov_left": "Field of view left",
-                    "fov_right": "Field of view right",
-                    "group": "Cover Entities",
-                    "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-                    "sunset_position": "Sunset Position",
-                    "sunset_offset": "Sunset Offset"
-                },
-                "data_description": {
-                    "set_azimuth": "Set the Azimuth",
-                    "slat_depth": "Depth of individual slat in cm",
-                    "slat_distance": "Vertical distance between two slats in cm",
-                    "default_percentage": "Default posistion of cover in percentages",
-                    "fov_left": "Degrees to take in account from the left side of the center of the window",
-                    "fov_right": "Degrees to take in account from the right side of the center of the window",
-                    "group": "Select entities to be controlled with the Blueprint",
-                    "sunset_position": "Position to change to after sunset",
-                    "sunset_offset": "Offset (+-) from sunset in minutes"
-                }
-            }
+  "title": "Adaptive Cover",
+  "config": {
+    "step": {
+      "user": {
+        "description": "New Adaptive Cover Sensor",
+        "menu_options": {
+          "cover_blind": "Vertical blind",
+          "cover_awning": "Horizontal blind",
+          "cover_tilt": "Tilted blind"
         }
-    },
-    "options": {
-        "step": {
-            "init": {
-                "data": {
-                    "set_azimuth": "Window Azimuth",
-                    "window_height": "Window Height",
-                    "height_awning": "Awning Height",
-                    "lenght_awning": "Awning Span Length",
-                    "angle": "Awning Angle",
-                    "distance_shaded_area": "Shaded area",
-                    "default_percentage": "Default Position",
-                    "fov_left": "Field of view left",
-                    "fov_right": "Field of view right",
-                    "group": "Cover Entities",
-                    "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-                    "sunset_position": "Sunset Position",
-                    "sunset_offset": "Sunset Offset",
-                    "slat_depth": "Slat Depth",
-                    "slat_distance": "Slat Spacing"
-                },
-                "data_description": {
-                    "set_azimuth": "Set the Azimuth",
-                    "window_height": "Set the height of the window(s) in meters",
-                    "height_awning": "Set the height of the awning from the floor",
-                    "lenght_awning": "The total length of the span in meters",
-                    "angle": "The angle of the attached awning measured perpendicular from the wall downward to the floor",
-                    "distance_shaded_area": "Distance from cover to shaded area in meters",
-                    "default_percentage": "Default posistion of cover in percentages",
-                    "fov_left": "Degrees to take in account from the left side of the center of the window",
-                    "fov_right": "Degrees to take in account from the right side of the center of the window",
-                    "group": "Select entities to be controlled with the Blueprint",
-                    "sunset_position": "Sunset Position",
-                    "sunset_offset": "Sunset Offset",
-                    "slat_depth": "Depth of individual slat in cm",
-                    "slat_distance": "Vertical distance between two slats in cm"
-                }
-            }
+      },
+      "vertical": {
+        "data": {
+          "name": "Name",
+          "blueprint": "Add blueprint to HomeAssistant",
+          "set_azimuth": "Window Azimuth",
+          "window_height": "Window Height",
+          "distance_shaded_area": "Shaded area",
+          "default_percentage": "Default Position",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset"
+        },
+        "data_description": {
+          "set_azimuth": "Set the Azimuth",
+          "window_height": "Set the height of the window(s) in meters",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "default_percentage": "Default posistion of cover in percentages",
+          "fov_left": "Degrees to take in account from the left side of the center of the window",
+          "fov_right": "Degrees to take in account from the right side of the center of the window",
+          "group": "Select entities to be controlled with the Blueprint",
+          "sunset_position": "Position to change to after sunset",
+          "sunset_offset": "Offset (+-) from sunset in minutes"
         }
-    },
-    "selector":{
-        "tilt_mode":{
-            "options":{
-                "mode1": "single direction (0% = closed / 100% = open)",
-                "mode2": "bi-directional (0% = closed / 50% = open / 100% = closed)"
-            }
+      },
+      "horizontal": {
+        "data": {
+          "name": "Name",
+          "blueprint": "Add blueprint to HomeAssistant",
+          "set_azimuth": "Window Azimuth",
+          "height_awning": "Awning Height",
+          "lenght_awning": "Awning Span Length",
+          "angle": "Awning Angle",
+          "distance_shaded_area": "Shaded area",
+          "default_percentage": "Default Position",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset"
+        },
+        "data_description": {
+          "set_azimuth": "Set the Azimuth",
+          "height_awning": "Set the height of the awning from the floor",
+          "lenght_awning": "The total length of the span in meters",
+          "angle": "The angle of the attached awning measured perpendicular from the wall downward to the floor",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "default_percentage": "Default posistion of cover in percentages",
+          "fov_left": "Degrees to take in account from the left side of the center of the window",
+          "fov_right": "Degrees to take in account from the right side of the center of the window",
+          "group": "Select entities to be controlled with the Blueprint",
+          "sunset_position": "Position to change to after sunset",
+          "sunset_offset": "Offset (+-) from sunset in minutes"
         }
+      },
+      "tilt": {
+        "data": {
+          "name": "Name",
+          "blueprint": "Add blueprint to HomeAssistant",
+          "set_azimuth": "Window Azimuth",
+          "slat_depth": "Slat Depth",
+          "slat_distance": "Slat Spacing",
+          "default_percentage": "Default Position",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset"
+        },
+        "data_description": {
+          "set_azimuth": "Set the Azimuth",
+          "slat_depth": "Depth of individual slat in cm",
+          "slat_distance": "Vertical distance between two slats in cm",
+          "default_percentage": "Default posistion of cover in percentages",
+          "fov_left": "Degrees to take in account from the left side of the center of the window",
+          "fov_right": "Degrees to take in account from the right side of the center of the window",
+          "group": "Select entities to be controlled with the Blueprint",
+          "sunset_position": "Position to change to after sunset",
+          "sunset_offset": "Offset (+-) from sunset in minutes"
+        }
+      }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "set_azimuth": "Window Azimuth",
+          "window_height": "Window Height",
+          "height_awning": "Awning Height",
+          "lenght_awning": "Awning Span Length",
+          "angle": "Awning Angle",
+          "distance_shaded_area": "Shaded area",
+          "default_percentage": "Default Position",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset",
+          "slat_depth": "Slat Depth",
+          "slat_distance": "Slat Spacing"
+        },
+        "data_description": {
+          "set_azimuth": "Set the Azimuth",
+          "window_height": "Set the height of the window(s) in meters",
+          "height_awning": "Set the height of the awning from the floor",
+          "lenght_awning": "The total length of the span in meters",
+          "angle": "The angle of the attached awning measured perpendicular from the wall downward to the floor",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "default_percentage": "Default posistion of cover in percentages",
+          "fov_left": "Degrees to take in account from the left side of the center of the window",
+          "fov_right": "Degrees to take in account from the right side of the center of the window",
+          "group": "Select entities to be controlled with the Blueprint",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset",
+          "slat_depth": "Depth of individual slat in cm",
+          "slat_distance": "Vertical distance between two slats in cm"
+        }
+      }
+    }
+  },
+  "selector": {
+    "tilt_mode": {
+      "options": {
+        "mode1": "single direction (0% = closed / 100% = open)",
+        "mode2": "bi-directional (0% = closed / 50% = open / 100% = closed)"
+      }
+    }
+  }
 }

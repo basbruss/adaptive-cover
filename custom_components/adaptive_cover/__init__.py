@@ -6,7 +6,6 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 from .blueprint import configure_blueprint
-from .const import DOMAIN
 
 
 async def async_initialize_integration(
@@ -36,7 +35,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def config_entry_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Update listener, called when the config entry options are changed."""
     await hass.config_entries.async_reload(entry.entry_id)
-
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
