@@ -1,12 +1,18 @@
 """Generate values for all types of covers."""
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date
 import numpy as np
 import pandas as pd
 
+from homeassistant.core import split_entity_id
 from numpy import cos, tan, sin
 from numpy import radians as rad
 from .sun import SunData
 
+def get_domain(entity: str):
+    """Get domain of entity"""
+    if entity is not None:
+        domain, object_id = split_entity_id(entity)
+        return domain
 
 class AdaptiveGeneralCover:
     """Collect common data."""
@@ -81,7 +87,7 @@ class AdaptiveGeneralCover:
 
     @property
     def valid(self) -> bool:
-        """Determine if sun infront of window."""
+        """Determine if sun is in front of window."""
         # clip azi_min and azi_max to 90
         azi_min = min(self.fov_left, 90)
         azi_max = min(self.fov_right, 90)
@@ -91,24 +97,118 @@ class AdaptiveGeneralCover:
         return valid
 
     @property
-    def default_pos(self) -> tuple:
-        """Change default position at sunset."""
-        default = self.h_def
+    def sunset_valid(self) -> bool:
+        """Determine if it is after sunset plus offset."""
         sunset = self.sun_data.sunset().replace(tzinfo=None)
         condition = datetime.utcnow() > sunset + timedelta(minutes=self.sunset_off)
-        if condition:
+        return condition
+
+    @property
+    def default(self) -> float:
+        """Change default position at sunset."""
+        default = self.h_def
+        if self.sunset_valid:
             default = self.sunset_pos
-        return default, condition
+        return default
 
     def fov(self) -> list:
         """Return field of view."""
         return [self.azi_min_abs, self.azi_max_abs]
 
+    def calculated_state(self) -> float:
+        """Placeholder for child class."""
+        return 0
 
-class AdaptiveVerticalCover(AdaptiveGeneralCover):
+    def basic_state(self) -> float:
+        """Convert blind height to percentage or default value."""
+        state = np.where(
+            (self.valid) & (not self.sunset_valid),
+            self.calculated_state(),
+            self.default,
+        )
+        result = np.clip(state, 0, 100)
+        return result
+
+
+class CoverStrategy(AdaptiveGeneralCover):
+    """Determines the control method for climate control."""
+
+    def __init__(
+        self,
+        hass,
+        sol_azi,
+        sol_elev,
+        sunset_pos,
+        sunset_off,
+        timezone,
+        fov_left,
+        fov_right,
+        win_azi,
+        h_def,
+        temp=None,
+        temp_low=None,
+        temp_high=None,
+        presence=None,
+        presence_entity=None
+    ) -> None:
+        super().__init__(
+            hass,
+            sol_azi,
+            sol_elev,
+            sunset_pos,
+            sunset_off,
+            timezone,
+            fov_left,
+            fov_right,
+            win_azi,
+            h_def,
+        )
+        self.temp = temp
+        self.low_point = temp_low
+        self.high_point = temp_high
+        self.presence = presence
+        self.presence_entity = presence_entity
+
+    @property
+    def is_presence(self):
+        """Checks if people are present."""
+        domain = get_domain(self.presence_entity)
+        # set to true if no sensor is defined
+        if self.presence_entity is None:
+            return True
+        if domain == "device_tracker":
+            return str(self.presence) == "home"
+        if domain == "zone":
+            return int(self.presence) > 0
+        if domain == "binary_sensor":
+            return bool(self.presence)
+
+    def climate_state(self):
+        """Adjust state to environment needs."""
+        # glare does not matter
+        if self.is_presence is False:
+            # allow maximum solar radiation
+            if self.temp < self.low_point:
+                return 100
+            # don't allow solar radiation
+            if self.temp > self.high_point:
+                return 0
+            return self.default
+
+        # prefer glare reduction over climate control
+        # adjust according basic algorithm
+        return self.basic_state()
+
+    # @property
+    # def default(self):
+    #     """placeholder for default position"""
+    #     pass
+
+
+class AdaptiveVerticalCover(CoverStrategy):
     """Calculate state for Vertical blinds."""
 
-    def __init__(  # noqa: D107
+    def __init__(
         self,
         hass,
         sol_azi,
@@ -122,6 +222,11 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
         h_def,
         distance,
         h_win,
+        temp=None,
+        temp_low=None,
+        temp_high=None,
+        presence=None,
+        presence_entity=None
     ) -> None:
         super().__init__(
             hass,
@@ -134,6 +239,11 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
             fov_right,
             win_azi,
             h_def,
+            temp,
+            temp_low,
+            temp_high,
+            presence,
+            presence_entity
         )
         self.distance = distance
         self.h_win = h_win
@@ -148,22 +258,16 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
         )
         return blind_height
 
-    def blind_state_perc(self) -> float:
+    def calculated_state(self) -> float:
         """Convert blind height to percentage or default value."""
-        default_pos, time_con = self.default_pos
-        blind_height = np.where(
-            (self.valid) & (not time_con),
-            self.calculate_blind_height() / self.h_win * 100,
-            default_pos,
-        )
-        result = np.clip(blind_height, 0, 100)
+        result = self.calculate_blind_height() / self.h_win * 100
         return result
 
 
 class AdaptiveHorizontalCover(AdaptiveVerticalCover):
     """Calculate state for Horizontal blinds."""
 
-    def __init__(  # noqa: D107
+    def __init__(
         self,
         hass,
         sol_azi,
@@ -179,6 +283,11 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
         h_win,
         awn_length,
         awn_angle,
+        temp=None,
+        temp_low=None,
+        temp_high=None,
+        presence=None,
+        presence_entity=None
     ) -> None:
         super().__init__(
             hass,
@@ -193,6 +302,11 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
             h_def,
             distance,
             h_win,
+            temp,
+            temp_low,
+            temp_high,
+            presence,
+            presence_entity
         )
         self.awn_length = awn_length
         self.awn_angle = awn_angle
@@ -209,22 +323,16 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
         ) / sin(rad(c_angle))
         return length
 
-    def awn_state_perc(self) -> float:
+    def calculated_state(self) -> float:
         """Convert awn length to percentage or default value."""
-        default_pos, time_con = self.default_pos
-        awn_length = np.where(
-            (self.valid) & (not time_con),
-            self.calculate_awning_length / self.awn_length * 100,
-            default_pos,
-        )
-        result = np.clip(awn_length, 0, 100)
+        result = self.calculate_awning_length / self.awn_length * 100
         return result
 
 
-class AdaptiveTiltCover(AdaptiveGeneralCover):
+class AdaptiveTiltCover(CoverStrategy):
     """Calculate state for tilted blinds."""
 
-    def __init__(  # noqa: D107
+    def __init__(
         self,
         hass,
         sol_azi,
@@ -239,6 +347,11 @@ class AdaptiveTiltCover(AdaptiveGeneralCover):
         slat_distance,
         depth,
         mode,
+        temp=None,
+        temp_low=None,
+        temp_high=None,
+        presence=None,
+        presence_entity=None
     ) -> None:
         super().__init__(
             hass,
@@ -251,10 +364,21 @@ class AdaptiveTiltCover(AdaptiveGeneralCover):
             fov_right,
             win_azi,
             h_def,
+            temp,
+            temp_low,
+            temp_high,
+            presence,
+            presence_entity
         )
         self.slat_distance = slat_distance
         self.depth = depth
         self.mode = mode
+
+    @property
+    def beta(self):
+        """Calculate beta."""
+        beta = np.arctan(tan(rad(self.sol_elev)) / cos(rad(self.gamma)))
+        return beta
 
     @property
     def calculate_tilt_angle(self) -> float:
@@ -262,7 +386,7 @@ class AdaptiveTiltCover(AdaptiveGeneralCover):
 
         https://www.mdpi.com/1996-1073/13/7/1731
         """
-        beta = np.arctan(tan(rad(self.sol_elev)) / cos(rad(self.gamma)))
+        beta = self.beta
 
         slat = 2 * np.arctan(
             (
@@ -277,9 +401,8 @@ class AdaptiveTiltCover(AdaptiveGeneralCover):
 
         return result
 
-    def tilt_state_perc(self):
+    def calculated_state(self):
         """Convert tilt angle to percentages or default value."""
-        default_pos, time_con = self.default_pos
         # 0 degrees is closed, 90 degrees is open, 180 degrees is closed
         percentage_single = self.calculate_tilt_angle / 90 * 100  # single directional
         percentage_bi = self.calculate_tilt_angle / 180 * 100  # bi-directional
@@ -289,6 +412,54 @@ class AdaptiveTiltCover(AdaptiveGeneralCover):
         else:
             percentage = percentage_bi
 
-        angle = np.where((self.valid) & (not time_con), percentage, default_pos)
-        result = np.clip(angle, 0, 100)
-        return result
+        return percentage
+
+    def control_method_tilt_single(self):
+        """Single direction control schema."""
+        if self.is_presence is False:
+            if self.temp < self.low_point:
+                return 100
+            if self.temp > self.high_point:
+                return 0
+            # 80 degrees is optimal by no need to shield or use solar contribution
+            return 80 / 90 * 100
+        if self.is_presence:
+            if self.temp < self.low_point:
+                return self.basic_state()
+            if self.temp > self.high_point:
+                return 45 / 90 * 100
+            # 80 degrees is optimal by no need to shield or use solar contribution
+            if self.valid:
+                return self.basic_state()
+            return 80 / 90 * 100
+
+    def control_method_tilt_bi(self):
+        """bi-directional control schema."""
+        beta = np.rad2deg(self.beta)
+        if self.is_presence is False:
+            if self.temp < self.low_point:
+                # parallel to sun beams
+                if self.valid:
+                    return (beta + 90) / 180 * 100
+                return 110 / 180 * 100
+            if self.temp > self.high_point:
+                return 0
+            # 80 degrees is optimal by no need to shield or use solar contribution
+            return 80 / 180 * 100
+        if self.is_presence:
+            if self.temp < self.low_point:
+                return self.basic_state()
+            if self.temp > self.high_point:
+                return 45 / 180 * 100
+            # 80 degrees is optimal by no need to shield or use solar contribution
+            if self.valid:
+                return self.basic_state()
+            return 80 / 180 * 100
+
+    def climate_state(self):
+        """Add tilt specific controls."""
+        if self.mode == "mode1":
+            self.control_method_tilt_single()
+        if self.mode == "mode2":
+            return self.control_method_tilt_bi()
+        return self.basic_state()

@@ -1,6 +1,7 @@
 """Constants for integration_blueprint."""
 
 DOMAIN = "adaptive_cover"
+
 CONF_AZIMUTH = "set_azimuth"
 CONF_BLUEPRINT = "blueprint"
 CONF_HEIGHT_WIN = "window_height"
@@ -21,7 +22,18 @@ CONF_TILT_DISTANCE = "slat_distance"
 CONF_TILT_MODE = "tilt_mode"
 CONF_SUNSET_POS = "sunset_position"
 CONF_SUNSET_OFFSET = "sunset_offset"
+CONF_TEMP_ENTITY = "temp_entity"
+CONF_PRESENCE_ENTITY = "presence_entity"
+CONF_TEMP_LOW = 'temp_low'
+CONF_TEMP_HIGH = 'temp_high'
+CONF_MODE = "mode"
 
+STRATEGY_MODE_BASIC = "basic"
+STRATEGY_MODE_CLIMATE = "climate"
+STRATEGY_MODES = [
+    STRATEGY_MODE_BASIC,
+    STRATEGY_MODE_CLIMATE,
+]
 
 class SensorType:
     """Possible modes for a number selector."""

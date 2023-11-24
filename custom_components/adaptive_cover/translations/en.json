@@ -3,7 +3,12 @@
   "config": {
     "step": {
       "user": {
-        "description": "New Adaptive Cover Sensor",
+        "data": {
+          "name": "Name",
+          "blueprint": "Add blueprint to HomeAssistant",
+          "mode": "Control Mode"
+        },
+        "description": "Choose the type of blind to configure",
         "menu_options": {
           "cover_blind": "Vertical blind",
           "cover_awning": "Horizontal blind",
@@ -137,6 +142,12 @@
     }
   },
   "selector": {
+    "mode":{
+      "options":{
+        "basic": "Basic sun adjusting",
+        "climate": "Advanced climate based adjusting"
+      }
+    },
     "tilt_mode": {
       "options": {
         "mode1": "single direction (0% = closed / 100% = open)",
