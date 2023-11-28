@@ -40,7 +40,7 @@ class AdaptiveGeneralCover:
         self.fov_right = fov_right
         self.win_azi = win_azi
         self.h_def = h_def
-        self.sun_data = SunData(self.hass, timezone)
+        self.sun_data = SunData(self.timezone, self.hass)
 
     def solar_times(self):
         """Determine start/end times."""
@@ -172,21 +172,21 @@ class CoverStrategy(AdaptiveGeneralCover):
     @property
     def is_presence(self):
         """Checks if people are present."""
-        domain = get_domain(self.presence_entity)
         # set to true if no sensor is defined
-        if self.presence_entity is None:
-            return True
-        if domain == "device_tracker":
-            return str(self.presence) == "home"
-        if domain == "zone":
-            return int(self.presence) > 0
-        if domain == "binary_sensor":
-            return bool(self.presence)
+        if self.presence is not None:
+            domain = get_domain(self.presence_entity)
+            if domain == "device_tracker":
+                return self.presence == "home"
+            if domain == "zone":
+                return int(self.presence) > 0
+            if domain == "binary_sensor":
+                return bool(self.presence)
+        return True
 
     def climate_state(self):
         """Adjust state to environment needs."""
         # glare does not matter
-        if self.is_presence is False:
+        if self.is_presence is False and self.temp is not None:
             # allow maximum solar radiation
             if self.temp < self.low_point:
                 return 100
@@ -458,8 +458,9 @@ class AdaptiveTiltCover(CoverStrategy):
 
     def climate_state(self):
         """Add tilt specific controls."""
-        if self.mode == "mode1":
-            self.control_method_tilt_single()
-        if self.mode == "mode2":
-            return self.control_method_tilt_bi()
+        if self.temp is not None:
+            if self.mode == "mode1":
+                self.control_method_tilt_single()
+            if self.mode == "mode2":
+                return self.control_method_tilt_bi()
         return self.basic_state()

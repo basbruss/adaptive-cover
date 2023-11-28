@@ -139,9 +139,10 @@ class AdaptiveCoverSensorEntity(SensorEntity):
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:  # noqa: D102
         dict_attributes = {
+            "mode": self.config_entry.data.get(CONF_MODE, "basic"),
             "azimuth_window": self.config_entry.options[CONF_AZIMUTH],
             "default_height": self.config_entry.options[CONF_DEFAULT_HEIGHT],
-            # "field_of_view": self._cover_data.fov,
+            "field_of_view": self._cover_data.fov,
             # 'start_time': self._cover_data.start,
             # 'end_time': self._cover_data.end,
             "entity_id": self.config_entry.options[CONF_ENTITIES],
@@ -186,7 +187,6 @@ class AdaptiveCoverData:
         self.awn_angle = 0
         self.start = None
         self.end = None
-        self.fov = None
         self.sunset_pos = 0
         self.sunset_off = 0
         self.slat_distance = 2
@@ -194,13 +194,14 @@ class AdaptiveCoverData:
         self.tilt_mode = "mode2"
         self.fov_left = self.config_entry.options[CONF_FOV_LEFT]
         self.fov_right = self.config_entry.options[CONF_FOV_RIGHT]
+        self.fov = [self.fov_left, self.fov_right]
         self.win_azi = 180
         self.inverse_state = False
         self._state = None
-        self.current_temp = (None,)
-        self.temp_low = (None,)
-        self.temp_high = (None,)
-        self.presence = (None,)
+        self.current_temp = None
+        self.temp_low = None
+        self.temp_high = None
+        self.presence = None
         self.presence_entity = None
         self.climate_state = None
 
@@ -214,6 +215,7 @@ class AdaptiveCoverData:
         self.timezone = self.hass.config.time_zone
         self.fov_left = self.config_entry.options[CONF_FOV_LEFT]
         self.fov_right = self.config_entry.options[CONF_FOV_RIGHT]
+        self.fov = [self.fov_left, self.fov_right]
         self.win_azi = self.config_entry.options[CONF_AZIMUTH]
         self.h_def = self.config_entry.options[CONF_DEFAULT_HEIGHT]
         self._mode = self.config_entry.data.get(CONF_MODE, "basic")
@@ -309,15 +311,16 @@ class AdaptiveCoverData:
         self.temp_high = self.config_entry.options[CONF_TEMP_HIGH]
         self.temp_entity = self.config_entry.options["temp_entity"]
         self.presence_entity = self.config_entry.options["presence_entity"]
+        self.presence = None
         if get_domain(self.temp_entity) == "climate":
             self.current_temp = self.hass.states.get(self.temp_entity).attributes[
                 "current_temperature"
             ]
         else:
-            self.current_temp = self.hass.states.get(self.temp_entity)
-        self.presence = None
+            self.current_temp = self.hass.states.get("sun.sun").state or None
+
         if self.presence_entity is not None:
-            self.presence = self.hass.states.get(self.presence_entity)
+            self.presence = self.hass.states.get("sun.sun").state or None
 
     @property
     def state(self):
