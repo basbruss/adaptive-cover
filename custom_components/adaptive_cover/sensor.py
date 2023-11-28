@@ -42,6 +42,12 @@ from .const import (
     CONF_MODE,
 )
 
+def get_safe_state(hass, entity_id: str):
+    """Get a safe state value if not available."""
+    state = hass.states.get(entity_id)
+    if not state or state.state in ["unknown", "unavailable"]:
+        return None
+    return state.state
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -120,14 +126,15 @@ class AdaptiveCoverSensorEntity(SensorEntity):
     def async_update_state(self) -> None:
         """Determine state after push."""
         self._cover_data.update()
+        if self._mode == "climate":
+            self._cover_data.update_climate()
         if self._cover_type == "cover_blind":
             self._cover_data.update_vertical()
         if self._cover_type == "cover_awning":
             self._cover_data.update_horizontal()
         if self._cover_type == "cover_tilt":
             self._cover_data.update_tilt()
-        if self._mode == "climate":
-            self._cover_data.update_climate()
+
 
         self.async_write_ha_state()
 
@@ -243,9 +250,9 @@ class AdaptiveCoverData:
             self.presence,
             self.presence_entity,
         )
-        self.calculated_state = values.basic_state()
-        if self._mode == "climate":
-            self.calculated_state = values.climate_state()
+        # self.calculated_state = values.basic_state()
+        # if self._mode == "climate":
+        self.calculated_state = values.climate_state()
 
     def update_horizontal(self):
         """Update values for horizontal blind."""
@@ -317,10 +324,10 @@ class AdaptiveCoverData:
                 "current_temperature"
             ]
         else:
-            self.current_temp = self.hass.states.get("sun.sun").state or None
+            self.current_temp =  get_safe_state(self.hass, self.temp_entity)
 
         if self.presence_entity is not None:
-            self.presence = self.hass.states.get("sun.sun").state or None
+            self.presence =  get_safe_state(self.hass, self.presence_entity)
 
     @property
     def state(self):

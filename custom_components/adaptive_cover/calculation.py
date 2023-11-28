@@ -188,10 +188,11 @@ class CoverStrategy(AdaptiveGeneralCover):
         # glare does not matter
         if self.is_presence is False and self.temp is not None:
             # allow maximum solar radiation
-            if self.temp < self.low_point:
+            temp = float(self.temp)
+            if temp < self.low_point:
                 return 100
             # don't allow solar radiation
-            if self.temp > self.high_point:
+            if temp > self.high_point:
                 return 0
             return self.default
 
@@ -416,17 +417,18 @@ class AdaptiveTiltCover(CoverStrategy):
 
     def control_method_tilt_single(self):
         """Single direction control schema."""
+        temp = float(self.temp)
         if self.is_presence is False:
-            if self.temp < self.low_point:
+            if temp < self.low_point:
                 return 100
-            if self.temp > self.high_point:
+            if temp > self.high_point:
                 return 0
             # 80 degrees is optimal by no need to shield or use solar contribution
             return 80 / 90 * 100
         if self.is_presence:
-            if self.temp < self.low_point:
+            if temp < self.low_point:
                 return self.basic_state()
-            if self.temp > self.high_point:
+            if temp > self.high_point:
                 return 45 / 90 * 100
             # 80 degrees is optimal by no need to shield or use solar contribution
             if self.valid:
@@ -436,20 +438,21 @@ class AdaptiveTiltCover(CoverStrategy):
     def control_method_tilt_bi(self):
         """bi-directional control schema."""
         beta = np.rad2deg(self.beta)
+        temp = float(self.temp)
         if self.is_presence is False:
-            if self.temp < self.low_point:
+            if temp < self.low_point:
                 # parallel to sun beams
                 if self.valid:
                     return (beta + 90) / 180 * 100
                 return 110 / 180 * 100
-            if self.temp > self.high_point:
+            if temp > self.high_point:
                 return 0
             # 80 degrees is optimal by no need to shield or use solar contribution
             return 80 / 180 * 100
         if self.is_presence:
-            if self.temp < self.low_point:
+            if temp < self.low_point:
                 return self.basic_state()
-            if self.temp > self.high_point:
+            if temp > self.high_point:
                 return 45 / 180 * 100
             # 80 degrees is optimal by no need to shield or use solar contribution
             if self.valid:
