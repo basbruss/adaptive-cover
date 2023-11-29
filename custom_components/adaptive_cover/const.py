@@ -24,8 +24,8 @@ CONF_SUNSET_POS = "sunset_position"
 CONF_SUNSET_OFFSET = "sunset_offset"
 CONF_TEMP_ENTITY = "temp_entity"
 CONF_PRESENCE_ENTITY = "presence_entity"
-CONF_TEMP_LOW = 'temp_low'
-CONF_TEMP_HIGH = 'temp_high'
+CONF_TEMP_LOW = "temp_low"
+CONF_TEMP_HIGH = "temp_high"
 CONF_MODE = "mode"
 
 STRATEGY_MODE_BASIC = "basic"
@@ -34,6 +34,7 @@ STRATEGY_MODES = [
     STRATEGY_MODE_BASIC,
     STRATEGY_MODE_CLIMATE,
 ]
+
 
 class SensorType:
     """Possible modes for a number selector."""
