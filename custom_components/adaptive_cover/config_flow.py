@@ -35,6 +35,12 @@ from .const import (
     CONF_TILT_DEPTH,
     CONF_TILT_DISTANCE,
     CONF_TILT_MODE,
+    CONF_TEMP_ENTITY,
+    CONF_PRESENCE_ENTITY,
+    CONF_TEMP_LOW,
+    CONF_TEMP_HIGH,
+    CONF_MODE,
+    STRATEGY_MODES,
     SensorType,
 )
 
@@ -45,8 +51,13 @@ SENSOR_TYPE_MENU = [SensorType.BLIND, SensorType.AWNING, SensorType.TILT]
 
 CONFIG_SCHEMA = vol.Schema(
     {
-        vol.Required("name", default=DEFAULT_NAME): selector.TextSelector(),
-        vol.Required(CONF_BLUEPRINT, default=False): bool,
+        vol.Optional("name", default=DEFAULT_NAME): selector.TextSelector(),
+        vol.Optional(CONF_BLUEPRINT, default=False): bool,
+        vol.Optional(CONF_MODE, default="basic"): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=STRATEGY_MODES, translation_key="mode"
+            )
+        ),
     }
 )
 
@@ -121,9 +132,24 @@ TILT_OPTIONS = vol.Schema(
     }
 ).extend(OPTIONS.schema)
 
-CONFIG_VERTICAL = CONFIG_SCHEMA.extend(VERTICAL_OPTIONS.schema)
-CONFIG_HORIZONTAL = CONFIG_SCHEMA.extend(HORIZONTAL_OPTIONS.schema)
-CONFIG_TILT = CONFIG_SCHEMA.extend(TILT_OPTIONS.schema)
+CLIMATE_OPTIONS = vol.Schema(
+    {
+        vol.Required(CONF_TEMP_ENTITY, default=[]): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=["climate", "sensor"])
+        ),
+        vol.Required(CONF_TEMP_LOW, default=21): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=86, step=1, mode="slider")
+        ),
+        vol.Required(CONF_TEMP_HIGH, default=25): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=90, step=1, mode="slider")
+        ),
+        vol.Optional(CONF_PRESENCE_ENTITY, default=[]): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(
+                domain=["device_tracker", "zone", "binary_sensor"]
+            )
+        ),
+    }
+)
 
 
 class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
@@ -131,7 +157,9 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
     def __init__(self) -> None:  # noqa: D107
         super().__init__()
-        self.type_blind: str | None = None
+        self._type_blind: str | None = None
+        self._config: dict[str, Any] = {}
+        self._mode: str = "basic"
 
     @staticmethod
     @callback
@@ -140,22 +168,32 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         return OptionsFlowHandler(config_entry)
 
     async def async_step_user(self, user_input=None):
-        """Show menu to decide type."""
-        return self.async_show_menu(step_id="user", menu_options=SENSOR_TYPE_MENU)
+        """Handle the initial step."""
+        # errors = {}
+        user_input = user_input or {}
+        if user_input:
+            self._config = user_input
+            return self.async_show_menu(step_id="user", menu_options=SENSOR_TYPE_MENU)
+        return self.async_show_form(step_id="user", data_schema=CONFIG_SCHEMA)
 
     async def async_step_cover_blind(self, user_input):
         """Show config for vertical blinds."""
-        self.type_blind = SensorType.BLIND
-        return self.async_show_form(step_id="vertical", data_schema=CONFIG_VERTICAL)
+        self._type_blind = SensorType.BLIND
+        self._mode = self._config[CONF_MODE]
+        schema = VERTICAL_OPTIONS
+        if self._mode == "climate":
+            schema = VERTICAL_OPTIONS.extend(CLIMATE_OPTIONS.schema)
+        return self.async_show_form(step_id="vertical", data_schema=schema)
 
     async def async_step_vertical(self, user_input):
         """Create entry."""
         return self.async_create_entry(
-            title=f"Adaptive Cover {user_input['name']} Vertical",
+            title=f"Adaptive Cover {self._config['name'] if self._config['name'] != 'Adaptive Cover' else ''} Vertical",
             data={
-                "name": user_input["name"],
-                CONF_BLUEPRINT: user_input[CONF_BLUEPRINT],
-                CONF_SENSOR_TYPE: self.type_blind,
+                "name": self._config["name"],
+                CONF_BLUEPRINT: self._config[CONF_BLUEPRINT],
+                CONF_SENSOR_TYPE: self._type_blind,
+                CONF_MODE: self._mode,
             },
             options={
                 CONF_AZIMUTH: user_input[CONF_AZIMUTH],
@@ -168,22 +206,31 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_INVERSE_STATE: user_input[CONF_INVERSE_STATE],
                 CONF_SUNSET_POS: user_input[CONF_SUNSET_POS],
                 CONF_SUNSET_OFFSET: user_input[CONF_SUNSET_OFFSET],
+                CONF_TEMP_ENTITY: user_input.get(CONF_TEMP_ENTITY, None),
+                CONF_PRESENCE_ENTITY: user_input.get(CONF_PRESENCE_ENTITY, None),
+                CONF_TEMP_LOW: user_input.get(CONF_TEMP_LOW, None),
+                CONF_TEMP_HIGH: user_input.get(CONF_TEMP_HIGH, None),
             },
         )
 
     async def async_step_cover_awning(self, user_input):
         """Show config for horizontal blinds."""
-        self.type_blind = SensorType.AWNING
-        return self.async_show_form(step_id="horizontal", data_schema=CONFIG_HORIZONTAL)
+        self._type_blind = SensorType.AWNING
+        self._mode = self._config[CONF_MODE]
+        schema = HORIZONTAL_OPTIONS
+        if self._mode == "climate":
+            schema = HORIZONTAL_OPTIONS.extend(CLIMATE_OPTIONS.schema)
+        return self.async_show_form(step_id="horizontal", data_schema=schema)
 
     async def async_step_horizontal(self, user_input):
         """Create entry."""
         return self.async_create_entry(
-            title=f"Adaptive Cover {user_input['name']} Horizontal",
+            title=f"Adaptive Cover {self._config['name'] if self._config['name'] != 'Adaptive Cover' else ''} Horizontal",
             data={
-                "name": user_input["name"],
-                CONF_BLUEPRINT: user_input[CONF_BLUEPRINT],
-                CONF_SENSOR_TYPE: self.type_blind,
+                "name": self._config["name"],
+                CONF_BLUEPRINT: self._config[CONF_BLUEPRINT],
+                CONF_SENSOR_TYPE: self._type_blind,
+                CONF_MODE: self._mode,
             },
             options={
                 CONF_AZIMUTH: user_input[CONF_AZIMUTH],
@@ -198,22 +245,31 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_INVERSE_STATE: user_input[CONF_INVERSE_STATE],
                 CONF_SUNSET_POS: user_input[CONF_SUNSET_POS],
                 CONF_SUNSET_OFFSET: user_input[CONF_SUNSET_OFFSET],
+                CONF_TEMP_ENTITY: user_input.get(CONF_TEMP_ENTITY, None),
+                CONF_PRESENCE_ENTITY: user_input.get(CONF_PRESENCE_ENTITY, None),
+                CONF_TEMP_LOW: user_input.get(CONF_TEMP_LOW, None),
+                CONF_TEMP_HIGH: user_input.get(CONF_TEMP_HIGH, None),
             },
         )
 
     async def async_step_cover_tilt(self, user_input):
         """Show config for tilted blinds."""
-        self.type_blind = SensorType.TILT
-        return self.async_show_form(step_id="tilt", data_schema=CONFIG_TILT)
+        self._type_blind = SensorType.TILT
+        self._mode = self._config[CONF_MODE]
+        schema = TILT_OPTIONS
+        if self._mode == "climate":
+            schema = TILT_OPTIONS.extend(CLIMATE_OPTIONS.schema)
+        return self.async_show_form(step_id="tilt", data_schema=schema)
 
     async def async_step_tilt(self, user_input):
         """Create entry."""
         return self.async_create_entry(
-            title=f"Adaptive Cover {user_input['name']} Tilt",
+            title=f"Adaptive Cover {self._config['name'] if self._config['name'] != 'Adaptive Cover' else ''} Tilt",
             data={
-                "name": user_input["name"],
-                CONF_BLUEPRINT: user_input[CONF_BLUEPRINT],
-                CONF_SENSOR_TYPE: self.type_blind,
+                "name": self._config["name"],
+                CONF_BLUEPRINT: self._config[CONF_BLUEPRINT],
+                CONF_SENSOR_TYPE: self._type_blind,
+                CONF_MODE: self._mode,
             },
             options={
                 CONF_AZIMUTH: user_input[CONF_AZIMUTH],
@@ -227,6 +283,10 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_INVERSE_STATE: user_input[CONF_INVERSE_STATE],
                 CONF_SUNSET_POS: user_input[CONF_SUNSET_POS],
                 CONF_SUNSET_OFFSET: user_input[CONF_SUNSET_OFFSET],
+                CONF_TEMP_ENTITY: user_input.get(CONF_TEMP_ENTITY, None),
+                CONF_PRESENCE_ENTITY: user_input.get(CONF_PRESENCE_ENTITY, None),
+                CONF_TEMP_LOW: user_input.get(CONF_TEMP_LOW, None),
+                CONF_TEMP_HIGH: user_input.get(CONF_TEMP_HIGH, None),
             },
         )
 
@@ -249,11 +309,23 @@ class OptionsFlowHandler(OptionsFlowWithConfigEntry):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
+        vertical_schema = VERTICAL_OPTIONS
+        if self.current_config.get(CONF_MODE) == "climate":
+            vertical_schema = VERTICAL_OPTIONS.extend(CLIMATE_OPTIONS.schema)
+
+        horizontal_schema = HORIZONTAL_OPTIONS
+        if self.current_config.get(CONF_MODE) == "climate":
+            horizontal_schema = HORIZONTAL_OPTIONS.extend(CLIMATE_OPTIONS.schema)
+
+        tilt_schema = TILT_OPTIONS
+        if self.current_config.get(CONF_MODE) == "climate":
+            tilt_schema = TILT_OPTIONS.extend(CLIMATE_OPTIONS.schema)
+
         if self.sensor_type == SensorType.BLIND:
             return self.async_show_form(
                 step_id="init",
                 data_schema=self.add_suggested_values_to_schema(
-                    VERTICAL_OPTIONS, user_input or self.options
+                    vertical_schema, user_input or self.options
                 ),
             )
 
@@ -261,7 +333,7 @@ class OptionsFlowHandler(OptionsFlowWithConfigEntry):
             return self.async_show_form(
                 step_id="init",
                 data_schema=self.add_suggested_values_to_schema(
-                    HORIZONTAL_OPTIONS, user_input or self.options
+                    horizontal_schema, user_input or self.options
                 ),
             )
 
@@ -269,6 +341,6 @@ class OptionsFlowHandler(OptionsFlowWithConfigEntry):
             return self.async_show_form(
                 step_id="init",
                 data_schema=self.add_suggested_values_to_schema(
-                    TILT_OPTIONS, user_input or self.options
+                    tilt_schema, user_input or self.options
                 ),
             )

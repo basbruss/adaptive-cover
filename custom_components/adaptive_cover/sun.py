@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 class SunData:
     """Access local sun data."""
 
-    def __init__(self, hass: HomeAssistant, timezone) -> None:  # noqa: D107
+    def __init__(self, timezone, hass: HomeAssistant) -> None:  # noqa: D107
         self.hass = hass
         location, elevation = get_astral_location(self.hass)
         self.location = location  # astral.location.Location

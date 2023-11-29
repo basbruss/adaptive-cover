@@ -12,11 +12,14 @@ from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
 )
-
+from .helpers import get_safe_state, get_domain
 from .calculation import (
     AdaptiveVerticalCover,
     AdaptiveHorizontalCover,
     AdaptiveTiltCover,
+    NormalCoverState,
+    ClimateCoverState,
+    ClimateCoverData,
 )
 
 from .const import (
@@ -36,7 +39,11 @@ from .const import (
     CONF_TILT_DEPTH,
     CONF_TILT_DISTANCE,
     CONF_TILT_MODE,
+    CONF_TEMP_LOW,
+    CONF_TEMP_HIGH,
+    CONF_MODE,
 )
+
 
 
 async def async_setup_entry(
@@ -86,11 +93,17 @@ class AdaptiveCoverSensorEntity(SensorEntity):
         self.hass = hass
         self.config_entry = config_entry
         self._cover_data = cover_data
-        self._attr_name = (
-            f"Adaptive Cover {name} {type[self.config_entry.data[CONF_SENSOR_TYPE]]}"
-        )
-        self._name = f"Adaptive Cover {name}"
-        self.cover_type = self.config_entry.data["sensor_type"]
+        self._cover_type = self.config_entry.data["sensor_type"]
+        self._attr_name = f"Adaptive Cover {name if name != 'Adaptive Cover' else ''} {type[self._cover_type]}"
+        self._name = self._attr_name
+        self._mode = self.config_entry.data.get(CONF_MODE, "basic")
+        self._temp_entity = self.config_entry.options.get("temp_entity", None)
+        self._presence_entity = self.config_entry.options.get("presence_entity", None)
+        self._entities = ["sun.sun"]
+        if self._temp_entity is not None:
+            self._entities.append(self._temp_entity)
+        if self._presence_entity is not None:
+            self._entities.append(self._presence_entity)
 
     @callback
     def async_on_state_change(self, event: EventType[EventStateChangedData]) -> None:
@@ -102,7 +115,7 @@ class AdaptiveCoverSensorEntity(SensorEntity):
     async def async_added_to_hass(self) -> None:
         """Handle added to Hass."""
         async_track_state_change_event(
-            self.hass, ["sun.sun"], self.async_on_state_change
+            self.hass, self._entities, self.async_on_state_change
         )
         self.async_update_state()
 
@@ -110,11 +123,13 @@ class AdaptiveCoverSensorEntity(SensorEntity):
     def async_update_state(self) -> None:
         """Determine state after push."""
         self._cover_data.update()
-        if self.cover_type == "cover_blind":
+        if self._mode == "climate":
+            self._cover_data.update_climate()
+        if self._cover_type == "cover_blind":
             self._cover_data.update_vertical()
-        if self.cover_type == "cover_awning":
+        if self._cover_type == "cover_awning":
             self._cover_data.update_horizontal()
-        if self.cover_type == "cover_tilt":
+        if self._cover_type == "cover_tilt":
             self._cover_data.update_tilt()
 
         self.async_write_ha_state()
@@ -127,21 +142,22 @@ class AdaptiveCoverSensorEntity(SensorEntity):
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:  # noqa: D102
         dict_attributes = {
+            "mode": self.config_entry.data.get(CONF_MODE, "basic"),
             "azimuth_window": self.config_entry.options[CONF_AZIMUTH],
             "default_height": self.config_entry.options[CONF_DEFAULT_HEIGHT],
-            # "field_of_view": self._cover_data.fov,
-            # 'start_time': self._cover_data.start,
-            # 'end_time': self._cover_data.end,
+            "field_of_view": self._cover_data.fov,
+            'start_time': self._cover_data.start,
+            'end_time': self._cover_data.end,
             "entity_id": self.config_entry.options[CONF_ENTITIES],
             # "test": self.config_entry,
         }
-        if self.cover_type == "cover_blind":
+        if self._cover_type == "cover_blind":
             dict_attributes["window_height"] = self.config_entry.options[
                 CONF_HEIGHT_WIN
             ]
             dict_attributes["distance"] = self.config_entry.options[CONF_DISTANCE]
-        if self.cover_type == "cover_awning":
-            dict_attributes["awning_lenght"] = self.config_entry.options[
+        if self._cover_type == "cover_awning":
+            dict_attributes["awning_length"] = self.config_entry.options[
                 CONF_LENGTH_AWNING
             ]
             dict_attributes["awning_angle"] = self.config_entry.options[
@@ -162,7 +178,8 @@ class AdaptiveCoverData:
         self.hass = hass
         self.config_entry = config_entry
         self.sensor_type = self.config_entry.data[CONF_SENSOR_TYPE]
-        self.state_perc = None
+        self._mode = None
+        self.calculated_state = None
         self.sol_azi = None
         self.sol_elev = None
         self.timezone = self.hass.config.time_zone
@@ -173,15 +190,24 @@ class AdaptiveCoverData:
         self.awn_angle = 0
         self.start = None
         self.end = None
-        self.fov = None
         self.sunset_pos = 0
         self.sunset_off = 0
         self.slat_distance = 2
         self.depth = 3
-        self.mode = "mode2"
+        self.tilt_mode = "mode2"
         self.fov_left = self.config_entry.options[CONF_FOV_LEFT]
         self.fov_right = self.config_entry.options[CONF_FOV_RIGHT]
+        self.fov = [self.fov_left, self.fov_right]
         self.win_azi = 180
+        self.inverse_state = False
+        self._state = None
+        self.current_temp = None
+        self.temp_low = None
+        self.temp_high = None
+        self.presence = None
+        self.presence_entity = None
+        self.climate_state = None
+        self.climate_data = None
 
     def update(self):
         """Update all common parameters."""
@@ -193,14 +219,16 @@ class AdaptiveCoverData:
         self.timezone = self.hass.config.time_zone
         self.fov_left = self.config_entry.options[CONF_FOV_LEFT]
         self.fov_right = self.config_entry.options[CONF_FOV_RIGHT]
+        self.fov = [self.fov_left, self.fov_right]
         self.win_azi = self.config_entry.options[CONF_AZIMUTH]
         self.h_def = self.config_entry.options[CONF_DEFAULT_HEIGHT]
+        self._mode = self.config_entry.data.get(CONF_MODE, "basic")
 
     def update_vertical(self):
         """Update values for vertical blind."""
         self.distance = self.config_entry.options[CONF_DISTANCE]
         self.h_win = self.config_entry.options[CONF_HEIGHT_WIN]
-        values = AdaptiveVerticalCover(
+        vertical = AdaptiveVerticalCover(
             self.hass,
             self.sol_azi,
             self.sol_elev,
@@ -214,13 +242,19 @@ class AdaptiveCoverData:
             self.distance,
             self.h_win,
         )
-        self.state_perc = values.blind_state_perc()
+
+        state = NormalCoverState(vertical)
+        if self.climate_data is not None:
+            state = ClimateCoverState(vertical, self.climate_data)
+        self.calculated_state = state.get_state()
+
+        self.start, self.end = vertical.solar_times()
 
     def update_horizontal(self):
         """Update values for horizontal blind."""
         self.awn_length = self.config_entry.options[CONF_LENGTH_AWNING]
         self.awn_angle = self.config_entry.options[CONF_AWNING_ANGLE]
-        values = AdaptiveHorizontalCover(
+        horizontal = AdaptiveHorizontalCover(
             self.hass,
             self.sol_azi,
             self.sol_elev,
@@ -236,14 +270,20 @@ class AdaptiveCoverData:
             self.awn_length,
             self.awn_angle,
         )
-        self.state_perc = values.awn_state_perc()
+
+        state = NormalCoverState(horizontal)
+        if self.climate_data is not None:
+            state = ClimateCoverState(horizontal, self.climate_data)
+        self.calculated_state = state.get_state()
+
+        self.start, self.end = horizontal.solar_times()
 
     def update_tilt(self):
         """Update values for tilted blind."""
         self.slat_distance = self.config_entry.options[CONF_TILT_DISTANCE]
         self.depth = self.config_entry.options[CONF_TILT_DEPTH]
-        self.mode = self.config_entry.options[CONF_TILT_MODE]
-        values = AdaptiveTiltCover(
+        self.tilt_mode = self.config_entry.options[CONF_TILT_MODE]
+        tilt = AdaptiveTiltCover(
             self.hass,
             self.sol_azi,
             self.sol_elev,
@@ -256,20 +296,50 @@ class AdaptiveCoverData:
             self.h_def,
             self.slat_distance,
             self.depth,
-            self.mode,
+            self.tilt_mode,
         )
-        self.state_perc = values.tilt_state_perc()
+
+        state = NormalCoverState(tilt)
+        if self.climate_data is not None:
+            state = ClimateCoverState(tilt, self.climate_data)
+        self.calculated_state = state.get_state()
+
+        self.start, self.end = tilt.solar_times()
+
+    def update_climate(self):
+        """Update climate variables."""
+        self.temp_low = self.config_entry.options[CONF_TEMP_LOW]
+        self.temp_high = self.config_entry.options[CONF_TEMP_HIGH]
+        self.temp_entity = self.config_entry.options["temp_entity"]
+        self.presence_entity = self.config_entry.options["presence_entity"]
+        self.presence = None
+        if get_domain(self.temp_entity) == "climate":
+            self.current_temp = self.hass.states.get(self.temp_entity).attributes[
+                "current_temperature"
+            ]
+        else:
+            self.current_temp = get_safe_state(self.hass, self.temp_entity)
+
+        if self.presence_entity is not None:
+            self.presence = get_safe_state(self.hass, self.presence_entity)
+
+        self.climate_data = ClimateCoverData(
+            self.current_temp,
+            self.temp_low,
+            self.temp_high,
+            self.presence,
+            self.presence_entity,
+            self.sensor_type,
+        )
 
     @property
     def state(self):
         """Get state from cover type class."""
-        state = self.state_perc
+        state = self.calculated_state
         if state is not None:
-            return round(state)
+            self._state = round(state)
+            if self.inverse_state:
+                return 100 - self._state
+            return self._state
 
-    @state.setter
-    def inverse_state(self, value):
-        """Inverse state."""
-        if self.inverse_state:
-            return 100 - value
-        return value
+
