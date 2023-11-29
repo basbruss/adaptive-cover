@@ -5,8 +5,6 @@ on:
     types:
       - "published"
 
-permissions: {}
-
 jobs:
   release:
     name: "Release"
@@ -18,8 +16,8 @@ jobs:
       - name: "Checkout the repository"
         uses: "actions/checkout@v4.1.1"
 
-      - name: "Adjust version number"
-        shell: "bash"
+      - name: 🔢 Adjust version number
+        shell: bash
         run: |
           version="${{ github.event.release.tag_name }}"
           version="${version,,}"
