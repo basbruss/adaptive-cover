@@ -25,6 +25,7 @@ class AdaptiveGeneralCover(ABC):
     win_azi: int
     h_def: int
     sun_data: SunData = field(init=False)
+
     def __post_init__(self):
         """Add solar data to dataset."""
         self.sun_data = SunData(self.timezone, self.hass)
@@ -112,7 +113,7 @@ class AdaptiveGeneralCover(ABC):
 
 
 @dataclass
-class NormalCoverState():
+class NormalCoverState:
     """Compute state for normal operation."""
 
     cover: AdaptiveGeneralCover
@@ -180,7 +181,8 @@ class ClimateCoverState(NormalCoverState):
         # glare does not matter
         if (
             self.climate_data.is_presence is False
-            and self.climate_data.temp is not None and self.cover.sol_elev > 0
+            and self.climate_data.temp is not None
+            and self.cover.sol_elev > 0
         ):
             # allow maximum solar radiation
             if self.climate_data.is_winter:
