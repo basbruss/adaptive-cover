@@ -6,6 +6,8 @@ from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceEntryType
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import EventType
 from homeassistant.helpers.event import (
@@ -23,6 +25,7 @@ from .calculation import (
 )
 
 from .const import (
+    DOMAIN,
     CONF_AZIMUTH,
     CONF_HEIGHT_WIN,
     CONF_DISTANCE,
@@ -67,7 +70,7 @@ async def async_setup_entry(
 
 
 class AdaptiveCoverSensorEntity(SensorEntity):
-    """adaptive_cover Sensor."""
+    """Adaptive Cover Sensor."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = PERCENTAGE
@@ -84,7 +87,7 @@ class AdaptiveCoverSensorEntity(SensorEntity):
         cover_data: AdaptiveCoverData,
     ) -> None:
         """Initialize adaptive_cover Sensor."""
-        type = {
+        self._type = {
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
@@ -94,8 +97,7 @@ class AdaptiveCoverSensorEntity(SensorEntity):
         self.config_entry = config_entry
         self._cover_data = cover_data
         self._cover_type = self.config_entry.data["sensor_type"]
-        self._attr_name = f"Adaptive Cover {name if name != 'Adaptive Cover' else ''} {type[self._cover_type]}"
-        self._name = self._attr_name
+        self._attr_name = name
         self._mode = self.config_entry.data.get(CONF_MODE, "basic")
         self._temp_entity = self.config_entry.options.get("temp_entity", None)
         self._presence_entity = self.config_entry.options.get("presence_entity", None)
@@ -133,6 +135,14 @@ class AdaptiveCoverSensorEntity(SensorEntity):
             self._cover_data.update_tilt()
 
         self.async_write_ha_state()
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._attr_unique_id)},
+            name=f"Adaptive Cover {self._type[self._cover_type]}",
+        )
 
     @property
     def native_value(self) -> str | None:

@@ -47,14 +47,14 @@ from .const import (
     SensorType,
 )
 
-DEFAULT_NAME = "Adaptive Cover"
+# DEFAULT_NAME = "Adaptive Cover"
 
 SENSOR_TYPE_MENU = [SensorType.BLIND, SensorType.AWNING, SensorType.TILT]
 
 
 CONFIG_SCHEMA = vol.Schema(
     {
-        vol.Optional("name", default=DEFAULT_NAME): selector.TextSelector(),
+        vol.Optional("name", default=""): selector.TextSelector(),
         vol.Optional(CONF_BLUEPRINT, default=False): bool,
         vol.Optional(CONF_MODE, default="basic"): selector.SelectSelector(
             selector.SelectSelectorConfig(
