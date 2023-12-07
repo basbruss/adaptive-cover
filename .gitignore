@@ -16,3 +16,5 @@ coverage.xml
 config/*
 !config/configuration.yaml
 API.ipynb
+.github/.DS_Store
+.DS_Store
