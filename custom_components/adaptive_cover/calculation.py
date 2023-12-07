@@ -150,8 +150,8 @@ class ClimateCoverData:
                 return self.presence == "home"
             if domain == "zone":
                 return int(self.presence) > 0
-            if domain == "binary_sensor":
-                return bool(self.presence)
+            if domain in ["binary_sensor","input_boolean"]:
+                return self.presence == "on"
         return True
 
     @property

@@ -145,7 +145,7 @@ CLIMATE_OPTIONS = vol.Schema(
         ),
         vol.Optional(CONF_PRESENCE_ENTITY, default=[]): selector.EntitySelector(
             selector.EntityFilterSelectorConfig(
-                domain=["device_tracker", "zone", "binary_sensor"]
+                domain=["device_tracker", "zone", "binary_sensor","input_boolean"]
             )
         ),
     }
