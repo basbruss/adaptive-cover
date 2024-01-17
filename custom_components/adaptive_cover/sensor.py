@@ -149,6 +149,7 @@ class AdaptiveCoverSensorEntity(SensorEntity):
             'start_time': self._cover_data.start,
             'end_time': self._cover_data.end,
             "entity_id": self.config_entry.options[CONF_ENTITIES],
+            "cover_type": self._cover_type,
             # "test": self.config_entry,
         }
         if self._cover_type == "cover_blind":

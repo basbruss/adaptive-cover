@@ -1,6 +1,6 @@
 blueprint:
   name: Adaptive Cover
-  description: "`version 0.0.1` \n
+  description: "`version 0.0.2` \n
     Set cover position based on direct sunlight exposed to window \n\n
     Calculations are done internally in the blueprint removing the need to use a sensor to input a value
     \n for in depth information on the calculations and variables, check this forum [post](https://community.home-assistant.io/t/automatic-blinds-sunscreen-control-based-on-sun-platform/573818)
@@ -112,10 +112,25 @@ action:
               - condition: time
                 after: "00:01:00"
                 before: "23:59:00"
-          - service: cover.set_cover_position
-            data:
-              position: "{{states(adaptive_cover_entity)}}"
-            target:
-              entity_id: "{{entities}}"
+          - repeat:
+              sequence:
+                - if:
+                    - condition: template
+                      value_template: "{{state_attr(repeat.item,'cover_type')=='cover_tilt'}}"
+                  then:
+                    - service: cover.set_cover_tilt_position
+                      metadata: {}
+                      data:
+                        position: "{{states(adaptive_cover_entity)}}"
+                      target:
+                        entity_id: "{{repeat.item}}"
+                  else:
+                    - service: cover.set_cover_position
+                      metadata: {}
+                      data:
+                        position: "{{states(adaptive_cover_entity)}}"
+                      target:
+                        entity_id: "{{repeat.item}}"
+              for_each: "{{entities}}"
           - choose: []
             default: !input action
