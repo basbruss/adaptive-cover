@@ -37,6 +37,7 @@ from .const import (
     CONF_TILT_MODE,
     CONF_TEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
+    CONF_WEATHER_ENTITY,
     CONF_TEMP_LOW,
     CONF_TEMP_HIGH,
     CONF_MODE,
@@ -145,8 +146,11 @@ CLIMATE_OPTIONS = vol.Schema(
         ),
         vol.Optional(CONF_PRESENCE_ENTITY, default=[]): selector.EntitySelector(
             selector.EntityFilterSelectorConfig(
-                domain=["device_tracker", "zone", "binary_sensor","input_boolean"]
+                domain=["device_tracker", "zone", "binary_sensor", "input_boolean"]
             )
+        ),
+        vol.Optional(CONF_WEATHER_ENTITY, default=[]): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain="weather")
         ),
     }
 )
@@ -208,6 +212,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_SUNSET_OFFSET: user_input[CONF_SUNSET_OFFSET],
                 CONF_TEMP_ENTITY: user_input.get(CONF_TEMP_ENTITY, None),
                 CONF_PRESENCE_ENTITY: user_input.get(CONF_PRESENCE_ENTITY, None),
+                CONF_WEATHER_ENTITY: user_input.get(CONF_WEATHER_ENTITY, None),
                 CONF_TEMP_LOW: user_input.get(CONF_TEMP_LOW, None),
                 CONF_TEMP_HIGH: user_input.get(CONF_TEMP_HIGH, None),
             },
@@ -247,6 +252,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_SUNSET_OFFSET: user_input[CONF_SUNSET_OFFSET],
                 CONF_TEMP_ENTITY: user_input.get(CONF_TEMP_ENTITY, None),
                 CONF_PRESENCE_ENTITY: user_input.get(CONF_PRESENCE_ENTITY, None),
+                CONF_WEATHER_ENTITY: user_input.get(CONF_WEATHER_ENTITY, None),
                 CONF_TEMP_LOW: user_input.get(CONF_TEMP_LOW, None),
                 CONF_TEMP_HIGH: user_input.get(CONF_TEMP_HIGH, None),
             },
@@ -285,6 +291,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_SUNSET_OFFSET: user_input[CONF_SUNSET_OFFSET],
                 CONF_TEMP_ENTITY: user_input.get(CONF_TEMP_ENTITY, None),
                 CONF_PRESENCE_ENTITY: user_input.get(CONF_PRESENCE_ENTITY, None),
+                CONF_WEATHER_ENTITY: user_input.get(CONF_WEATHER_ENTITY, None),
                 CONF_TEMP_LOW: user_input.get(CONF_TEMP_LOW, None),
                 CONF_TEMP_HIGH: user_input.get(CONF_TEMP_HIGH, None),
             },

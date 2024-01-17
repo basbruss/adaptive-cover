@@ -23,7 +23,12 @@
           "group": "Cover Entities",
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
-          "sunset_offset": "Afwijking Zonsondergang"
+          "sunset_offset": "Afwijking Zonsondergang",
+          "temp_entity": "Binnen temperatuur entiteit",
+          "presence_entity": "Aanwezigheid entiteit",
+          "weather_entity": "Weer entiteit (optioneel)",
+          "temp_low": "Minimale comfort temperatuur",
+          "temp_high": "Maximale comfort temperatuur"
         },
         "data_description": {
           "set_azimuth": "Zet de Azimuth",
@@ -53,7 +58,12 @@
           "group": "Cover Entities",
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
-          "sunset_offset": "Afwijking Zonsondergang"
+          "sunset_offset": "Afwijking Zonsondergang",
+          "temp_entity": "Binnen temperatuur entiteit",
+          "presence_entity": "Aanwezigheid entiteit",
+          "weather_entity": "Weer entiteit (optioneel)",
+          "temp_low": "Minimale comfort temperatuur",
+          "temp_high": "Maximale comfort temperatuur"
         },
         "data_description": {
           "set_azimuth": "Zet de Azimuth",
@@ -62,6 +72,43 @@
           "window_height": "Zet de hoogte van het raam/de ramen in meters",
           "angle": "De hoek gemeten vanaf de muur richting de grond waarin het scherm is gemonteerd",
           "distance_shaded_area": "Afstand van de cover tot het schaduwgebied in meters",
+          "default_percentage": "Standaard posistie van de cover in percentages",
+          "fov_left": "Aantal graden aan de linker kant vanuit het midden gezien van het raam",
+          "fov_right": "Aantal graden aan de rechter kant vanuit het midden gezien van het raam",
+          "group": "Selecteer de entities die worden bestuurd met de Blueprint",
+          "sunset_position": "Standaard posistie bij zonsondergang in percentages",
+          "sunset_offset": "Tijd voor of na zonsondergang in minuten",
+          "temp_entity": "Binnen temperatuur entiteit",
+          "presence_entity": "Aanwezigheid entiteit",
+          "weather_entity": "Weer entiteit (optioneel)",
+          "temp_low": "Minimale comfort temperatuur",
+          "temp_high": "Maximale comfort temperatuur"
+        }
+      },
+      "tilt": {
+        "data": {
+          "name": "Naam",
+          "blueprint": "Voeg blueprint toe aan HomeAssistant",
+          "set_azimuth": "Raam Azimuth",
+          "slat_depth": "Lat diepte",
+          "slat_distance": "Ruimte tussen latten",
+          "default_percentage": "Standaard Positie",
+          "fov_left": "Gezichtsveld links",
+          "fov_right": "Gezichtsveld rechts",
+          "group": "Cover Entities",
+          "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
+          "sunset_position": "Zonsondergang Posistie",
+          "sunset_offset": "Afwijking Zonsondergang",
+          "temp_entity": "Binnen temperatuur entiteit",
+          "presence_entity": "Aanwezigheid entiteit",
+          "weather_entity": "Weer entiteit (optioneel)",
+          "temp_low": "Minimale comfort temperatuur",
+          "temp_high": "Maximale comfort temperatuur"
+        },
+        "data_description": {
+          "set_azimuth": "Zet de Azimuth",
+          "slat_depth": "Diepte van een individuele lat in cm",
+          "slat_distance": "Verticale afstand tussen twee latten in cm",
           "default_percentage": "Standaard posistie van de cover in percentages",
           "fov_left": "Aantal graden aan de linker kant vanuit het midden gezien van het raam",
           "fov_right": "Aantal graden aan de rechter kant vanuit het midden gezien van het raam",
@@ -90,7 +137,12 @@
           "group": "Cover Entities",
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
-          "sunset_offset": "Afwijking Zonsondergang"
+          "sunset_offset": "Afwijking Zonsondergang",
+          "temp_entity": "Binnen temperatuur entiteit",
+          "presence_entity": "Aanwezigheid entiteit",
+          "weather_entity": "Weer entiteit (optioneel)",
+          "temp_low": "Minimale comfort temperatuur",
+          "temp_high": "Maximale comfort temperatuur"
         },
         "data_description": {
           "set_azimuth": "Zet de Azimuth",
