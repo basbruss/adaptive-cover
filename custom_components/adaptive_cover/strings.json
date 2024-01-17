@@ -28,7 +28,12 @@
           "group": "Cover Entities",
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
           "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset"
+          "sunset_offset": "Sunset Offset",
+          "temp_entity": "Inside temperature entity",
+          "presence_entity": "Presence entity",
+          "weather_entity": "Weather entity (optional)",
+          "temp_low": "Low temperature threshold",
+          "temp_high": "High temperature threshold"
         },
         "data_description": {
           "set_azimuth": "Set the Azimuth",
@@ -57,7 +62,12 @@
           "group": "Cover Entities",
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
           "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset"
+          "sunset_offset": "Sunset Offset",
+          "temp_entity": "Inside temperature entity",
+          "presence_entity": "Presence entity",
+          "weather_entity": "Weather entity (optional)",
+          "temp_low": "Low temperature threshold",
+          "temp_high": "High temperature threshold"
         },
         "data_description": {
           "set_azimuth": "Set the Azimuth",
@@ -86,7 +96,12 @@
           "group": "Cover Entities",
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
           "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset"
+          "sunset_offset": "Sunset Offset",
+          "temp_entity": "Inside temperature entity",
+          "presence_entity": "Presence entity",
+          "weather_entity": "Weather entity (optional)",
+          "temp_low": "Low temperature threshold",
+          "temp_high": "High temperature threshold"
         },
         "data_description": {
           "set_azimuth": "Set the Azimuth",
@@ -120,7 +135,12 @@
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
           "slat_depth": "Slat Depth",
-          "slat_distance": "Slat Spacing"
+          "slat_distance": "Slat Spacing",
+          "temp_entity": "Inside temperature entity",
+          "presence_entity": "Presence entity",
+          "weather_entity": "Weather entity (optional)",
+          "temp_low": "Low temperature threshold",
+          "temp_high": "High temperature threshold"
         },
         "data_description": {
           "set_azimuth": "Set the Azimuth",
