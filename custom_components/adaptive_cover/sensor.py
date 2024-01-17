@@ -45,7 +45,6 @@ from .const import (
 )
 
 
-
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -99,11 +98,11 @@ class AdaptiveCoverSensorEntity(SensorEntity):
         self._mode = self.config_entry.data.get(CONF_MODE, "basic")
         self._temp_entity = self.config_entry.options.get("temp_entity", None)
         self._presence_entity = self.config_entry.options.get("presence_entity", None)
+        self._weather_entity = self.config_entry.options.get("weather_entity", None)
         self._entities = ["sun.sun"]
-        if self._temp_entity is not None:
-            self._entities.append(self._temp_entity)
-        if self._presence_entity is not None:
-            self._entities.append(self._presence_entity)
+        for entity in [self._temp_entity, self._presence_entity, self._weather_entity]:
+            if entity is not None:
+                self._entities.append(entity)
 
     @callback
     def async_on_state_change(self, event: EventType[EventStateChangedData]) -> None:
@@ -146,8 +145,8 @@ class AdaptiveCoverSensorEntity(SensorEntity):
             "azimuth_window": self.config_entry.options[CONF_AZIMUTH],
             "default_height": self.config_entry.options[CONF_DEFAULT_HEIGHT],
             "field_of_view": self._cover_data.fov,
-            'start_time': self._cover_data.start,
-            'end_time': self._cover_data.end,
+            "start_time": self._cover_data.start,
+            "end_time": self._cover_data.end,
             "entity_id": self.config_entry.options[CONF_ENTITIES],
             "cover_type": self._cover_type,
             # "test": self.config_entry,
@@ -207,6 +206,8 @@ class AdaptiveCoverData:
         self.temp_high = None
         self.presence = None
         self.presence_entity = None
+        self.weather_entity = None
+        self.weather_condition = None
         self.climate_state = None
         self.climate_data = None
 
@@ -313,6 +314,7 @@ class AdaptiveCoverData:
         self.temp_high = self.config_entry.options[CONF_TEMP_HIGH]
         self.temp_entity = self.config_entry.options["temp_entity"]
         self.presence_entity = self.config_entry.options["presence_entity"]
+        self.weather_entity = self.config_entry.options["weather_entity"]
         self.presence = None
         if get_domain(self.temp_entity) == "climate":
             self.current_temp = self.hass.states.get(self.temp_entity).attributes[
@@ -323,6 +325,8 @@ class AdaptiveCoverData:
 
         if self.presence_entity is not None:
             self.presence = get_safe_state(self.hass, self.presence_entity)
+        if self.weather_entity is not None:
+            self.weather_condition = get_safe_state(self.hass, self.weather_entity)
 
         self.climate_data = ClimateCoverData(
             self.current_temp,
@@ -330,6 +334,7 @@ class AdaptiveCoverData:
             self.temp_high,
             self.presence,
             self.presence_entity,
+            self.weather_condition,
             self.sensor_type,
         )
 
@@ -342,5 +347,3 @@ class AdaptiveCoverData:
             if self.inverse_state:
                 return 100 - self._state
             return self._state
-
-

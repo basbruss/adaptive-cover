@@ -138,6 +138,7 @@ class ClimateCoverData:
     temp_high: float
     presence: str
     presence_entity: str
+    weather_condition: str
     blind_type: str
 
     @property
@@ -150,7 +151,7 @@ class ClimateCoverData:
                 return self.presence == "home"
             if domain == "zone":
                 return int(self.presence) > 0
-            if domain in ["binary_sensor","input_boolean"]:
+            if domain in ["binary_sensor", "input_boolean"]:
                 return self.presence == "on"
         return True
 
@@ -166,8 +167,15 @@ class ClimateCoverData:
 
     @property
     def is_summer(self) -> bool:
-        """Check if temperature is over thresholds."""
-        self.current_temperature > self.temp_high
+        """Check if temperature is over threshold."""
+        return self.current_temperature > self.temp_high
+
+    @property
+    def is_sunny(self) -> bool:
+        """Check if condition can contain radiation in winter."""
+        if self.weather_condition in ["sunny", "partlycloudy", "windy"]:
+            return True
+        return False
 
 
 @dataclass
@@ -194,17 +202,19 @@ class ClimateCoverState(NormalCoverState):
 
         # prefer glare reduction over climate control
         # adjust according basic algorithm
+        if not self.climate_data.is_sunny and self.climate_data.is_winter:
+            return self.cover.default
         return super().get_state()
 
     def control_method_tilt_single(self):
         """Single direction control schema."""
         if self.climate_data.is_presence:
-            if self.climate_data.is_winter:
+            if self.climate_data.is_winter and self.climate_data.is_sunny:
                 return super().get_state()
             if self.climate_data.is_summer:
                 return 45 / 90 * 100
             # 80 degrees is optimal by no need to shield or use solar contribution
-            if self.cover.valid:
+            if self.cover.valid and self.climate_data.is_sunny:
                 return super().get_state()
             return 80 / 90 * 100
         else:
@@ -219,12 +229,12 @@ class ClimateCoverState(NormalCoverState):
         """bi-directional control schema."""
         beta = np.rad2deg(self.cover.beta)
         if self.climate_data.is_presence:
-            if self.climate_data.is_winter:
+            if self.climate_data.is_winter and self.climate_data.is_sunny:
                 return super().get_state()
             if self.climate_data.is_summer:
                 return 45 / 180 * 100
             # 80 degrees is optimal by no need to shield or use solar contribution
-            if self.cover.valid:
+            if self.cover.valid and self.climate_data.is_sunny:
                 return super().get_state()
             return 80 / 180 * 100
         else:
