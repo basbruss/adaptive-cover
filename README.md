@@ -38,7 +38,7 @@ This mode uses the calculated position when the sun is within the specified azim
 ### Climate mode
 
 This mode calculates the position based on extra parameters for presence, indoor temperature, minimal comfort temperature, maximum comfort temperature and weather (optional).
-This mode is split up in two types of strategies.
+This mode is split up in two types of strategies; [Presence](https://github.com/basbruss/adaptive-cover?tab=readme-ov-file#presence) and [No Presence](https://github.com/basbruss/adaptive-cover?tab=readme-ov-file#no-presence).
 
 #### No Presence
 
