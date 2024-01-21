@@ -1,5 +1,7 @@
 ![Version](https://img.shields.io/github/v/release/basbruss/adaptive-cover?style=for-the-badge)
 
+![logo](https://github.com/basbruss/adaptive-cover/blob/main/images/logo.png)
+
 # Adaptive Cover
 
 This Custom-Integration provides sensors for vertical and horizontal blinds based on the sun's position by calculating the position to filter out direct sunlight.
