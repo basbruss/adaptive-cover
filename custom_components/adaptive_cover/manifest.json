@@ -3,9 +3,9 @@
   "name": "Adaptive Cover",
   "codeowners": ["@basbruss"],
   "config_flow": true,
-  "documentation": "https://github.com/basbruss/test",
+  "documentation": "https://github.com/basbruss/adaptive_cover",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/basbruss/adaptive-cover/issues",
   "requirements": ["astral", "pandas"],
-  "version": "0.0.1"
+  "version": "0.2.2"
 }
