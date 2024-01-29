@@ -1,4 +1,4 @@
-name: "Validate"
+name: "Hassfest"
 
 on:
   workflow_dispatch:
