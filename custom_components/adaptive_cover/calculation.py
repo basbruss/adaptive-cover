@@ -138,7 +138,8 @@ class ClimateCoverData:
     temp_high: float
     presence: str
     presence_entity: str
-    weather_condition: str
+    weather_state: str
+    weather_condition: list[str]
     blind_type: str
 
     @property
@@ -173,7 +174,7 @@ class ClimateCoverData:
     @property
     def is_sunny(self) -> bool:
         """Check if condition can contain radiation in winter."""
-        if self.weather_condition in ["sunny", "partlycloudy", "windy"]:
+        if self.weather_state in self.weather_condition:
             return True
         return False
 
