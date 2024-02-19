@@ -6,13 +6,7 @@
         "data": {
           "name": "Name",
           "blueprint": "Add blueprint to HomeAssistant",
-          "mode": "Control Mode"
-        },
-        "description": "Choose the type of blind to configure",
-        "menu_options": {
-          "cover_blind": "Vertical blind",
-          "cover_awning": "Horizontal blind",
-          "cover_tilt": "Tilted blind"
+          "mode": "Type of blind"
         }
       },
       "vertical": {
@@ -29,11 +23,7 @@
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
-          "temp_entity": "Inside temperature entity",
-          "presence_entity": "Presence entity",
-          "weather_entity": "Weather entity (optional)",
-          "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
+          "climate_mode": "Climate Mode"
         },
         "data_description": {
           "set_azimuth": "Set the Azimuth",
@@ -44,7 +34,31 @@
           "fov_right": "Degrees to take in account from the right side of the center of the window",
           "group": "Select entities to be controlled with the Blueprint",
           "sunset_position": "Position to change to after sunset",
-          "sunset_offset": "Offset (+-) from sunset in minutes"
+          "sunset_offset": "Offset (+-) from sunset in minutes",
+          "climate_mode": "Configure variables for climate mode"
+        }
+      },
+      "climate":{
+        "data":{
+          "temp_entity": "Inside temperature entity",
+          "presence_entity": "Presence entity",
+          "weather_entity": "Weather entity (optional)",
+          "temp_low": "Low temperature threshold",
+          "temp_high": "High temperature threshold"
+        },
+        "data_description":{
+          "presence_entity": "Entity to represent the presence status in the room or home",
+          "weather_entity": "Checks for weather conditions",
+          "temp_low": "The minimum comfort temperature",
+          "temp_high": "The maximum comfort temperature"
+        }
+      },
+      "weather":{
+        "data":{
+          "weather_state": "Weather Conditions"
+        },
+        "data_description":{
+          "weather_state": "Select the weather conditions that allow the window to be controlled automatically"
         }
       },
       "horizontal": {
@@ -63,11 +77,127 @@
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
+          "climate_mode": "Climate Mode"
+
+        },
+        "data_description": {
+          "set_azimuth": "Set the Azimuth",
+          "height_awning": "Set the height of the awning from the floor",
+          "lenght_awning": "The total length of the span in meters",
+          "angle": "The angle of the attached awning measured perpendicular from the wall downward to the floor",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "default_percentage": "Default posistion of cover in percentages",
+          "fov_left": "Degrees to take in account from the left side of the center of the window",
+          "fov_right": "Degrees to take in account from the right side of the center of the window",
+          "group": "Select entities to be controlled with the Blueprint",
+          "sunset_position": "Position to change to after sunset",
+          "sunset_offset": "Offset (+-) from sunset in minutes",
+          "climate_mode": "Configure variables for climate mode"
+        }
+      },
+      "tilt": {
+        "data": {
+          "name": "Name",
+          "blueprint": "Add blueprint to HomeAssistant",
+          "set_azimuth": "Window Azimuth",
+          "slat_depth": "Slat Depth",
+          "slat_distance": "Slat Spacing",
+          "default_percentage": "Default Position",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset",
+          "climate_mode": "Climate Mode"
+        },
+        "data_description": {
+          "set_azimuth": "Set the Azimuth",
+          "slat_depth": "Depth of individual slat in cm",
+          "slat_distance": "Vertical distance between two slats in cm",
+          "default_percentage": "Default posistion of cover in percentages",
+          "fov_left": "Degrees to take in account from the left side of the center of the window",
+          "fov_right": "Degrees to take in account from the right side of the center of the window",
+          "group": "Select entities to be controlled with the Blueprint",
+          "sunset_position": "Position to change to after sunset",
+          "sunset_offset": "Offset (+-) from sunset in minutes",
+          "climate_mode": "Configure variables for climate mode"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "vertical": {
+        "data": {
+          "name": "Name",
+          "blueprint": "Add blueprint to HomeAssistant",
+          "set_azimuth": "Window Azimuth",
+          "window_height": "Window Height",
+          "distance_shaded_area": "Shaded area",
+          "default_percentage": "Default Position",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset",
+          "climate_mode": "Climate Mode"
+        },
+        "data_description": {
+          "set_azimuth": "Set the Azimuth",
+          "window_height": "Set the height of the window(s) in meters",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "default_percentage": "Default posistion of cover in percentages",
+          "fov_left": "Degrees to take in account from the left side of the center of the window",
+          "fov_right": "Degrees to take in account from the right side of the center of the window",
+          "group": "Select entities to be controlled with the Blueprint",
+          "sunset_position": "Position to change to after sunset",
+          "sunset_offset": "Offset (+-) from sunset in minutes",
+          "climate_mode": "Configure variables for climate mode"
+        }
+      },
+      "climate":{
+        "data":{
           "temp_entity": "Inside temperature entity",
           "presence_entity": "Presence entity",
           "weather_entity": "Weather entity (optional)",
           "temp_low": "Low temperature threshold",
           "temp_high": "High temperature threshold"
+        },
+        "data_description":{
+          "presence_entity": "Entity to represent the presence status in the room or home",
+          "weather_entity": "Checks for weather conditions",
+          "temp_low": "The minimum comfort temperature",
+          "temp_high": "The maximum comfort temperature"
+        }
+      },
+      "weather":{
+        "data":{
+          "weather_state": "Weather Conditions"
+        },
+        "data_description":{
+          "weather_state": "Select the weather conditions that allow the window to be controlled automatically"
+        }
+      },
+      "horizontal": {
+        "data": {
+          "name": "Name",
+          "blueprint": "Add blueprint to HomeAssistant",
+          "set_azimuth": "Window Azimuth",
+          "height_awning": "Awning Height",
+          "lenght_awning": "Awning Span Length",
+          "angle": "Awning Angle",
+          "distance_shaded_area": "Shaded area",
+          "default_percentage": "Default Position",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset",
+          "climate_mode": "Climate Mode"
+
         },
         "data_description": {
           "set_azimuth": "Set the Azimuth",
@@ -97,11 +227,7 @@
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
-          "temp_entity": "Inside temperature entity",
-          "presence_entity": "Presence entity",
-          "weather_entity": "Weather entity (optional)",
-          "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
+          "climate_mode": "Climate Mode"
         },
         "data_description": {
           "set_azimuth": "Set the Azimuth",
@@ -117,55 +243,12 @@
       }
     }
   },
-  "options": {
-    "step": {
-      "init": {
-        "data": {
-          "set_azimuth": "Window Azimuth",
-          "window_height": "Window Height",
-          "height_awning": "Awning Height",
-          "lenght_awning": "Awning Span Length",
-          "angle": "Awning Angle",
-          "distance_shaded_area": "Shaded area",
-          "default_percentage": "Default Position",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
-          "group": "Cover Entities",
-          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "slat_depth": "Slat Depth",
-          "slat_distance": "Slat Spacing",
-          "temp_entity": "Inside temperature entity",
-          "presence_entity": "Presence entity",
-          "weather_entity": "Weather entity (optional)",
-          "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
-        },
-        "data_description": {
-          "set_azimuth": "Set the Azimuth",
-          "window_height": "Set the height of the window(s) in meters",
-          "height_awning": "Set the height of the awning from the floor",
-          "lenght_awning": "The total length of the span in meters",
-          "angle": "The angle of the attached awning measured perpendicular from the wall downward to the floor",
-          "distance_shaded_area": "Distance from cover to shaded area in meters",
-          "default_percentage": "Default posistion of cover in percentages",
-          "fov_left": "Degrees to take in account from the left side of the center of the window",
-          "fov_right": "Degrees to take in account from the right side of the center of the window",
-          "group": "Select entities to be controlled with the Blueprint",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "slat_depth": "Depth of individual slat in cm",
-          "slat_distance": "Vertical distance between two slats in cm"
-        }
-      }
-    }
-  },
   "selector": {
     "mode":{
       "options":{
-        "basic": "Basic sun adjusting",
-        "climate": "Advanced climate based adjusting"
+        "cover_blind": "Vertical blind",
+        "cover_awning": "Horizontal blind",
+        "cover_tilt": "Tilted blind"
       }
     },
     "tilt_mode": {
