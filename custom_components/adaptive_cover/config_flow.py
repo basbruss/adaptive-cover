@@ -54,7 +54,7 @@ SENSOR_TYPE_MENU = [SensorType.BLIND, SensorType.AWNING, SensorType.TILT]
 
 CONFIG_SCHEMA = vol.Schema(
     {
-        vol.Optional("name", default=""): selector.TextSelector(),
+        vol.Required("name"): selector.TextSelector(),
         vol.Optional(CONF_BLUEPRINT, default=False): bool,
         vol.Optional(CONF_MODE, default="basic"): selector.SelectSelector(
             selector.SelectSelectorConfig(
@@ -274,7 +274,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     async def async_step_update(self, user_input: dict[str, Any] | None = None):
         """Create entry."""
         return self.async_create_entry(
-            title=f"Adaptive Cover {self.config['name'] if self.config['name'] != 'Adaptive Cover' else ''} Vertical",
+            title=self.config['name'],
             data={
                 "name": self.config["name"],
                 CONF_BLUEPRINT: self.config[CONF_BLUEPRINT],

@@ -87,17 +87,20 @@ class AdaptiveCoverSensorEntity(SensorEntity):
         cover_data: AdaptiveCoverData,
     ) -> None:
         """Initialize adaptive_cover Sensor."""
-        self._type = {
+        self.type = {
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
         }
+
         self._attr_unique_id = unique_id
         self.hass = hass
         self.config_entry = config_entry
         self._cover_data = cover_data
+        self._name = name
         self._cover_type = self.config_entry.data["sensor_type"]
-        self._attr_name = name
+        self._sensor_name = "position"
+        self._device_name= self.type[config_entry.data[CONF_SENSOR_TYPE]]
         self._mode = self.config_entry.data.get(CONF_MODE, "basic")
         self._temp_entity = self.config_entry.options.get("temp_entity", None)
         self._presence_entity = self.config_entry.options.get("presence_entity", None)
@@ -106,6 +109,11 @@ class AdaptiveCoverSensorEntity(SensorEntity):
         for entity in [self._temp_entity, self._presence_entity, self._weather_entity]:
             if entity is not None:
                 self._entities.append(entity)
+
+    @property
+    def name(self):
+        """Name of the entity."""
+        return f"{self._sensor_name}_{self._name}"
 
     @callback
     def async_on_state_change(self, event: EventType[EventStateChangedData]) -> None:
@@ -148,6 +156,15 @@ class AdaptiveCoverSensorEntity(SensorEntity):
     def native_value(self) -> str | None:
         """Handle when entity is added."""
         return self._cover_data.state
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info."""
+        return DeviceInfo(
+            entry_type=DeviceEntryType.SERVICE,
+            identifiers={(DOMAIN, self._attr_unique_id)},
+            name=self._device_name,
+        )
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:  # noqa: D102

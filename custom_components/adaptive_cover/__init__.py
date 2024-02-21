@@ -23,7 +23,7 @@ async def async_initialize_integration(
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Adaptive Cover from a config entry."""
 
-    await hass.config_entries.async_forward_entry_setups(entry, (Platform.SENSOR,))
+    await hass.config_entries.async_forward_entry_setups(entry, (Platform.SENSOR,Platform.SWITCH))
 
     await async_initialize_integration(hass=hass, config_entry=entry)
 
