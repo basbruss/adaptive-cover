@@ -63,7 +63,7 @@ class AdaptiveCoverSwitch(SwitchEntity):
     @property
     def name(self):
         """Name of the entity."""
-        return f"{self._switch_name}_{self._name}"
+        return f"{self._switch_name} {self._name}"
 
     def turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""

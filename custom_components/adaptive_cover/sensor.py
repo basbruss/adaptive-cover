@@ -45,7 +45,7 @@ from .const import (
     CONF_TEMP_LOW,
     CONF_TEMP_HIGH,
     CONF_MODE,
-    CONF_WEATHER_STATE
+    CONF_WEATHER_STATE,
 )
 
 
@@ -99,8 +99,8 @@ class AdaptiveCoverSensorEntity(SensorEntity):
         self._cover_data = cover_data
         self._name = name
         self._cover_type = self.config_entry.data["sensor_type"]
-        self._sensor_name = "position"
-        self._device_name= self.type[config_entry.data[CONF_SENSOR_TYPE]]
+        self._sensor_name = "Cover Position"
+        self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
         self._mode = self.config_entry.data.get(CONF_MODE, "basic")
         self._temp_entity = self.config_entry.options.get("temp_entity", None)
         self._presence_entity = self.config_entry.options.get("presence_entity", None)
@@ -113,44 +113,7 @@ class AdaptiveCoverSensorEntity(SensorEntity):
     @property
     def name(self):
         """Name of the entity."""
-        return f"{self._sensor_name}_{self._name}"
-
-    @callback
-    def async_on_state_change(self, event: EventType[EventStateChangedData]) -> None:
-        """Update supported features and state when a new state is received."""
-        self.async_set_context(event.context)
-
-        self.async_update_state()
-
-    async def async_added_to_hass(self) -> None:
-        """Handle added to Hass."""
-        async_track_state_change_event(
-            self.hass, self._entities, self.async_on_state_change
-        )
-        self.async_update_state()
-
-    @callback
-    def async_update_state(self) -> None:
-        """Determine state after push."""
-        self._cover_data.update()
-        if self._mode == "climate":
-            self._cover_data.update_climate()
-        if self._cover_type == "cover_blind":
-            self._cover_data.update_vertical()
-        if self._cover_type == "cover_awning":
-            self._cover_data.update_horizontal()
-        if self._cover_type == "cover_tilt":
-            self._cover_data.update_tilt()
-
-        self.async_write_ha_state()
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._attr_unique_id)},
-            name=f"Adaptive Cover {self._type[self._cover_type]}",
-        )
+        return f"{self._sensor_name} {self._name}"
 
     @property
     def native_value(self) -> str | None:
@@ -193,6 +156,35 @@ class AdaptiveCoverSensorEntity(SensorEntity):
             ]
             dict_attributes["distance"] = self.config_entry.options[CONF_DISTANCE]
         return dict_attributes
+
+    @callback
+    def async_on_state_change(self, event: EventType[EventStateChangedData]) -> None:
+        """Update supported features and state when a new state is received."""
+        self.async_set_context(event.context)
+
+        self.async_update_state()
+
+    async def async_added_to_hass(self) -> None:
+        """Handle added to Hass."""
+        async_track_state_change_event(
+            self.hass, self._entities, self.async_on_state_change
+        )
+        self.async_update_state()
+
+    @callback
+    def async_update_state(self) -> None:
+        """Determine state after push."""
+        self._cover_data.update()
+        if self._mode == "climate":
+            self._cover_data.update_climate()
+        if self._cover_type == "cover_blind":
+            self._cover_data.update_vertical()
+        if self._cover_type == "cover_awning":
+            self._cover_data.update_horizontal()
+        if self._cover_type == "cover_tilt":
+            self._cover_data.update_tilt()
+
+        self.async_write_ha_state()
 
 
 class AdaptiveCoverData:
