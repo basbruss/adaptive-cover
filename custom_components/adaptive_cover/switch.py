@@ -10,6 +10,9 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN, CONF_SENSOR_TYPE
+from .sensor import AdaptiveCoverSensorEntity
+from .coordinator import AdaptiveDataCoordinator
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -17,9 +20,18 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the demo switch platform."""
+    coordinator = AdaptiveDataCoordinator(hass, config_entry)
     async_add_entities(
         [
-            AdaptiveCoverSwitch(config_entry,config_entry.entry_id, "Climate Mode", True, "mdi:home-thermometer-outline", True),
+            AdaptiveCoverSwitch(
+                config_entry,
+                config_entry.entry_id,
+                "Climate Mode",
+                True,
+                "mdi:home-thermometer-outline",
+                True,
+                coordinator,
+            ),
         ]
     )
 
@@ -38,16 +50,18 @@ class AdaptiveCoverSwitch(SwitchEntity):
         state: bool,
         icon: str | None,
         assumed: bool,
+        coordinator: AdaptiveDataCoordinator,
         device_class: SwitchDeviceClass | None = None,
     ) -> None:
         """Initialize the Demo switch."""
+        self.coordinator = coordinator
         self.type = {
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
         }
         self._name = config_entry.data["name"]
-        self._device_name= self.type[config_entry.data[CONF_SENSOR_TYPE]]
+        self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
         self._switch_name = switch_name
         self._attr_assumed_state = assumed
         self._attr_device_class = device_class
@@ -68,9 +82,11 @@ class AdaptiveCoverSwitch(SwitchEntity):
     def turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
         self._attr_is_on = True
+        self.coordinator.climate_mode = True
         self.schedule_update_ha_state()
 
     def turn_off(self, **kwargs: Any) -> None:
         """Turn the device off."""
         self._attr_is_on = False
+        self.coordinator.climate_mode = False
         self.schedule_update_ha_state()

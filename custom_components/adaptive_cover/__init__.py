@@ -40,6 +40,6 @@ async def config_entry_update_listener(hass: HomeAssistant, entry: ConfigEntry) 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     if unload_ok := await hass.config_entries.async_unload_platforms(
-        entry, (Platform.SENSOR,)
+        entry, (Platform.SENSOR,Platform.SWITCH)
     ):
         return unload_ok
