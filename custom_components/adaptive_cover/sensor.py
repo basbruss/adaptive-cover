@@ -14,6 +14,7 @@ from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
 )
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .helpers import get_safe_state, get_domain
 from .calculation import (
     AdaptiveVerticalCover,
@@ -23,7 +24,7 @@ from .calculation import (
     ClimateCoverState,
     ClimateCoverData,
 )
-# from .coordinator import AdaptiveDataCoordinator
+from .coordinator import AdaptiveDataUpdateCoordinator
 
 from .const import (
     DOMAIN,
@@ -58,19 +59,16 @@ async def async_setup_entry(
     """Initialize Adaptive Cover config entry."""
 
     name = config_entry.data["name"]
-    # coordinator = AdaptiveDataCoordinator(
-    #     hass,
-    #     config_entry,
-    # )
+    coordinator: AdaptiveDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     sensor = AdaptiveCoverSensorEntity(
-        config_entry.entry_id, hass, config_entry, name
+        config_entry.entry_id, hass, config_entry, name, coordinator
     )
 
-    async_add_entities([sensor], False)
+    async_add_entities([sensor])
 
 
-class AdaptiveCoverSensorEntity(SensorEntity):
+class AdaptiveCoverSensorEntity(CoordinatorEntity[AdaptiveDataUpdateCoordinator],SensorEntity):
     """Adaptive Cover Sensor."""
 
     # _attr_state_class = SensorStateClass.MEASUREMENT
@@ -85,10 +83,10 @@ class AdaptiveCoverSensorEntity(SensorEntity):
         hass,
         config_entry,
         name: str,
-        # coordinator: AdaptiveDataCoordinator,
+        coordinator: AdaptiveDataUpdateCoordinator,
     ) -> None:
         """Initialize adaptive_cover Sensor."""
-        super().__init__()
+        super().__init__(coordinator=coordinator)
         self.type = {
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
@@ -98,7 +96,6 @@ class AdaptiveCoverSensorEntity(SensorEntity):
         self._attr_unique_id = unique_id
         self.hass = hass
         self.config_entry = config_entry
-        # self.coordinator = coordinator
         self._name = name
         self._cover_type = self.config_entry.data["sensor_type"]
         self._sensor_name = "Cover Position"
@@ -120,7 +117,11 @@ class AdaptiveCoverSensorEntity(SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Handle when entity is added."""
-        return "test"
+        if (
+            value := self.coordinator.data.mode
+        ) == "not set":
+            return None
+        return value
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -131,34 +132,12 @@ class AdaptiveCoverSensorEntity(SensorEntity):
             name=self._device_name,
         )
 
-    # @property
-    # def extra_state_attributes(self) -> Mapping[str, Any] | None:  # noqa: D102
-    #     dict_attributes = {
-    #         "mode": self.config_entry.data.get(CONF_MODE, "basic"),
-    #         "azimuth_window": self.config_entry.options[CONF_AZIMUTH],
-    #         "default_height": self.config_entry.options[CONF_DEFAULT_HEIGHT],
-    #         "field_of_view": self.coordinator.fov,
-    #         "start_time": self.coordinator.start,
-    #         "end_time": self.coordinator.end,
-    #         "entity_id": self.config_entry.options[CONF_ENTITIES],
-    #         "cover_type": self._cover_type,
-    #         # "test": self.config_entry,
-    #         "climate_mode": self.coordinator.climate_mode,
-    #     }
-    #     if self._cover_type == "cover_blind":
-    #         dict_attributes["window_height"] = self.config_entry.options[
-    #             CONF_HEIGHT_WIN
-    #         ]
-    #         dict_attributes["distance"] = self.config_entry.options[CONF_DISTANCE]
-    #     if self._cover_type == "cover_awning":
-    #         dict_attributes["awning_length"] = self.config_entry.options[
-    #             CONF_LENGTH_AWNING
-    #         ]
-    #         dict_attributes["awning_angle"] = self.config_entry.options[
-    #             CONF_AWNING_ANGLE
-    #         ]
-    #         dict_attributes["distance"] = self.config_entry.options[CONF_DISTANCE]
-    #     return dict_attributes
+    @property
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:  # noqa: D102
+        dict_attributes = {
+            "data": self.coordinator.data
+        }
+        return dict_attributes
 
     # @callback
     # def async_on_state_change(self, event: EventType[EventStateChangedData]) -> None:
@@ -177,15 +156,15 @@ class AdaptiveCoverSensorEntity(SensorEntity):
     # @callback
     # def async_update_state(self) -> None:
     #     """Determine state after push."""
-    #     self.coordinator.update()
-    #     if self._mode == "climate":
-    #         self.coordinator.update_climate()
-    #     if self._cover_type == "cover_blind":
-    #         self.coordinator.update_vertical()
-    #     if self._cover_type == "cover_awning":
-    #         self.coordinator.update_horizontal()
-    #     if self._cover_type == "cover_tilt":
-    #         self.coordinator.update_tilt()
+    #     # self.coordinator.update()
+    #     # if self._mode == "climate":
+    #     #     self.coordinator.update_climate()
+    #     # if self._cover_type == "cover_blind":
+    #     #     self.coordinator.update_vertical()
+    #     # if self._cover_type == "cover_awning":
+    #     #     self.coordinator.update_horizontal()
+    #     # if self._cover_type == "cover_tilt":
+    #     #     self.coordinator.update_tilt()
 
     #     self.async_write_ha_state()
 
