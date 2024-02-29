@@ -1,8 +1,14 @@
 """The Coordinator for Adaptive Cover."""
 from __future__ import annotations
+from collections.abc import Awaitable, Callable, Coroutine
 from dataclasses import dataclass, field
+from datetime import timedelta
+from logging import Logger
+from typing import Any
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, State, callback
+from homeassistant.helpers.debounce import Debouncer
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .helpers import get_safe_state, get_domain
 from .calculation import (
@@ -16,6 +22,7 @@ from .calculation import (
 
 from .const import (
     DOMAIN,
+    LOGGER,
     CONF_AZIMUTH,
     CONF_HEIGHT_WIN,
     CONF_DISTANCE,
@@ -37,6 +44,57 @@ from .const import (
     CONF_MODE,
     CONF_WEATHER_STATE,
 )
+
+@dataclass
+class StateChangedData:
+    """StateChangedData class."""
+
+    entity_id: str
+    old_state: State | None
+    new_state: State | None
+
+@dataclass
+class AdaptiveCoverData:
+    """AdaptiveCoverData class."""
+    mode: bool
+    # sol_azi: float
+
+
+class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
+    """Adaptive cover data update coordinator"""
+
+    config_entry: ConfigEntry
+
+    def __init__(self, hass: HomeAssistant) -> None:
+        super().__init__(hass, LOGGER, name=DOMAIN)
+        self._switch_mode=True
+
+    async def async_check_entity_state_change(
+        self, entity: str, old_state: State | None, new_state: State | None
+    ) -> None:
+        """Fetch and process state change event."""
+        self.state_change_data = StateChangedData(entity, old_state, new_state)
+        await self.async_refresh()
+
+    async def _async_update_data(self) -> AdaptiveCoverData:
+        return AdaptiveCoverData(
+            mode=self.switch_mode,
+            # sol_azi=self.hass.states.get("sun.sun").attributes["azimuth"]
+        )
+
+    @property
+    def switch_mode(self):
+        return self._switch_mode
+
+    @switch_mode.setter
+    def switch_mode(self, value):
+        self._switch_mode = value
+
+
+
+
+
+
 
 
 # class AdaptiveDataCoordinator:
