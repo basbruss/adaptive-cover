@@ -1,49 +1,56 @@
 """The Coordinator for Adaptive Cover."""
 from __future__ import annotations
+
 from collections.abc import Awaitable, Callable, Coroutine
 from dataclasses import dataclass, field
 from datetime import timedelta
 from logging import Logger
 from typing import Any
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, State, callback
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .helpers import get_safe_state, get_domain
 from .calculation import (
-    AdaptiveVerticalCover,
     AdaptiveHorizontalCover,
     AdaptiveTiltCover,
-    NormalCoverState,
-    ClimateCoverState,
+    AdaptiveVerticalCover,
     ClimateCoverData,
+    ClimateCoverState,
+    NormalCoverState,
 )
-
 from .const import (
-    DOMAIN,
-    LOGGER,
+    CONF_AWNING_ANGLE,
     CONF_AZIMUTH,
-    CONF_HEIGHT_WIN,
-    CONF_DISTANCE,
+    CONF_CLIMATE_MODE,
     CONF_DEFAULT_HEIGHT,
+    CONF_DISTANCE,
+    CONF_ENTITIES,
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
-    CONF_ENTITIES,
-    CONF_LENGTH_AWNING,
-    CONF_AWNING_ANGLE,
+    CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
+    CONF_LENGTH_AWNING,
+    CONF_MODE,
+    CONF_PRESENCE_ENTITY,
     CONF_SENSOR_TYPE,
-    CONF_SUNSET_POS,
     CONF_SUNSET_OFFSET,
+    CONF_SUNSET_POS,
+    CONF_TEMP_ENTITY,
+    CONF_TEMP_HIGH,
+    CONF_TEMP_LOW,
     CONF_TILT_DEPTH,
     CONF_TILT_DISTANCE,
     CONF_TILT_MODE,
-    CONF_TEMP_LOW,
-    CONF_TEMP_HIGH,
-    CONF_MODE,
+    CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
+    DOMAIN,
+    LOGGER,
 )
+from .helpers import get_domain, get_safe_state
+from .mock import MockCalc
+
 
 @dataclass
 class StateChangedData:
@@ -53,21 +60,26 @@ class StateChangedData:
     old_state: State | None
     new_state: State | None
 
+
 @dataclass
 class AdaptiveCoverData:
     """AdaptiveCoverData class."""
-    mode: bool
-    # sol_azi: float
+
+    climate_mode_toggle: bool
+    states: dict
+    # inputs: dict
 
 
 class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
-    """Adaptive cover data update coordinator"""
+    """Adaptive cover data update coordinator."""
 
     config_entry: ConfigEntry
 
     def __init__(self, hass: HomeAssistant) -> None:
         super().__init__(hass, LOGGER, name=DOMAIN)
-        self._switch_mode=True
+        self._switch_mode = True
+        self._cover_type = self.config_entry.data["sensor_type"]
+        self._climate_mode = self.config_entry.options[CONF_CLIMATE_MODE]
 
     async def async_check_entity_state_change(
         self, entity: str, old_state: State | None, new_state: State | None
@@ -77,24 +89,95 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         await self.async_refresh()
 
     async def _async_update_data(self) -> AdaptiveCoverData:
+        pos_sun = [
+            self.hass.states.get("sun.sun").attributes["azimuth"],
+            self.hass.states.get("sun.sun").attributes["elevation"],
+        ]
+
+        common_data = [
+            self.config_entry.options[CONF_SUNSET_POS],
+            self.config_entry.options[CONF_SUNSET_OFFSET],
+            self.hass.config.time_zone,
+            self.config_entry.options[CONF_FOV_LEFT],
+            self.config_entry.options[CONF_FOV_RIGHT],
+            self.config_entry.options[CONF_AZIMUTH],
+            self.config_entry.options[CONF_DEFAULT_HEIGHT],
+        ]
+
+        vertical_data = [
+            self.config_entry.options.get(CONF_DISTANCE),
+            self.config_entry.options.get(CONF_HEIGHT_WIN),
+        ]
+
+        horizontal_data = [
+            self.config_entry.options.get(CONF_LENGTH_AWNING),
+            self.config_entry.options.get(CONF_AWNING_ANGLE),
+        ]
+
+        tilt_data = [
+            self.config_entry.options.get(CONF_TILT_DISTANCE),
+            self.config_entry.options.get(CONF_TILT_DEPTH),
+            self.config_entry.options.get(CONF_TILT_MODE),
+        ]
+
+        climate_data = [
+            self.hass,
+            self.config_entry.options.get(CONF_TEMP_ENTITY),
+            self.config_entry.options.get(CONF_TEMP_LOW),
+            self.config_entry.options.get(CONF_TEMP_HIGH),
+            self.config_entry.options.get(CONF_PRESENCE_ENTITY),
+            self.config_entry.options.get(CONF_WEATHER_ENTITY),
+            self.config_entry.options.get(CONF_WEATHER_STATE),
+            self._cover_type,
+        ]
+
+        if self._cover_type == "cover_blind":
+            cover_data = AdaptiveVerticalCover(
+                self.hass, *pos_sun, *common_data, *vertical_data
+            )
+        if self._cover_type == "cover_awning":
+            cover_data = AdaptiveHorizontalCover(
+                self.hass, *pos_sun, *common_data, *vertical_data, *horizontal_data
+            )
+        if self._cover_type == "cover_tilt":
+            cover_data = AdaptiveTiltCover(
+                self.hass, *pos_sun, *common_data, *tilt_data
+            )
+
+        climate = ClimateCoverData(*climate_data)
+
         return AdaptiveCoverData(
-            mode=self.switch_mode,
-            # sol_azi=self.hass.states.get("sun.sun").attributes["azimuth"]
+            climate_mode_toggle=self.switch_mode,
+            states={
+                "normal": round(NormalCoverState(cover_data).get_state()),
+                "climate": round(ClimateCoverState(cover_data, climate).get_state()),
+            },
+            # inputs={
+            #     "type": self._cover_type,
+            #     "common": common_data,
+            #     "vertical": vertical_data,
+            #     "horizontal": horizontal_data,
+            #     "tilt": tilt_data,
+            #     "climate": climate_data,
+            # },
         )
+
+    # def _parse_parameters(self, azimuth_sun, elevation_sun):
+    #     return MockCalc(azimuth_sun=azimuth_sun, elevation_sun=elevation_sun)
+
+    # def _update_parameters(self, mode, *args):
+    #     """Update parameters for vertical blinds."""
+    #     dict = {"cover_blind": AdaptiveVerticalCover(*args)}
+    #     return dict[mode]
 
     @property
     def switch_mode(self):
+        """Let switch toggle climate mode."""
         return self._switch_mode
 
     @switch_mode.setter
     def switch_mode(self, value):
         self._switch_mode = value
-
-
-
-
-
-
 
 
 # class AdaptiveDataCoordinator:
@@ -160,16 +243,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 #         """Update all common parameters."""
 #         self.inverse_state = self.config_entry.options[CONF_INVERSE_STATE]
 #         self.sol_azi = self.hass.states.get("sun.sun").attributes["azimuth"]
-#         self.sol_elev = self.hass.states.get("sun.sun").attributes["elevation"]
-#         self.sunset_pos = self.config_entry.options[CONF_SUNSET_POS]
-#         self.sunset_off = self.config_entry.options[CONF_SUNSET_OFFSET]
-#         self.timezone = self.hass.config.time_zone
-#         self.fov_left = self.config_entry.options[CONF_FOV_LEFT]
-#         self.fov_right = self.config_entry.options[CONF_FOV_RIGHT]
-#         self.fov = [self.fov_left, self.fov_right]
-#         self.win_azi = self.config_entry.options[CONF_AZIMUTH]
-#         self.h_def = self.config_entry.options[CONF_DEFAULT_HEIGHT]
-#         self._mode = self.config_entry.data.get(CONF_MODE, "basic")
+
 
 #     def update_vertical(self):
 #         """Update values for vertical blind."""

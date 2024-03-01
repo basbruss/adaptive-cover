@@ -1,7 +1,9 @@
 """Sensor platform for Adaptive Cover integration."""
 from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import Any
+
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE
@@ -9,46 +11,46 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import EventType
 from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
 )
+from homeassistant.helpers.typing import EventType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from .helpers import get_safe_state, get_domain
+
 from .calculation import (
-    AdaptiveVerticalCover,
     AdaptiveHorizontalCover,
     AdaptiveTiltCover,
-    NormalCoverState,
-    ClimateCoverState,
+    AdaptiveVerticalCover,
     ClimateCoverData,
+    ClimateCoverState,
+    NormalCoverState,
 )
-from .coordinator import AdaptiveDataUpdateCoordinator
-
 from .const import (
-    DOMAIN,
+    CONF_AWNING_ANGLE,
     CONF_AZIMUTH,
-    CONF_HEIGHT_WIN,
-    CONF_DISTANCE,
     CONF_DEFAULT_HEIGHT,
+    CONF_DISTANCE,
+    CONF_ENTITIES,
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
-    CONF_ENTITIES,
-    CONF_LENGTH_AWNING,
-    CONF_AWNING_ANGLE,
+    CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
+    CONF_LENGTH_AWNING,
+    CONF_MODE,
     CONF_SENSOR_TYPE,
-    CONF_SUNSET_POS,
     CONF_SUNSET_OFFSET,
+    CONF_SUNSET_POS,
+    CONF_TEMP_HIGH,
+    CONF_TEMP_LOW,
     CONF_TILT_DEPTH,
     CONF_TILT_DISTANCE,
     CONF_TILT_MODE,
-    CONF_TEMP_LOW,
-    CONF_TEMP_HIGH,
-    CONF_MODE,
     CONF_WEATHER_STATE,
+    DOMAIN,
 )
+from .coordinator import AdaptiveDataUpdateCoordinator
+from .helpers import get_domain, get_safe_state
 
 
 async def async_setup_entry(
@@ -59,7 +61,9 @@ async def async_setup_entry(
     """Initialize Adaptive Cover config entry."""
 
     name = config_entry.data["name"]
-    coordinator: AdaptiveDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: AdaptiveDataUpdateCoordinator = hass.data[DOMAIN][
+        config_entry.entry_id
+    ]
 
     sensor = AdaptiveCoverSensorEntity(
         config_entry.entry_id, hass, config_entry, name, coordinator
@@ -68,7 +72,9 @@ async def async_setup_entry(
     async_add_entities([sensor])
 
 
-class AdaptiveCoverSensorEntity(CoordinatorEntity[AdaptiveDataUpdateCoordinator],SensorEntity):
+class AdaptiveCoverSensorEntity(
+    CoordinatorEntity[AdaptiveDataUpdateCoordinator], SensorEntity
+):
     """Adaptive Cover Sensor."""
 
     # _attr_state_class = SensorStateClass.MEASUREMENT
@@ -117,11 +123,9 @@ class AdaptiveCoverSensorEntity(CoordinatorEntity[AdaptiveDataUpdateCoordinator]
     @property
     def native_value(self) -> str | None:
         """Handle when entity is added."""
-        if (
-            value := self.coordinator.data.mode
-        ) == "not set":
-            return None
-        return value
+        if self.coordinator.data.climate_mode_toggle:
+            return self.coordinator.data.states["climate"]
+        return self.coordinator.data.states["normal"]
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -134,9 +138,7 @@ class AdaptiveCoverSensorEntity(CoordinatorEntity[AdaptiveDataUpdateCoordinator]
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:  # noqa: D102
-        dict_attributes = {
-            "data": self.coordinator.data
-        }
+        dict_attributes = {"data": self.coordinator.data}
         return dict_attributes
 
     # @callback
@@ -287,65 +289,65 @@ class AdaptiveCoverSensorEntity(CoordinatorEntity[AdaptiveDataUpdateCoordinator]
 
 #         self.start, self.end = horizontal.solar_times()
 
-#     def update_tilt(self):
-#         """Update values for tilted blind."""
-#         self.slat_distance = self.config_entry.options[CONF_TILT_DISTANCE]
-#         self.depth = self.config_entry.options[CONF_TILT_DEPTH]
-#         self.tilt_mode = self.config_entry.options[CONF_TILT_MODE]
-#         tilt = AdaptiveTiltCover(
-#             self.hass,
-#             self.sol_azi,
-#             self.sol_elev,
-#             self.sunset_pos,
-#             self.sunset_off,
-#             self.timezone,
-#             self.fov_left,
-#             self.fov_right,
-#             self.win_azi,
-#             self.h_def,
-#             self.slat_distance,
-#             self.depth,
-#             self.tilt_mode,
-#         )
+# def update_tilt(self):
+#     """Update values for tilted blind."""
+#     self.slat_distance = self.config_entry.options[CONF_TILT_DISTANCE]
+#     self.depth = self.config_entry.options[CONF_TILT_DEPTH]
+#     self.tilt_mode = self.config_entry.options[CONF_TILT_MODE]
+#     tilt = AdaptiveTiltCover(
+#         self.hass,
+#         self.sol_azi,
+#         self.sol_elev,
+#         self.sunset_pos,
+#         self.sunset_off,
+#         self.timezone,
+#         self.fov_left,
+#         self.fov_right,
+#         self.win_azi,
+#         self.h_def,
+#         self.slat_distance,
+#         self.depth,
+#         self.tilt_mode,
+#     )
 
-#         state = NormalCoverState(tilt)
-#         if self.climate_data is not None:
-#             state = ClimateCoverState(tilt, self.climate_data)
-#         self.calculated_state = state.get_state()
+#     state = NormalCoverState(tilt)
+#     if self.climate_data is not None:
+#         state = ClimateCoverState(tilt, self.climate_data)
+#     self.calculated_state = state.get_state()
 
-#         self.start, self.end = tilt.solar_times()
+#     self.start, self.end = tilt.solar_times()
 
-#     def update_climate(self):
-#         """Update climate variables."""
-#         self.temp_low = self.config_entry.options[CONF_TEMP_LOW]
-#         self.temp_high = self.config_entry.options[CONF_TEMP_HIGH]
-#         self.temp_entity = self.config_entry.options["temp_entity"]
-#         self.presence_entity = self.config_entry.options["presence_entity"]
-#         self.weather_entity = self.config_entry.options["weather_entity"]
-#         self.weather_condition = self.config_entry.get(CONF_WEATHER_STATE)
-#         self.presence = None
-#         if get_domain(self.temp_entity) == "climate":
-#             self.current_temp = self.hass.states.get(self.temp_entity).attributes[
-#                 "current_temperature"
-#             ]
-#         else:
-#             self.current_temp = get_safe_state(self.hass, self.temp_entity)
+# def update_climate(self):
+#     """Update climate variables."""
+#     self.temp_low = self.config_entry.options[CONF_TEMP_LOW]
+#     self.temp_high = self.config_entry.options[CONF_TEMP_HIGH]
+#     self.temp_entity = self.config_entry.options["temp_entity"]
+#     self.presence_entity = self.config_entry.options["presence_entity"]
+#     self.weather_entity = self.config_entry.options["weather_entity"]
+#     self.weather_condition = self.config_entry.get(CONF_WEATHER_STATE)
+#     self.presence = None
+#     if get_domain(self.temp_entity) == "climate":
+#         self.current_temp = self.hass.states.get(self.temp_entity).attributes[
+#             "current_temperature"
+#         ]
+#     else:
+#         self.current_temp = get_safe_state(self.hass, self.temp_entity)
 
-#         if self.presence_entity is not None:
-#             self.presence = get_safe_state(self.hass, self.presence_entity)
-#         if self.weather_entity is not None:
-#             self.weather_state = get_safe_state(self.hass, self.weather_entity)
+#     if self.presence_entity is not None:
+#         self.presence = get_safe_state(self.hass, self.presence_entity)
+#     if self.weather_entity is not None:
+#         self.weather_state = get_safe_state(self.hass, self.weather_entity)
 
-#         self.climate_data = ClimateCoverData(
-#             self.current_temp,
-#             self.temp_low,
-#             self.temp_high,
-#             self.presence,
-#             self.presence_entity,
-#             self.weather_state,
-#             self.weather_condition,
-#             self.sensor_type,
-#         )
+#     self.climate_data = ClimateCoverData(
+#         self.current_temp,
+#         self.temp_low,
+#         self.temp_high,
+#         self.presence,
+#         self.presence_entity,
+#         self.weather_state,
+#         self.weather_condition,
+#         self.sensor_type,
+#     )
 
 #     @property
 #     def state(self):

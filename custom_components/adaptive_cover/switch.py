@@ -10,7 +10,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, CONF_SENSOR_TYPE
+from .const import CONF_SENSOR_TYPE, DOMAIN
 from .coordinator import AdaptiveDataUpdateCoordinator
 
 
@@ -20,17 +20,19 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the demo switch platform."""
-    coordinator: AdaptiveDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: AdaptiveDataUpdateCoordinator = hass.data[DOMAIN][
+        config_entry.entry_id
+    ]
 
     climate_switch = AdaptiveCoverSwitch(
-                config_entry,
-                config_entry.entry_id,
-                "Climate Mode",
-                True,
-                "mdi:home-thermometer-outline",
-                True,
-                coordinator,
-            )
+        config_entry,
+        config_entry.entry_id,
+        "Climate Mode",
+        True,
+        "mdi:home-thermometer-outline",
+        True,
+        coordinator,
+    )
 
     async_add_entities(
         [
@@ -39,7 +41,9 @@ async def async_setup_entry(
     )
 
 
-class AdaptiveCoverSwitch(CoordinatorEntity[AdaptiveDataUpdateCoordinator],SwitchEntity):
+class AdaptiveCoverSwitch(
+    CoordinatorEntity[AdaptiveDataUpdateCoordinator], SwitchEntity
+):
     """Representation of a adaptive cover switch."""
 
     _attr_has_entity_name = True
@@ -72,7 +76,6 @@ class AdaptiveCoverSwitch(CoordinatorEntity[AdaptiveDataUpdateCoordinator],Switc
         self._attr_is_on = state
         self._attr_unique_id = unique_id
         self._attr_device_info = DeviceInfo(
-            entry_type=DeviceEntryType.SERVICE,
             identifiers={(DOMAIN, unique_id)},
             name=self._device_name,
         )
@@ -89,11 +92,9 @@ class AdaptiveCoverSwitch(CoordinatorEntity[AdaptiveDataUpdateCoordinator],Switc
         await self.coordinator.async_request_refresh()
         self.schedule_update_ha_state()
 
-
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the device off."""
         self._attr_is_on = False
         self.coordinator.switch_mode = False
         await self.coordinator.async_request_refresh()
         self.schedule_update_ha_state()
-
