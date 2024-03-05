@@ -155,8 +155,8 @@ class ClimateCoverData:
                     "current_temperature"
                 ]
             temp = get_safe_state(self.hass, self.temp_entity)
-            return float(temp)
-        return -273
+            if temp is not None:
+                return float(temp)
 
     @property
     def is_presence(self):
@@ -178,14 +178,16 @@ class ClimateCoverData:
     @property
     def is_winter(self) -> bool:
         """Check if temperature is below threshold."""
-        if self.temp_low:
+        if self.temp_low and self.current_temperature:
             return self.current_temperature < self.temp_low
+        return False
 
     @property
     def is_summer(self) -> bool:
         """Check if temperature is over threshold."""
-        if self.temp_high:
+        if self.temp_high and self.current_temperature:
             return self.current_temperature > self.temp_high
+        return False
 
     @property
     def is_sunny(self) -> bool:
