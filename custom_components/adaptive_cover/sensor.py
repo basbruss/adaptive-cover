@@ -8,10 +8,15 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import (
+    EventStateChangedData,
+    async_track_state_change_event,
+)
+from homeassistant.helpers.typing import EventType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .calculation import (
@@ -46,6 +51,7 @@ from .const import (
     DOMAIN,
 )
 from .coordinator import AdaptiveDataUpdateCoordinator
+from .helpers import get_domain, get_safe_state
 
 
 async def async_setup_entry(
@@ -101,6 +107,11 @@ class AdaptiveCoverSensorEntity(
         self._cover_type = self.config_entry.data["sensor_type"]
         self._sensor_name = "Cover Position"
         self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
+
+    @property
+    def name(self):
+        """Name of the entity."""
+        return f"{self._sensor_name} {self._name}"
 
     @property
     def native_value(self) -> str | None:

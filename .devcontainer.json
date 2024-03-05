@@ -12,10 +12,13 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-python.python",
-        "github.vscode-pull-request-github",
-        "ryanluker.vscode-coverage-gutters",
-        "ms-python.vscode-pylance"
+        "charliermarsh.ruff",
+        "ms-python.pylint",
+        "ms-python.vscode-pylance",
+        "visualstudioexptteam.vscodeintellicode",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode",
+        "GitHub.vscode-pull-request-github"
       ],
       "settings": {
         "files.eol": "\n",
