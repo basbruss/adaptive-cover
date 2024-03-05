@@ -1,8 +1,6 @@
 """Constants for integration_blueprint."""
-import logging
 
 DOMAIN = "adaptive_cover"
-LOGGER = logging.getLogger(__package__)
 
 CONF_AZIMUTH = "set_azimuth"
 CONF_BLUEPRINT = "blueprint"
