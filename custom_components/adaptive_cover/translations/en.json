@@ -110,7 +110,8 @@
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
-          "climate_mode": "Climate Mode"
+          "climate_mode": "Climate Mode",
+          "tilt_mode": "Type of movement"
         },
         "data_description": {
           "set_azimuth": "Set the Azimuth",
@@ -122,7 +123,8 @@
           "group": "Select entities to be controlled with the Blueprint",
           "sunset_position": "Position to change to after sunset",
           "sunset_offset": "Offset (+-) from sunset in minutes",
-          "climate_mode": "Configure variables for climate mode"
+          "climate_mode": "Configure variables for climate mode",
+          "tilt_mode": "Select the type of movement"
         },
         "description": "Add configuration variables to the sensor",
         "title": "Tilted cover"
@@ -232,7 +234,8 @@
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
-          "climate_mode": "Climate Mode"
+          "climate_mode": "Climate Mode",
+          "tilt_mode": "Type of movement"
         },
         "data_description": {
           "set_azimuth": "Set the Azimuth",
@@ -244,7 +247,8 @@
           "group": "Select entities to be controlled with the Blueprint",
           "sunset_position": "Position to change to after sunset",
           "sunset_offset": "Offset (+-) from sunset in minutes",
-          "climate_mode": "Configure variables for climate mode"
+          "climate_mode": "Configure variables for climate mode",
+          "tilt_mode": "Select the type of movement"
         },
         "description": "Add configuration variables to the sensor",
         "title": "Tilted cover"
