@@ -124,7 +124,7 @@ HORIZONTAL_OPTIONS = vol.Schema(
             selector.NumberSelectorConfig(min=0.1, max=2, step=0.1, mode="slider")
         ),
     }
-).extend(VERTICAL_OPTIONS.schema)
+).extend(OPTIONS.schema)
 
 TILT_OPTIONS = vol.Schema(
     {
