@@ -3,10 +3,10 @@
   "name": "Adaptive Cover",
   "codeowners": ["@basbruss"],
   "config_flow": true,
-  "dependencies": ["sun"],
+  "dependencies": ["sun","device_tracker","zone","climate","sensor","weather"],
   "documentation": "https://github.com/basbruss/adaptive-cover",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/basbruss/adaptive-cover/issues",
   "requirements": ["astral", "pandas"],
-  "version": "0.2.2"
+  "version": "0.3.0b0"
 }

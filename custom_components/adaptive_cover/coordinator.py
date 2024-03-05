@@ -72,9 +72,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     def __init__(self, hass: HomeAssistant) -> None:
         super().__init__(hass, LOGGER, name=DOMAIN)
         self._switch_mode = True
-        self._cover_type = self.config_entry.data["sensor_type"]
-        self._climate_mode = self.config_entry.options[CONF_CLIMATE_MODE]
-        self._inverse_state = self.config_entry.options[CONF_INVERSE_STATE]
+        self._cover_type = self.config_entry.data.get("sensor_type")
+        self._climate_mode = self.config_entry.options.get(CONF_CLIMATE_MODE, False)
+        self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
 
     async def async_check_entity_state_change(
         self, entity: str, old_state: State | None, new_state: State | None
