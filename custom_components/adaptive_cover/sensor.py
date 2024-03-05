@@ -89,6 +89,8 @@ class AdaptiveCoverSensorEntity(SensorEntity):
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
         }
+
+        self.data = self.coordinator.data
         self._attr_unique_id = unique_id
         self.hass = hass
         self.config_entry = config_entry
@@ -137,7 +139,18 @@ class AdaptiveCoverSensorEntity(SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Handle when entity is added."""
-        return self._cover_data.state
+        if self.data.climate_mode_toggle:
+            return self.data.states["climate"]
+        return self.data.states["normal"]
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info."""
+        return DeviceInfo(
+            entry_type=DeviceEntryType.SERVICE,
+            identifiers={(DOMAIN, self._attr_unique_id)},
+            name=self._device_name,
+        )
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:  # noqa: D102

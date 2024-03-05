@@ -79,6 +79,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._switch_mode = True
         self._cover_type = self.config_entry.data["sensor_type"]
         self._climate_mode = self.config_entry.options[CONF_CLIMATE_MODE]
+        self._inverse_state = self.config_entry.options[CONF_INVERSE_STATE]
 
     async def async_check_entity_state_change(
         self, entity: str, old_state: State | None, new_state: State | None
@@ -88,6 +89,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         await self.async_refresh()
 
     async def _async_update_data(self) -> AdaptiveCoverData:
+
         pos_sun = [
             self.hass.states.get("sun.sun").attributes["azimuth"],
             self.hass.states.get("sun.sun").attributes["elevation"],
@@ -145,11 +147,18 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         climate = ClimateCoverData(*climate_data)
 
+        default_state = round(NormalCoverState(cover_data).get_state())
+        climate_state = round(ClimateCoverState(cover_data, climate).get_state())
+
+        if self._inverse_state:
+            default_state = 100-default_state
+            climate_state = 100-climate_state
+
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
             states={
-                "normal": round(NormalCoverState(cover_data).get_state()),
-                "climate": round(ClimateCoverState(cover_data, climate).get_state()),
+                "normal": default_state,
+                "climate": climate_state,
             },
             # inputs={
             #     "type": self._cover_type,
