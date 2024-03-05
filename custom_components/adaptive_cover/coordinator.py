@@ -66,7 +66,7 @@ class AdaptiveCoverData:
 
     climate_mode_toggle: bool
     states: dict
-    # inputs: dict
+    attributes: dict
 
 
 class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
@@ -96,13 +96,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         ]
 
         common_data = [
-            self.config_entry.options[CONF_SUNSET_POS],
-            self.config_entry.options[CONF_SUNSET_OFFSET],
+            self.config_entry.options.get(CONF_SUNSET_POS),
+            self.config_entry.options.get(CONF_SUNSET_OFFSET),
             self.hass.config.time_zone,
-            self.config_entry.options[CONF_FOV_LEFT],
-            self.config_entry.options[CONF_FOV_RIGHT],
-            self.config_entry.options[CONF_AZIMUTH],
-            self.config_entry.options[CONF_DEFAULT_HEIGHT],
+            self.config_entry.options.get(CONF_FOV_LEFT),
+            self.config_entry.options.get(CONF_FOV_RIGHT),
+            self.config_entry.options.get(CONF_AZIMUTH),
+            self.config_entry.options.get(CONF_DEFAULT_HEIGHT),
         ]
 
         vertical_data = [
@@ -160,6 +160,16 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 "normal": default_state,
                 "climate": climate_state,
             },
+            attributes={
+                "default": self.config_entry.options.get(CONF_DEFAULT_HEIGHT),
+                "sunset_default": self.config_entry.options.get(CONF_SUNSET_POS),
+                "sunset_offset": self.config_entry.options.get(CONF_SUNSET_OFFSET),
+                "azimuth_window": self.config_entry.options.get(CONF_AZIMUTH),
+                "field_of_view": [self.config_entry.options.get(CONF_FOV_LEFT),
+            self.config_entry.options.get(CONF_FOV_RIGHT)],
+                "entity_id": self.config_entry.options.get(CONF_ENTITIES),
+                "cover_type": self._cover_type
+            }
             # inputs={
             #     "type": self._cover_type,
             #     "common": common_data,

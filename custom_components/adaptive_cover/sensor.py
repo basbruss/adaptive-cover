@@ -154,31 +154,7 @@ class AdaptiveCoverSensorEntity(SensorEntity):
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:  # noqa: D102
-        dict_attributes = {
-            "mode": self.config_entry.data.get(CONF_MODE, "basic"),
-            "azimuth_window": self.config_entry.options[CONF_AZIMUTH],
-            "default_height": self.config_entry.options[CONF_DEFAULT_HEIGHT],
-            "field_of_view": self._cover_data.fov,
-            "start_time": self._cover_data.start,
-            "end_time": self._cover_data.end,
-            "entity_id": self.config_entry.options[CONF_ENTITIES],
-            "cover_type": self._cover_type,
-            # "test": self.config_entry,
-        }
-        if self._cover_type == "cover_blind":
-            dict_attributes["window_height"] = self.config_entry.options[
-                CONF_HEIGHT_WIN
-            ]
-            dict_attributes["distance"] = self.config_entry.options[CONF_DISTANCE]
-        if self._cover_type == "cover_awning":
-            dict_attributes["awning_length"] = self.config_entry.options[
-                CONF_LENGTH_AWNING
-            ]
-            dict_attributes["awning_angle"] = self.config_entry.options[
-                CONF_AWNING_ANGLE
-            ]
-            dict_attributes["distance"] = self.config_entry.options[CONF_DISTANCE]
-        return dict_attributes
+        return self.data.attributes
 
 
 class AdaptiveCoverData:
