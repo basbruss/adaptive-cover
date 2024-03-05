@@ -42,6 +42,7 @@ from .const import (
     CONF_TEMP_LOW,
     CONF_TEMP_HIGH,
     CONF_MODE,
+    CONF_WEATHER_STATE
 )
 
 
@@ -207,6 +208,7 @@ class AdaptiveCoverData:
         self.presence = None
         self.presence_entity = None
         self.weather_entity = None
+        self.weather_state = None
         self.weather_condition = None
         self.climate_state = None
         self.climate_data = None
@@ -315,6 +317,7 @@ class AdaptiveCoverData:
         self.temp_entity = self.config_entry.options["temp_entity"]
         self.presence_entity = self.config_entry.options["presence_entity"]
         self.weather_entity = self.config_entry.options["weather_entity"]
+        self.weather_condition = self.config_entry.get(CONF_WEATHER_STATE)
         self.presence = None
         if get_domain(self.temp_entity) == "climate":
             self.current_temp = self.hass.states.get(self.temp_entity).attributes[
@@ -326,7 +329,7 @@ class AdaptiveCoverData:
         if self.presence_entity is not None:
             self.presence = get_safe_state(self.hass, self.presence_entity)
         if self.weather_entity is not None:
-            self.weather_condition = get_safe_state(self.hass, self.weather_entity)
+            self.weather_state = get_safe_state(self.hass, self.weather_entity)
 
         self.climate_data = ClimateCoverData(
             self.current_temp,
@@ -334,6 +337,7 @@ class AdaptiveCoverData:
             self.temp_high,
             self.presence,
             self.presence_entity,
+            self.weather_state,
             self.weather_condition,
             self.sensor_type,
         )

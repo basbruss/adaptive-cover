@@ -28,6 +28,8 @@ CONF_WEATHER_ENTITY = "weather_entity"
 CONF_TEMP_LOW = "temp_low"
 CONF_TEMP_HIGH = "temp_high"
 CONF_MODE = "mode"
+CONF_CLIMATE_MODE = "climate_mode"
+CONF_WEATHER_STATE = "weather_state"
 
 STRATEGY_MODE_BASIC = "basic"
 STRATEGY_MODE_CLIMATE = "climate"
