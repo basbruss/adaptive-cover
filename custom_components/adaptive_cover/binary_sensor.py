@@ -1,4 +1,4 @@
-"""Demo platform that has two fake binary sensors."""
+"""Binary Sensor platform for the Adaptive Cover integration."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the demo binary sensor platform."""
+    """Set up the Adaptive Cover binary sensor platform."""
     coordinator: AdaptiveDataUpdateCoordinator = hass.data[DOMAIN][
         config_entry.entry_id
     ]
@@ -40,7 +40,7 @@ async def async_setup_entry(
 class AdaptiveCoverBinarySensor(
     CoordinatorEntity[AdaptiveDataUpdateCoordinator], BinarySensorEntity
 ):
-    """representation of a Demo binary sensor."""
+    """representation of a Adaptive Cover binary sensor."""
 
     _attr_has_entity_name = True
     _attr_should_poll = False
@@ -54,7 +54,7 @@ class AdaptiveCoverBinarySensor(
         device_class: BinarySensorDeviceClass,
         coordinator: AdaptiveDataUpdateCoordinator,
     ) -> None:
-        """Initialize the demo sensor."""
+        """Initialize the binary sensor."""
         super().__init__(coordinator=coordinator)
         self.type = {
             "cover_blind": "Vertical",
