@@ -60,7 +60,10 @@ async def async_setup_entry(
         "mdi:sun-clock",
         coordinator,
     )
-    async_add_entities([sensor, start, end])
+    control = AdaptiveCoverControlSensorEntity(
+        config_entry.entry_id, hass, config_entry, name, coordinator
+    )
+    async_add_entities([sensor, start, end, control])
 
 
 class AdaptiveCoverSensorEntity(
@@ -172,6 +175,60 @@ class AdaptiveCoverTimeSensorEntity(
     def native_value(self) -> str | None:
         """Handle when entity is added."""
         return self.data.states[self.key]
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info."""
+        return DeviceInfo(
+            entry_type=DeviceEntryType.SERVICE,
+            identifiers={(DOMAIN, self.id)},
+            name=self._device_name,
+        )
+
+
+class AdaptiveCoverControlSensorEntity(
+    CoordinatorEntity[AdaptiveDataUpdateCoordinator], SensorEntity
+):
+    """Adaptive Cover Control method Sensor."""
+
+    _attr_has_entity_name = True
+    _attr_should_poll = False
+    _attr_translation_key = "control"
+
+    def __init__(
+        self,
+        unique_id: str,
+        hass,
+        config_entry,
+        name: str,
+        coordinator: AdaptiveDataUpdateCoordinator,
+    ) -> None:
+        """Initialize adaptive_cover Sensor."""
+        super().__init__(coordinator=coordinator)
+        self.type = {
+            "cover_blind": "Vertical",
+            "cover_awning": "Horizontal",
+            "cover_tilt": "Tilt",
+        }
+        self.data = self.coordinator.data
+        self._sensor_name = "Control Method"
+        self._attr_unique_id = f"{unique_id}_{self._sensor_name}"
+        self.id = unique_id
+        self.hass = hass
+        self.config_entry = config_entry
+        self._name = name
+        self._cover_type = self.config_entry.data["sensor_type"]
+        self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
+
+    @property
+    def name(self):
+        """Name of the entity."""
+        return f"{self._sensor_name} {self._name}"
+
+    @property
+    def native_value(self) -> str | None:
+        """Handle when entity is added."""
+        return self.data.states["control"]
 
     @property
     def device_info(self) -> DeviceInfo:
