@@ -44,6 +44,7 @@ class AdaptiveCoverBinarySensor(
 
     _attr_has_entity_name = True
     _attr_should_poll = False
+    _attr_translation_key = "sun_motion"
 
     def __init__(
         self,
