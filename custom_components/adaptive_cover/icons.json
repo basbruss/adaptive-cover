@@ -10,7 +10,7 @@
       },
       "sensor": {
         "control": {
-          "default": "mdi:white-sunny-balance",
+          "default": "mdi:white-balance-sunny",
           "state":{
             "winter": "mdi:snowflake",
             "summer": "mdi:heat-wave"
