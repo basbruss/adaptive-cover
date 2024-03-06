@@ -80,4 +80,4 @@ class AdaptiveCoverBinarySensor(
     @property
     def is_on(self) -> bool:
         """Return true if the binary sensor is on."""
-        return self._state
+        return self.coordinator.data.states["binary"]
