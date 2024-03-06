@@ -65,11 +65,12 @@ class AdaptiveCoverBinarySensor(
         self._name = config_entry.data["name"]
         self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
         self._binary_name = binary_name
-        self._attr_unique_id = unique_id
+        self._attr_unique_id = f"{unique_id}_{binary_name}"
+        self._device_id = unique_id
         self._state = state
         self._attr_device_class = device_class
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, unique_id)},
+            identifiers={(DOMAIN, self._device_id)},
             name=self._device_name,
         )
 
