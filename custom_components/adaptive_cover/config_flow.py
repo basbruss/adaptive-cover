@@ -42,7 +42,6 @@ from .const import (
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
     DOMAIN,
-    STRATEGY_MODES,
     SensorType,
 )
 
@@ -225,7 +224,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.type_blind = SensorType.BLIND
         if user_input is not None:
             self.config.update(user_input)
-            if self.config[CONF_CLIMATE_MODE] == True:
+            if self.config[CONF_CLIMATE_MODE] is True:
                 return await self.async_step_climate()
             return await self.async_step_update()
         return self.async_show_form(step_id="vertical", data_schema=VERTICAL_OPTIONS)
@@ -235,7 +234,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.type_blind = SensorType.AWNING
         if user_input is not None:
             self.config.update(user_input)
-            if self.config[CONF_CLIMATE_MODE] == True:
+            if self.config[CONF_CLIMATE_MODE] is True:
                 return await self.async_step_climate()
             return await self.async_step_update()
         return self.async_show_form(
@@ -247,7 +246,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.type_blind = SensorType.TILT
         if user_input is not None:
             self.config.update(user_input)
-            if self.config[CONF_CLIMATE_MODE] == True:
+            if self.config[CONF_CLIMATE_MODE] is True:
                 return await self.async_step_climate()
             return await self.async_step_update()
         return self.async_show_form(step_id="tilt", data_schema=TILT_OPTIONS)
