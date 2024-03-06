@@ -44,13 +44,6 @@
       "climate":{
         "data":{
           "temp_entity": "Binnen temperatuur entiteit",
-          "presence_entity": "Presence entity",
-          "weather_entity": "Weather entity (optional)",
-          "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
-        },
-        "data_description":{
-          "temp_entity": "Binnen temperatuur entiteit",
           "presence_entity": "Aanwezigheid entiteit",
           "weather_entity": "Weer entiteit (optioneel)",
           "temp_low": "Minimale comfort temperatuur",
@@ -171,13 +164,6 @@
       },
       "climate":{
         "data":{
-          "temp_entity": "Binnen temperatuur entiteit",
-          "presence_entity": "Presence entity",
-          "weather_entity": "Weather entity (optional)",
-          "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
-        },
-        "data_description":{
           "temp_entity": "Binnen temperatuur entiteit",
           "presence_entity": "Aanwezigheid entiteit",
           "weather_entity": "Weer entiteit (optioneel)",

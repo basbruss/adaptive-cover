@@ -162,6 +162,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 "start": NormalCoverState(cover_data).cover.solar_times()[0],
                 "end": NormalCoverState(cover_data).cover.solar_times()[1],
                 "control": control_method,
+                "binary": NormalCoverState(cover_data).cover.valid,
             },
             attributes={
                 "default": self.config_entry.options.get(CONF_DEFAULT_HEIGHT),
