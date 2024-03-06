@@ -151,6 +151,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             states={
                 "normal": default_state,
                 "climate": climate_state,
+                "binary": NormalCoverState(cover_data).cover.valid,
             },
             attributes={
                 "default": self.config_entry.options.get(CONF_DEFAULT_HEIGHT),

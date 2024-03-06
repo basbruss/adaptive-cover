@@ -1,0 +1,12 @@
+{
+    "entity": {
+      "binary_sensor": {
+        "sun_motion": {
+          "default": "mdi:weather-sunny",
+          "state":{
+            "off": "mdi:weather-sunny-off"
+          }
+        }
+      }
+    }
+  }
