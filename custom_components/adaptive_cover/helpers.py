@@ -1,5 +1,7 @@
 """Helper functions."""
+
 from homeassistant.core import split_entity_id
+
 
 def get_safe_state(hass, entity_id: str):
     """Get a safe state value if not available."""
@@ -7,6 +9,7 @@ def get_safe_state(hass, entity_id: str):
     if not state or state.state in ["unknown", "unavailable"]:
         return None
     return state.state
+
 
 def get_domain(entity: str):
     """Get domain of entity."""

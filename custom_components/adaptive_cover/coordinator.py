@@ -28,9 +28,7 @@ from .const import (
     CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
     CONF_LENGTH_AWNING,
-    CONF_MODE,
     CONF_PRESENCE_ENTITY,
-    CONF_SENSOR_TYPE,
     CONF_SUNSET_OFFSET,
     CONF_SUNSET_POS,
     CONF_TEMP_ENTITY,
@@ -69,7 +67,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     config_entry: ConfigEntry
 
-    def __init__(self, hass: HomeAssistant) -> None:
+    def __init__(self, hass: HomeAssistant) -> None:  # noqa: D107
         super().__init__(hass, LOGGER, name=DOMAIN)
         self._switch_mode = True
         self._cover_type = self.config_entry.data.get("sensor_type")

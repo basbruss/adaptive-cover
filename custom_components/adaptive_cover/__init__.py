@@ -6,7 +6,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import (
-    async_track_entity_registry_updated_event,
     async_track_state_change,
 )
 

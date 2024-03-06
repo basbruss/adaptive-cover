@@ -8,50 +8,17 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import (
-    EventStateChangedData,
-    async_track_state_change_event,
-)
-from homeassistant.helpers.typing import EventType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .calculation import (
-    AdaptiveHorizontalCover,
-    AdaptiveTiltCover,
-    AdaptiveVerticalCover,
-    ClimateCoverData,
-    ClimateCoverState,
-    NormalCoverState,
-)
 from .const import (
-    CONF_AWNING_ANGLE,
-    CONF_AZIMUTH,
-    CONF_DEFAULT_HEIGHT,
-    CONF_DISTANCE,
-    CONF_ENTITIES,
-    CONF_FOV_LEFT,
-    CONF_FOV_RIGHT,
-    CONF_HEIGHT_WIN,
-    CONF_INVERSE_STATE,
-    CONF_LENGTH_AWNING,
-    CONF_MODE,
     CONF_SENSOR_TYPE,
-    CONF_SUNSET_OFFSET,
-    CONF_SUNSET_POS,
-    CONF_TEMP_HIGH,
-    CONF_TEMP_LOW,
-    CONF_TILT_DEPTH,
-    CONF_TILT_DISTANCE,
-    CONF_TILT_MODE,
-    CONF_WEATHER_STATE,
     DOMAIN,
 )
 from .coordinator import AdaptiveDataUpdateCoordinator
-from .helpers import get_domain, get_safe_state
 
 
 async def async_setup_entry(
