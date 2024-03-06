@@ -146,11 +146,22 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             default_state = 100 - default_state
             climate_state = 100 - climate_state
 
+        climate_data = ClimateCoverState(cover_data, climate).climate_data
+
+        control_method = "intermediate"
+        if climate_data.is_summer:
+            control_method = "summer"
+        if climate_data.is_winter:
+            control_method = "winter"
+
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
             states={
                 "normal": default_state,
                 "climate": climate_state,
+                "start": NormalCoverState(cover_data).cover.solar_times()[0],
+                "end": NormalCoverState(cover_data).cover.solar_times()[1],
+                "control": control_method,
                 "binary": NormalCoverState(cover_data).cover.valid,
             },
             attributes={

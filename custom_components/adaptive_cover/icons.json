@@ -7,6 +7,15 @@
             "off": "mdi:weather-sunny-off"
           }
         }
+      },
+      "sensor": {
+        "control": {
+          "default": "mdi:white-sunny-balance",
+          "state":{
+            "winter": "mdi:snowflake",
+            "summer": "mdi:heat-wave"
+          }
+        }
       }
     }
   }

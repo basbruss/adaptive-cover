@@ -147,7 +147,7 @@ class ClimateCoverData:
     blind_type: str
 
     @property
-    def current_temperature(self):
+    def current_temperature(self) -> float:
         """Get current temp from entity."""
         if self.temp_entity is not None:
             temp = get_safe_state(self.hass, self.temp_entity)
@@ -155,8 +155,7 @@ class ClimateCoverData:
                 temp = self.hass.states.get(self.temp_entity).attributes[
                     "current_temperature"
                 ]
-            if temp is not None:
-                return float(temp)
+            return temp
 
     @property
     def is_presence(self):
@@ -178,15 +177,15 @@ class ClimateCoverData:
     @property
     def is_winter(self) -> bool:
         """Check if temperature is below threshold."""
-        if self.temp_low and self.current_temperature:
-            return self.current_temperature < self.temp_low
+        if self.temp_low is not None and self.current_temperature is not None:
+            return float(self.current_temperature) < self.temp_low
         return False
 
     @property
     def is_summer(self) -> bool:
         """Check if temperature is over threshold."""
-        if self.temp_high and self.current_temperature:
-            return self.current_temperature > self.temp_high
+        if self.temp_high is not None and self.current_temperature is not None:
+            return float(self.current_temperature) > self.temp_high
         return False
 
     @property
@@ -196,8 +195,7 @@ class ClimateCoverData:
         if self.weather_entity is not None:
             weather_state = get_safe_state(self.hass, self.weather_entity)
         if self.weather_condition is not None:
-            if weather_state in self.weather_condition:
-                return True
+            return weather_state in weather_state
         return False
 
 
