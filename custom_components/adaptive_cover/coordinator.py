@@ -151,6 +151,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             states={
                 "normal": default_state,
                 "climate": climate_state,
+                "start": NormalCoverState(cover_data).cover.solar_times()[0],
+                "end": NormalCoverState(cover_data).cover.solar_times()[1],
                 "binary": NormalCoverState(cover_data).cover.valid,
             },
             attributes={
