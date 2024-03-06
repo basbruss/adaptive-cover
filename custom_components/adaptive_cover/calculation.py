@@ -1,20 +1,24 @@
 """Generate values for all types of covers."""
-from datetime import timedelta, datetime
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+
 import numpy as np
 import pandas as pd
-from dataclasses import dataclass, field
-from abc import ABC, abstractmethod
-from numpy import cos, tan, sin
+from homeassistant.core import HomeAssistant
+from numpy import cos, sin, tan
 from numpy import radians as rad
+
+from .helpers import get_domain, get_safe_state
 from .sun import SunData
-from .helpers import get_domain
 
 
 @dataclass
 class AdaptiveGeneralCover(ABC):
     """Collect common data."""
 
-    hass: any
+    hass: HomeAssistant
     sol_azi: float
     sol_elev: float
     sunset_pos: int
@@ -133,49 +137,65 @@ class NormalCoverState:
 class ClimateCoverData:
     """Fetch additional data."""
 
-    temp: str
+    hass: HomeAssistant
+    temp_entity: str
     temp_low: float
     temp_high: float
-    presence: str
     presence_entity: str
-    weather_state: str
+    weather_entity: str
     weather_condition: list[str]
     blind_type: str
 
     @property
-    def is_presence(self):
-        """Checks if people are present."""
-        # set to true if no sensor is defined
-        if self.presence is not None:
-            domain = get_domain(self.presence_entity)
-            if domain == "device_tracker":
-                return self.presence == "home"
-            if domain == "zone":
-                return int(self.presence) > 0
-            if domain in ["binary_sensor", "input_boolean"]:
-                return self.presence == "on"
-        return True
+    def current_temperature(self) -> float:
+        """Get current temp from entity."""
+        if self.temp_entity is not None:
+            temp = get_safe_state(self.hass, self.temp_entity)
+            if get_domain(self.temp_entity) == "climate":
+                temp = self.hass.states.get(self.temp_entity).attributes[
+                    "current_temperature"
+                ]
+            return temp
 
     @property
-    def current_temperature(self) -> float:
-        """Convert state str to float."""
-        return float(self.temp)
+    def is_presence(self):
+        """Checks if people are present."""
+        presence = None
+        if self.presence_entity is not None:
+            presence = get_safe_state(self.hass, self.presence_entity)
+        # set to true if no sensor is defined
+        if presence is not None:
+            domain = get_domain(self.presence_entity)
+            if domain == "device_tracker":
+                return presence == "home"
+            if domain == "zone":
+                return int(presence) > 0
+            if domain in ["binary_sensor", "input_boolean"]:
+                return presence == "on"
+        return True
 
     @property
     def is_winter(self) -> bool:
         """Check if temperature is below threshold."""
-        return self.current_temperature < self.temp_low
+        if self.temp_low is not None and self.current_temperature is not None:
+            return float(self.current_temperature) < self.temp_low
+        return False
 
     @property
     def is_summer(self) -> bool:
         """Check if temperature is over threshold."""
-        return self.current_temperature > self.temp_high
+        if self.temp_high is not None and self.current_temperature is not None:
+            return float(self.current_temperature) > self.temp_high
+        return False
 
     @property
     def is_sunny(self) -> bool:
         """Check if condition can contain radiation in winter."""
-        if self.weather_state in self.weather_condition:
-            return True
+        weather_state = None
+        if self.weather_entity is not None:
+            weather_state = get_safe_state(self.hass, self.weather_entity)
+        if self.weather_condition is not None:
+            return weather_state in weather_state
         return False
 
 
@@ -190,7 +210,7 @@ class ClimateCoverState(NormalCoverState):
         # glare does not matter
         if (
             self.climate_data.is_presence is False
-            and self.climate_data.temp is not None
+            and self.climate_data.current_temperature is not None
             and self.cover.sol_elev > 0
         ):
             # allow maximum solar radiation
@@ -251,7 +271,10 @@ class ClimateCoverState(NormalCoverState):
 
     def tilt_state(self):
         """Add tilt specific controls."""
-        if self.climate_data.temp is not None and self.cover.sol_elev > 0:
+        if (
+            self.climate_data.current_temperature is not None
+            and self.cover.sol_elev > 0
+        ):
             if self.cover.mode == "mode1":
                 self.control_method_tilt_single()
             if self.cover.mode == "mode2":

@@ -44,13 +44,6 @@
       "climate":{
         "data":{
           "temp_entity": "Binnen temperatuur entiteit",
-          "presence_entity": "Presence entity",
-          "weather_entity": "Weather entity (optional)",
-          "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
-        },
-        "data_description":{
-          "temp_entity": "Binnen temperatuur entiteit",
           "presence_entity": "Aanwezigheid entiteit",
           "weather_entity": "Weer entiteit (optioneel)",
           "temp_low": "Minimale comfort temperatuur",
@@ -116,7 +109,8 @@
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
-          "climate_mode": "Klimaat Modus"
+          "climate_mode": "Klimaat Modus",
+          "tilt_mode": "Type besturing"
         },
         "data_description": {
           "set_azimuth": "Zet de Azimuth",
@@ -128,7 +122,8 @@
           "group": "Selecteer de entities die worden bestuurd met de Blueprint",
           "sunset_position": "Standaard posistie bij zonsondergang in percentages",
           "sunset_offset": "Tijd voor of na zonsondergang in minuten",
-          "climate_mode": "Configureer extra variabelen voor klimaat modus"
+          "climate_mode": "Configureer extra variabelen voor klimaat modus",
+          "tilt_mode": "Selecteer de wijze van aansturing"
         },
         "description": "Voeg configuratie variabelen toe",
         "title": "Luxaflex"
@@ -170,13 +165,6 @@
       "climate":{
         "data":{
           "temp_entity": "Binnen temperatuur entiteit",
-          "presence_entity": "Presence entity",
-          "weather_entity": "Weather entity (optional)",
-          "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
-        },
-        "data_description":{
-          "temp_entity": "Binnen temperatuur entiteit",
           "presence_entity": "Aanwezigheid entiteit",
           "weather_entity": "Weer entiteit (optioneel)",
           "temp_low": "Minimale comfort temperatuur",
@@ -242,7 +230,8 @@
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
-          "climate_mode": "Klimaat Modus"
+          "climate_mode": "Klimaat Modus",
+          "tilt_mode": "Type besturing"
         },
         "data_description": {
           "set_azimuth": "Zet de Azimuth",
@@ -254,7 +243,8 @@
           "group": "Selecteer de entities die worden bestuurd met de Blueprint",
           "sunset_position": "Standaard posistie bij zonsondergang in percentages",
           "sunset_offset": "Tijd voor of na zonsondergang in minuten",
-          "climate_mode": "Configureer extra variabelen voor klimaat modus"
+          "climate_mode": "Configureer extra variabelen voor klimaat modus",
+          "tilt_mode": "Selecteer de wijze van aansturing"
         },
         "description": "Voeg configuratie variabelen toe",
         "title": "Luxaflex"

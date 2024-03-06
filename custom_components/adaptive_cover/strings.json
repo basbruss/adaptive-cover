@@ -11,8 +11,6 @@
       },
       "vertical": {
         "data": {
-          "name": "Name",
-          "blueprint": "Add blueprint to HomeAssistant",
           "set_azimuth": "Window Azimuth",
           "window_height": "Window Height",
           "distance_shaded_area": "Shaded area",
@@ -68,8 +66,6 @@
       },
       "horizontal": {
         "data": {
-          "name": "Name",
-          "blueprint": "Add blueprint to HomeAssistant",
           "set_azimuth": "Window Azimuth",
           "height_awning": "Awning Height",
           "lenght_awning": "Awning Span Length",
@@ -104,8 +100,6 @@
       },
       "tilt": {
         "data": {
-          "name": "Name",
-          "blueprint": "Add blueprint to HomeAssistant",
           "set_azimuth": "Window Azimuth",
           "slat_depth": "Slat Depth",
           "slat_distance": "Slat Spacing",
@@ -116,7 +110,8 @@
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
-          "climate_mode": "Climate Mode"
+          "climate_mode": "Climate Mode",
+          "tilt_mode": "Type of movement"
         },
         "data_description": {
           "set_azimuth": "Set the Azimuth",
@@ -128,7 +123,8 @@
           "group": "Select entities to be controlled with the Blueprint",
           "sunset_position": "Position to change to after sunset",
           "sunset_offset": "Offset (+-) from sunset in minutes",
-          "climate_mode": "Configure variables for climate mode"
+          "climate_mode": "Configure variables for climate mode",
+          "tilt_mode": "Select the type of movement"
         },
         "description": "Add configuration variables to the sensor",
         "title": "Tilted cover"
@@ -139,8 +135,6 @@
     "step": {
       "vertical": {
         "data": {
-          "name": "Name",
-          "blueprint": "Add blueprint to HomeAssistant",
           "set_azimuth": "Window Azimuth",
           "window_height": "Window Height",
           "distance_shaded_area": "Shaded area",
@@ -196,8 +190,6 @@
       },
       "horizontal": {
         "data": {
-          "name": "Name",
-          "blueprint": "Add blueprint to HomeAssistant",
           "set_azimuth": "Window Azimuth",
           "height_awning": "Awning Height",
           "lenght_awning": "Awning Span Length",
@@ -232,8 +224,6 @@
       },
       "tilt": {
         "data": {
-          "name": "Name",
-          "blueprint": "Add blueprint to HomeAssistant",
           "set_azimuth": "Window Azimuth",
           "slat_depth": "Slat Depth",
           "slat_distance": "Slat Spacing",
@@ -244,7 +234,8 @@
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
-          "climate_mode": "Climate Mode"
+          "climate_mode": "Climate Mode",
+          "tilt_mode": "Type of movement"
         },
         "data_description": {
           "set_azimuth": "Set the Azimuth",
@@ -256,7 +247,8 @@
           "group": "Select entities to be controlled with the Blueprint",
           "sunset_position": "Position to change to after sunset",
           "sunset_offset": "Offset (+-) from sunset in minutes",
-          "climate_mode": "Configure variables for climate mode"
+          "climate_mode": "Configure variables for climate mode",
+          "tilt_mode": "Select the type of movement"
         },
         "description": "Add configuration variables to the sensor",
         "title": "Tilted cover"
