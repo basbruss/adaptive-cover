@@ -98,8 +98,7 @@ class AdaptiveCoverSensorEntity(
         self.hass = hass
         self.config_entry = config_entry
         self._name = name
-        self._cover_type = self.config_entry.data["sensor_type"]
-        self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
+        self._device_name = self.type[self.config_entry.data[CONF_SENSOR_TYPE]]
         self._device_id = unique_id
 
     @property
