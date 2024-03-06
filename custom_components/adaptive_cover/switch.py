@@ -75,9 +75,10 @@ class AdaptiveCoverSwitch(
         self._attr_device_class = device_class
         self._attr_icon = icon
         self._attr_is_on = state
-        self._attr_unique_id = unique_id
+        self._attr_unique_id = f"{unique_id}_{switch_name}"
+        self._device_id = unique_id
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, unique_id)},
+            identifiers={(DOMAIN, self._device_id)},
             name=self._device_name,
         )
 

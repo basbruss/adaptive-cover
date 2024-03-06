@@ -93,13 +93,14 @@ class AdaptiveCoverSensorEntity(
             "cover_tilt": "Tilt",
         }
         self.data = self.coordinator.data
-        self._attr_unique_id = unique_id
+        self._sensor_name = "Cover Position"
+        self._attr_unique_id = f"{unique_id}_{self._sensor_name}"
         self.hass = hass
         self.config_entry = config_entry
         self._name = name
         self._cover_type = self.config_entry.data["sensor_type"]
-        self._sensor_name = "Cover Position"
         self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
+        self._device_id = unique_id
 
     @property
     def name(self):
@@ -118,7 +119,7 @@ class AdaptiveCoverSensorEntity(
         """Return device info."""
         return DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, self._attr_unique_id)},
+            identifiers={(DOMAIN, self._device_id)},
             name=self._device_name,
         )
 
@@ -158,7 +159,7 @@ class AdaptiveCoverTimeSensorEntity(
         self.key = key
         self.data = self.coordinator.data
         self._attr_unique_id = f"{unique_id}_{sensor_name}"
-        self.id = unique_id
+        self._device_id = unique_id
         self.hass = hass
         self.config_entry = config_entry
         self._name = name
@@ -181,7 +182,7 @@ class AdaptiveCoverTimeSensorEntity(
         """Return device info."""
         return DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, self.id)},
+            identifiers={(DOMAIN, self._device_id)},
             name=self._device_name,
         )
 
@@ -213,6 +214,7 @@ class AdaptiveCoverControlSensorEntity(
         self.data = self.coordinator.data
         self._sensor_name = "Control Method"
         self._attr_unique_id = f"{unique_id}_{self._sensor_name}"
+        self._device_id = unique_id
         self.id = unique_id
         self.hass = hass
         self.config_entry = config_entry
@@ -235,6 +237,6 @@ class AdaptiveCoverControlSensorEntity(
         """Return device info."""
         return DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, self.id)},
+            identifiers={(DOMAIN, self._device_id)},
             name=self._device_name,
         )
