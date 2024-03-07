@@ -16,8 +16,6 @@ body:
     attributes:
       label: Checklist
       options:
-        - label: I have enabled debug logging for my installation.
-          required: true
         - label: I have filled out the issue template to the best of my ability.
           required: true
         - label: This issue only contains 1 issue (if you have multiple issues, open one issue for each issue).
@@ -39,13 +37,6 @@ body:
         2.
         3.
         ...
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: "Debug logs"
-      description: "To enable debug logs check this https://www.home-assistant.io/integrations/logger/, this **needs** to include _everything_ from startup of Home Assistant to the point where you encounter the issue."
-      render: text
     validations:
       required: true
 
