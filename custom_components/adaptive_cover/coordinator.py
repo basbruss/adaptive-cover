@@ -113,7 +113,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.config_entry.options.get(CONF_TILT_MODE),
         ]
 
-        climate_data = [
+        climate_data_var = [
             self.hass,
             self.config_entry.options.get(CONF_TEMP_ENTITY),
             self.config_entry.options.get(CONF_TEMP_LOW),
@@ -137,7 +137,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.hass, *pos_sun, *common_data, *tilt_data
             )
 
-        climate = ClimateCoverData(*climate_data)
+        climate = ClimateCoverData(*climate_data_var)
 
         default_state = round(NormalCoverState(cover_data).get_state())
         climate_state = round(ClimateCoverState(cover_data, climate).get_state())
