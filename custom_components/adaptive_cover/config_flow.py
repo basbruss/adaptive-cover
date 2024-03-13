@@ -238,7 +238,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             return await self.async_step_update()
         return self.async_show_form(
             step_id="vertical",
-            data_schema=CLIMATE_MODE.extend(HORIZONTAL_OPTIONS.schema),
+            data_schema=CLIMATE_MODE.extend(VERTICAL_OPTIONS.schema),
         )
 
     async def async_step_horizontal(self, user_input: dict[str, Any] | None = None):
@@ -251,7 +251,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             return await self.async_step_update()
         return self.async_show_form(
             step_id="horizontal",
-            data_schema=CLIMATE_MODE.extend(VERTICAL_OPTIONS.schema),
+            data_schema=CLIMATE_MODE.extend(HORIZONTAL_OPTIONS.schema),
         )
 
     async def async_step_tilt(self, user_input: dict[str, Any] | None = None):
