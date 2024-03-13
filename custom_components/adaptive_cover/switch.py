@@ -91,12 +91,12 @@ class AdaptiveCoverSwitch(
         """Turn the switch on."""
         self._attr_is_on = True
         self.coordinator.switch_mode = True
-        await self.coordinator.async_request_refresh()
+        await self.coordinator.async_refresh()
         self.schedule_update_ha_state()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the device off."""
         self._attr_is_on = False
         self.coordinator.switch_mode = False
-        await self.coordinator.async_request_refresh()
+        await self.coordinator.async_refresh()
         self.schedule_update_ha_state()
