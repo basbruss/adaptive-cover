@@ -8,12 +8,9 @@
           "blueprint": "Voeg blueprint toe aan HomeAssistant",
           "mode": "Type scherm"
         }
-        }
       },
       "vertical": {
         "data": {
-          "name": "Naam",
-          "blueprint": "Voeg blueprint toe aan HomeAssistant",
           "set_azimuth": "Raam Azimuth",
           "window_height": "Raam Hoogte",
           "distance_shaded_area": "Schaduwgebied",
@@ -50,6 +47,12 @@
           "weather_entity": "Weer entiteit (optioneel)",
           "temp_low": "Minimale comfort temperatuur",
           "temp_high": "Maximale comfort temperatuur"
+        },
+        "data_description":{
+          "presence_entity": "",
+          "weather_entity": "",
+          "temp_low": "",
+          "temp_high": ""
         },
         "description": "Voeg additionele klimaat configuratie variabelen toe. Weer and Aanwezigheid entiteiten zijn optioneel",
         "title": "Klimaat instellingen"
@@ -133,14 +136,13 @@
         },
         "description": "Voeg configuratie variabelen toe",
         "title": "Luxaflex"
+        }
       }
     },
   "options": {
     "step": {
       "vertical": {
         "data": {
-          "name": "Naam",
-          "blueprint": "Voeg blueprint toe aan HomeAssistant",
           "set_azimuth": "Raam Azimuth",
           "window_height": "Raam Hoogte",
           "distance_shaded_area": "Schaduwgebied",
@@ -177,6 +179,12 @@
           "weather_entity": "Weer entiteit (optioneel)",
           "temp_low": "Minimale comfort temperatuur",
           "temp_high": "Maximale comfort temperatuur"
+        },
+        "data_description":{
+          "presence_entity": "",
+          "weather_entity": "",
+          "temp_low": "",
+          "temp_high": ""
         },
         "description": "Voeg additionele klimaat configuratie variabelen toe. Weer and Aanwezigheid entiteiten zijn optioneel",
         "title": "Klimaat instellingen"
