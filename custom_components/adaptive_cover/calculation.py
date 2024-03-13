@@ -150,11 +150,15 @@ class ClimateCoverData:
     def current_temperature(self) -> float:
         """Get current temp from entity."""
         if self.temp_entity is not None:
-            temp = get_safe_state(self.hass, self.temp_entity)
-            if get_domain(self.temp_entity) == "climate":
-                temp = self.hass.states.get(self.temp_entity).attributes[
+            if get_domain(self.temp_entity) != "climate":
+                temp = get_safe_state(self.hass, self.temp_entity)
+            else:
+                if self.hass.states.get(self.temp_entity).attributes[
                     "current_temperature"
-                ]
+                ]:
+                    temp = self.hass.states.get(self.temp_entity).attributes[
+                        "current_temperature"
+                    ]
             return temp
 
     @property
@@ -195,7 +199,7 @@ class ClimateCoverData:
         if self.weather_entity is not None:
             weather_state = get_safe_state(self.hass, self.weather_entity)
         if self.weather_condition is not None:
-            return weather_state in weather_state
+            return weather_state in self.weather_condition
         return False
 
 
