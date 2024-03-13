@@ -150,8 +150,9 @@ class ClimateCoverData:
     def current_temperature(self) -> float:
         """Get current temp from entity."""
         if self.temp_entity is not None:
-            temp = get_safe_state(self.hass, self.temp_entity)
-            if get_domain(self.temp_entity) == "climate":
+            if get_domain(self.temp_entity) != "climate":
+                temp = get_safe_state(self.hass, self.temp_entity)
+            else:
                 if self.hass.states.get(self.temp_entity).attributes[
                     "current_temperature"
                 ]:
