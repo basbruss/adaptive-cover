@@ -62,6 +62,12 @@ CONFIG_SCHEMA = vol.Schema(
     }
 )
 
+CLIMATE_MODE = vol.Schema(
+    {
+        vol.Optional(CONF_CLIMATE_MODE, default=False): selector.BooleanSelector(),
+    }
+)
+
 OPTIONS = vol.Schema(
     {
         vol.Required(CONF_AZIMUTH, default=180): selector.NumberSelector(
@@ -86,7 +92,6 @@ OPTIONS = vol.Schema(
             selector.EntitySelectorConfig(domain="cover", multiple=True)
         ),
         vol.Required(CONF_INVERSE_STATE, default=False): bool,
-        vol.Optional(CONF_CLIMATE_MODE, default=False): selector.BooleanSelector(),
     }
 )
 
@@ -227,7 +232,10 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             if self.config[CONF_CLIMATE_MODE] is True:
                 return await self.async_step_climate()
             return await self.async_step_update()
-        return self.async_show_form(step_id="vertical", data_schema=VERTICAL_OPTIONS)
+        return self.async_show_form(
+            step_id="vertical",
+            data_schema=CLIMATE_MODE.extend(HORIZONTAL_OPTIONS.schema),
+        )
 
     async def async_step_horizontal(self, user_input: dict[str, Any] | None = None):
         """Show basic config for horizontal blinds."""
@@ -238,7 +246,8 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 return await self.async_step_climate()
             return await self.async_step_update()
         return self.async_show_form(
-            step_id="horizontal", data_schema=HORIZONTAL_OPTIONS
+            step_id="horizontal",
+            data_schema=CLIMATE_MODE.extend(VERTICAL_OPTIONS.schema),
         )
 
     async def async_step_tilt(self, user_input: dict[str, Any] | None = None):
@@ -249,7 +258,9 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             if self.config[CONF_CLIMATE_MODE] is True:
                 return await self.async_step_climate()
             return await self.async_step_update()
-        return self.async_show_form(step_id="tilt", data_schema=TILT_OPTIONS)
+        return self.async_show_form(
+            step_id="tilt", data_schema=CLIMATE_MODE.extend(TILT_OPTIONS.schema)
+        )
 
     async def async_step_climate(self, user_input: dict[str, Any] | None = None):
         """Manage climate options."""
@@ -336,6 +347,9 @@ class OptionsFlowHandler(OptionsFlow):
     async def async_step_vertical(self, user_input: dict[str, Any] | None = None):
         """Show basic config for vertical blinds."""
         self.type_blind = SensorType.BLIND
+        schema = CLIMATE_MODE.extend(VERTICAL_OPTIONS.schema)
+        if self.options[CONF_CLIMATE_MODE]:
+            schema = VERTICAL_OPTIONS
         if user_input is not None:
             self.options.update(user_input)
             if self.options[CONF_CLIMATE_MODE]:
@@ -344,13 +358,16 @@ class OptionsFlowHandler(OptionsFlow):
         return self.async_show_form(
             step_id="vertical",
             data_schema=self.add_suggested_values_to_schema(
-                VERTICAL_OPTIONS, user_input or self.options
+                schema, user_input or self.options
             ),
         )
 
     async def async_step_horizontal(self, user_input: dict[str, Any] | None = None):
         """Show basic config for horizontal blinds."""
         self.type_blind = SensorType.AWNING
+        schema = CLIMATE_MODE.extend(HORIZONTAL_OPTIONS.schema)
+        if self.options[CONF_CLIMATE_MODE]:
+            schema = HORIZONTAL_OPTIONS
         if user_input is not None:
             self.options.update(user_input)
             if self.options[CONF_CLIMATE_MODE]:
@@ -359,13 +376,16 @@ class OptionsFlowHandler(OptionsFlow):
         return self.async_show_form(
             step_id="horizontal",
             data_schema=self.add_suggested_values_to_schema(
-                HORIZONTAL_OPTIONS, user_input or self.options
+                schema, user_input or self.options
             ),
         )
 
     async def async_step_tilt(self, user_input: dict[str, Any] | None = None):
         """Show basic config for tilted blinds."""
         self.type_blind = SensorType.TILT
+        schema = CLIMATE_MODE.extend(TILT_OPTIONS.schema)
+        if self.options[CONF_CLIMATE_MODE]:
+            schema = TILT_OPTIONS
         if user_input is not None:
             self.options.update(user_input)
             if self.options[CONF_CLIMATE_MODE]:
@@ -374,7 +394,7 @@ class OptionsFlowHandler(OptionsFlow):
         return self.async_show_form(
             step_id="tilt",
             data_schema=self.add_suggested_values_to_schema(
-                TILT_OPTIONS, user_input or self.options
+                schema, user_input or self.options
             ),
         )
 

@@ -69,9 +69,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     def __init__(self, hass: HomeAssistant) -> None:  # noqa: D107
         super().__init__(hass, LOGGER, name=DOMAIN)
-        self._switch_mode = True
+
         self._cover_type = self.config_entry.data.get("sensor_type")
         self._climate_mode = self.config_entry.options.get(CONF_CLIMATE_MODE, False)
+        self._switch_mode = True if self._climate_mode else False
         self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
 
     async def async_check_entity_state_change(
@@ -113,17 +114,6 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.config_entry.options.get(CONF_TILT_MODE),
         ]
 
-        climate_data_var = [
-            self.hass,
-            self.config_entry.options.get(CONF_TEMP_ENTITY),
-            self.config_entry.options.get(CONF_TEMP_LOW),
-            self.config_entry.options.get(CONF_TEMP_HIGH),
-            self.config_entry.options.get(CONF_PRESENCE_ENTITY),
-            self.config_entry.options.get(CONF_WEATHER_ENTITY),
-            self.config_entry.options.get(CONF_WEATHER_STATE),
-            self._cover_type,
-        ]
-
         if self._cover_type == "cover_blind":
             cover_data = AdaptiveVerticalCover(
                 self.hass, *pos_sun, *common_data, *vertical_data
@@ -137,22 +127,34 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.hass, *pos_sun, *common_data, *tilt_data
             )
 
-        climate = ClimateCoverData(*climate_data_var)
+        control_method = "intermediate"
+        climate_state = None
+
+        if self._climate_mode:
+            climate_data_var = [
+                self.hass,
+                self.config_entry.options.get(CONF_TEMP_ENTITY),
+                self.config_entry.options.get(CONF_TEMP_LOW),
+                self.config_entry.options.get(CONF_TEMP_HIGH),
+                self.config_entry.options.get(CONF_PRESENCE_ENTITY),
+                self.config_entry.options.get(CONF_WEATHER_ENTITY),
+                self.config_entry.options.get(CONF_WEATHER_STATE),
+                self._cover_type,
+            ]
+            climate = ClimateCoverData(*climate_data_var)
+            climate_state = round(ClimateCoverState(cover_data, climate).get_state())
+            climate_data = ClimateCoverState(cover_data, climate).climate_data
+            if climate_data.is_summer and self.switch_mode:
+                control_method = "summer"
+            if climate_data.is_winter and self.switch_mode:
+                control_method = "winter"
 
         default_state = round(NormalCoverState(cover_data).get_state())
-        climate_state = round(ClimateCoverState(cover_data, climate).get_state())
 
         if self._inverse_state:
             default_state = 100 - default_state
-            climate_state = 100 - climate_state
-
-        climate_data = ClimateCoverState(cover_data, climate).climate_data
-
-        control_method = "intermediate"
-        if climate_data.is_summer:
-            control_method = "summer"
-        if climate_data.is_winter:
-            control_method = "winter"
+            if self._climate_mode:
+                climate_state = 100 - climate_state
 
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
