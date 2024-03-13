@@ -28,6 +28,7 @@ from .const import (
     CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
     CONF_LENGTH_AWNING,
+    CONF_MAX_POSITION,
     CONF_MODE,
     CONF_PRESENCE_ENTITY,
     CONF_SENSOR_TYPE,
@@ -74,6 +75,9 @@ OPTIONS = vol.Schema(
             selector.NumberSelectorConfig(min=0, max=359, mode="slider")
         ),
         vol.Required(CONF_DEFAULT_HEIGHT, default=60): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=1, max=100, step=1, mode="slider")
+        ),
+        vol.Optional(CONF_MAX_POSITION, default=100): selector.NumberSelector(
             selector.NumberSelectorConfig(min=1, max=100, step=1, mode="slider")
         ),
         vol.Required(CONF_FOV_LEFT, default=90): selector.NumberSelector(
@@ -298,6 +302,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_HEIGHT_WIN: self.config.get(CONF_HEIGHT_WIN),
                 CONF_DISTANCE: self.config.get(CONF_DISTANCE),
                 CONF_DEFAULT_HEIGHT: self.config.get(CONF_DEFAULT_HEIGHT),
+                CONF_MAX_POSITION: self.config.get(CONF_MAX_POSITION),
                 CONF_FOV_LEFT: self.config.get(CONF_FOV_LEFT),
                 CONF_FOV_RIGHT: self.config.get(CONF_FOV_RIGHT),
                 CONF_ENTITIES: self.config.get(CONF_ENTITIES),

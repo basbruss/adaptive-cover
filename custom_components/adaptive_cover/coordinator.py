@@ -28,6 +28,7 @@ from .const import (
     CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
     CONF_LENGTH_AWNING,
+    CONF_MAX_POSITION,
     CONF_PRESENCE_ENTITY,
     CONF_SUNSET_OFFSET,
     CONF_SUNSET_POS,
@@ -96,6 +97,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.config_entry.options.get(CONF_FOV_RIGHT),
             self.config_entry.options.get(CONF_AZIMUTH),
             self.config_entry.options.get(CONF_DEFAULT_HEIGHT),
+            self.config_entry.options.get(CONF_MAX_POSITION, 100),
         ]
 
         vertical_data = [

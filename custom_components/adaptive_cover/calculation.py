@@ -28,6 +28,7 @@ class AdaptiveGeneralCover(ABC):
     fov_right: int
     win_azi: int
     h_def: int
+    max_pos: int
     sun_data: SunData = field(init=False)
 
     def __post_init__(self):
@@ -130,6 +131,8 @@ class NormalCoverState:
             self.cover.default,
         )
         result = np.clip(state, 0, 100)
+        if result > self.cover.max_pos:
+            return self.cover.max_pos
         return result
 
 
@@ -287,9 +290,12 @@ class ClimateCoverState(NormalCoverState):
 
     def get_state(self) -> int:
         """Return state."""
+        result = self.normal_type_cover()
         if self.climate_data.blind_type == "cover_tilt":
-            return self.tilt_state()
-        return self.normal_type_cover()
+            result = self.tilt_state()
+        if result > self.cover.max_pos:
+            return self.cover.max_pos
+        return result
 
 
 @dataclass
