@@ -11,7 +11,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_SENSOR_TYPE, DOMAIN
+from .const import CONF_CLIMATE_MODE, CONF_SENSOR_TYPE, DOMAIN
 from .coordinator import AdaptiveDataUpdateCoordinator
 
 
@@ -34,12 +34,11 @@ async def async_setup_entry(
         True,
         coordinator,
     )
-
-    async_add_entities(
-        [
-            climate_switch,
-        ]
-    )
+    climate_mode = config_entry.options.get(CONF_CLIMATE_MODE)
+    switches = []
+    if climate_mode:
+        switches.append(climate_switch)
+    async_add_entities(switches)
 
 
 class AdaptiveCoverSwitch(

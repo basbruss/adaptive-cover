@@ -11,7 +11,6 @@ from homeassistant.helpers.event import (
 
 from .blueprint import configure_blueprint
 from .const import (
-    CONF_CLIMATE_MODE,
     CONF_PRESENCE_ENTITY,
     CONF_TEMP_ENTITY,
     CONF_WEATHER_ENTITY,
@@ -41,7 +40,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     coordinator = AdaptiveDataUpdateCoordinator(hass)
 
-    _climate_mode = entry.options.get(CONF_CLIMATE_MODE)
     _temp_entity = entry.options.get(CONF_TEMP_ENTITY)
     _presence_entity = entry.options.get(CONF_PRESENCE_ENTITY)
     _weather_entity = entry.options.get(CONF_WEATHER_ENTITY)
@@ -61,10 +59,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
-    if _climate_mode:
-        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS_SW)
-    else:
-        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS_SW)
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True
@@ -72,8 +67,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS_SW)
-    if unload_ok:
+    if unload_ok := await hass.config_entries.async_unload_platforms(
+        entry, PLATFORMS_SW
+    ):
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
