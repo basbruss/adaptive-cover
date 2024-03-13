@@ -71,10 +71,10 @@ OPTIONS = vol.Schema(
             selector.NumberSelectorConfig(min=1, max=100, step=1, mode="slider")
         ),
         vol.Required(CONF_FOV_LEFT, default=90): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=90, step=1, mode="slider")
+            selector.NumberSelectorConfig(min=1, max=90, step=1, mode="slider")
         ),
         vol.Required(CONF_FOV_RIGHT, default=90): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=90, step=1, mode="slider")
+            selector.NumberSelectorConfig(min=1, max=90, step=1, mode="slider")
         ),
         vol.Required(CONF_SUNSET_POS, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0, max=100, step=1, mode="slider")
@@ -93,7 +93,7 @@ OPTIONS = vol.Schema(
 VERTICAL_OPTIONS = vol.Schema(
     {
         vol.Required(CONF_HEIGHT_WIN, default=2.1): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=6, step=0.01, mode="slider")
+            selector.NumberSelectorConfig(min=0.1, max=6, step=0.01, mode="slider")
         ),
         vol.Required(CONF_DISTANCE, default=0.5): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0.1, max=2, step=0.1, mode="slider")
@@ -110,10 +110,10 @@ TEST_OPTIONS = vol.Schema(
 HORIZONTAL_OPTIONS = vol.Schema(
     {
         vol.Required(CONF_HEIGHT_AWNING, default=2.1): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=6, step=0.01, mode="slider")
+            selector.NumberSelectorConfig(min=0.1, max=6, step=0.01, mode="slider")
         ),
         vol.Required(CONF_LENGTH_AWNING, default=2.1): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=6, step=0.01, mode="slider")
+            selector.NumberSelectorConfig(min=0.3, max=6, step=0.01, mode="slider")
         ),
         vol.Required(CONF_AWNING_ANGLE, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0, max=45, mode="slider")
@@ -124,10 +124,10 @@ HORIZONTAL_OPTIONS = vol.Schema(
 TILT_OPTIONS = vol.Schema(
     {
         vol.Required(CONF_TILT_DEPTH, default=3): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=15, step=0.1, mode="slider")
+            selector.NumberSelectorConfig(min=0.1, max=15, step=0.1, mode="slider")
         ),
         vol.Required(CONF_TILT_DISTANCE, default=2): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=15, step=0.1, mode="slider")
+            selector.NumberSelectorConfig(min=0.1, max=15, step=0.1, mode="slider")
         ),
         vol.Required(CONF_TILT_MODE, default="mode2"): selector.SelectSelector(
             selector.SelectSelectorConfig(

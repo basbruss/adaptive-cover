@@ -12,7 +12,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -100,6 +100,12 @@ class AdaptiveCoverSensorEntity(
         self._name = name
         self._device_name = self.type[self.config_entry.data[CONF_SENSOR_TYPE]]
         self._device_id = unique_id
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.data = self.coordinator.data
+        self.async_write_ha_state()
 
     @property
     def name(self):
