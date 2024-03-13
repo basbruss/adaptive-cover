@@ -11,7 +11,6 @@ from homeassistant.helpers.event import (
 
 from .blueprint import configure_blueprint
 from .const import (
-    CONF_CLIMATE_MODE,
     CONF_PRESENCE_ENTITY,
     CONF_TEMP_ENTITY,
     CONF_WEATHER_ENTITY,
