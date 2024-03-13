@@ -92,6 +92,7 @@ class AdaptiveCoverSensorEntity(
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
         }
+        self.coordinator = coordinator
         self.data = self.coordinator.data
         self._sensor_name = "Cover Position"
         self._attr_unique_id = f"{unique_id}_{self._sensor_name}"
@@ -162,6 +163,7 @@ class AdaptiveCoverTimeSensorEntity(
         }
         self._attr_icon = icon
         self.key = key
+        self.coordinator = coordinator
         self.data = self.coordinator.data
         self._attr_unique_id = f"{unique_id}_{sensor_name}"
         self._device_id = unique_id
@@ -171,6 +173,12 @@ class AdaptiveCoverTimeSensorEntity(
         self._cover_type = self.config_entry.data["sensor_type"]
         self._sensor_name = sensor_name
         self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.data = self.coordinator.data
+        self.async_write_ha_state()
 
     @property
     def name(self):
@@ -216,6 +224,7 @@ class AdaptiveCoverControlSensorEntity(
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
         }
+        self.coordinator = coordinator
         self.data = self.coordinator.data
         self._sensor_name = "Control Method"
         self._attr_unique_id = f"{unique_id}_{self._sensor_name}"
@@ -226,6 +235,12 @@ class AdaptiveCoverControlSensorEntity(
         self._name = name
         self._cover_type = self.config_entry.data["sensor_type"]
         self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.data = self.coordinator.data
+        self.async_write_ha_state()
 
     @property
     def name(self):
