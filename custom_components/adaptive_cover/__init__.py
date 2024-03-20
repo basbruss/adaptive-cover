@@ -29,7 +29,6 @@ async def async_initialize_integration(
 ) -> bool:
     """Initialize the integration."""
 
-    configure_blueprint(hass=hass, config_entry=config_entry)
     return True
 
 
@@ -58,6 +57,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await coordinator.async_config_entry_first_refresh()
     hass.data[DOMAIN][entry.entry_id] = coordinator
+
+    configure_blueprint(hass=hass, config_entry=entry)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS_SW)
 
