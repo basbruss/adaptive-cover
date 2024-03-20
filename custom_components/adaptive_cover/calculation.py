@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from numpy import cos, sin, tan
 from numpy import radians as rad
 
-from .helpers import get_domain, get_safe_state
+from .helpers import get_domain, get_safe_attribute, get_safe_state
 from .sun import SunData
 
 
@@ -156,12 +156,9 @@ class ClimateCoverData:
             if get_domain(self.temp_entity) != "climate":
                 temp = get_safe_state(self.hass, self.temp_entity)
             else:
-                if self.hass.states.get(self.temp_entity).attributes[
-                    "current_temperature"
-                ]:
-                    temp = self.hass.states.get(self.temp_entity).attributes[
-                        "current_temperature"
-                    ]
+                temp = get_safe_attribute(
+                    self.hass, self.temp_entity, "current_temperature"
+                )
             return temp
 
     @property
