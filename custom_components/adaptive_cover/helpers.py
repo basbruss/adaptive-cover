@@ -11,6 +11,16 @@ def get_safe_state(hass, entity_id: str):
     return state.state
 
 
+def get_safe_attribute(hass, entity_id: str, attribute: str):
+    """Get a safe value from attribute."""
+    if not get_safe_state(hass, entity_id):
+        return None
+    attr_obj = hass.states.get(entity_id).attributes
+    if attribute not in attr_obj:
+        return None
+    return attr_obj[attribute]
+
+
 def get_domain(entity: str):
     """Get domain of entity."""
     if entity is not None:
