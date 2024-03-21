@@ -200,7 +200,7 @@ class ClimateCoverData:
             weather_state = get_safe_state(self.hass, self.weather_entity)
         if self.weather_condition is not None:
             return weather_state in self.weather_condition
-        return False
+        return True
 
 
 @dataclass
@@ -212,11 +212,7 @@ class ClimateCoverState(NormalCoverState):
     def normal_type_cover(self) -> int:
         """Determine state for horizontal and vertical covers."""
         # glare does not matter
-        if (
-            self.climate_data.is_presence is False
-            and self.climate_data.current_temperature is not None
-            and self.cover.sol_elev > 0
-        ):
+        if self.climate_data.is_presence is False and self.cover.sol_elev > 0:
             # allow maximum solar radiation
             if self.climate_data.is_winter:
                 return 100
@@ -227,7 +223,7 @@ class ClimateCoverState(NormalCoverState):
 
         # prefer glare reduction over climate control
         # adjust according basic algorithm
-        if not self.climate_data.is_sunny and self.climate_data.is_winter:
+        if not self.climate_data.is_sunny and not self.climate_data.is_summer:
             return self.cover.default
         return super().get_state()
 
