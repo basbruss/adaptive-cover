@@ -34,6 +34,7 @@ CONF_MODE = "mode"
 CONF_CLIMATE_MODE = "climate_mode"
 CONF_WEATHER_STATE = "weather_state"
 CONF_MAX_POSITION = "max_position"
+CONF_OUTSIDETEMP_ENTITY = "outside_temp"
 
 STRATEGY_MODE_BASIC = "basic"
 STRATEGY_MODE_CLIMATE = "climate"

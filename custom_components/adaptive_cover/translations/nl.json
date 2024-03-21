@@ -43,14 +43,16 @@
       "climate":{
         "data":{
           "temp_entity": "Binnen temperatuur entiteit",
-          "presence_entity": "Aanwezigheid entiteit",
+          "presence_entity": "Aanwezigheid entiteit (optioneel)",
           "weather_entity": "Weer entiteit (optioneel)",
+          "outside_temp": "Buitentemperatuur sensor (optioneel)",
           "temp_low": "Minimale comfort temperatuur",
           "temp_high": "Maximale comfort temperatuur"
         },
         "data_description":{
           "presence_entity": "",
-          "weather_entity": "",
+          "weather_entity":"Met de weer entiteit kunt u zelf de weercondities instellen, tevens kan deze ook gebruikt worden om te schakelen op de buitentemperatuur",
+          "outside_temp": "Overschrijft de temperatuur waarde van de weersentiteit indien bij zijn ingesteld",
           "temp_low": "",
           "temp_high": ""
         },
@@ -175,14 +177,16 @@
       "climate":{
         "data":{
           "temp_entity": "Binnen temperatuur entiteit",
-          "presence_entity": "Aanwezigheid entiteit",
+          "presence_entity": "Aanwezigheid entiteit (optioneel)",
           "weather_entity": "Weer entiteit (optioneel)",
+          "outside_temp": "Buitentemperatuur sensor (optioneel)",
           "temp_low": "Minimale comfort temperatuur",
           "temp_high": "Maximale comfort temperatuur"
         },
         "data_description":{
           "presence_entity": "",
-          "weather_entity": "",
+          "weather_entity":"Met de weer entiteit kunt u zelf de weercondities instellen, tevens kan deze ook gebruikt worden om te schakelen op de buitentemperatuur",
+          "outside_temp": "Overschrijft de temperatuur waarde van de weersentiteit indien bij zijn ingesteld",
           "temp_low": "",
           "temp_high": ""
         },

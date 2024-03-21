@@ -30,6 +30,7 @@ from .const import (
     CONF_LENGTH_AWNING,
     CONF_MAX_POSITION,
     CONF_MODE,
+    CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
     CONF_SENSOR_TYPE,
     CONF_SUNSET_OFFSET,
@@ -148,21 +149,30 @@ TILT_OPTIONS = vol.Schema(
 
 CLIMATE_OPTIONS = vol.Schema(
     {
+        vol.Required(CONF_TEMP_ENTITY): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=["climate", "sensor"])
+        ),
         vol.Required(CONF_TEMP_LOW, default=21): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0, max=86, step=1, mode="slider")
         ),
         vol.Required(CONF_TEMP_HIGH, default=25): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0, max=90, step=1, mode="slider")
         ),
-        vol.Required(CONF_TEMP_ENTITY): selector.EntitySelector(
-            selector.EntityFilterSelectorConfig(domain=["climate", "sensor"])
+        vol.Optional(
+            CONF_OUTSIDETEMP_ENTITY, default=vol.UNDEFINED
+        ): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=["sensor"])
         ),
-        vol.Optional(CONF_PRESENCE_ENTITY): selector.EntitySelector(
+        vol.Optional(
+            CONF_PRESENCE_ENTITY, default=vol.UNDEFINED
+        ): selector.EntitySelector(
             selector.EntityFilterSelectorConfig(
                 domain=["device_tracker", "zone", "binary_sensor", "input_boolean"]
             )
         ),
-        vol.Optional(CONF_WEATHER_ENTITY): selector.EntitySelector(
+        vol.Optional(
+            CONF_WEATHER_ENTITY, default=vol.UNDEFINED
+        ): selector.EntitySelector(
             selector.EntityFilterSelectorConfig(domain="weather")
         ),
     }
@@ -319,6 +329,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_WEATHER_ENTITY: self.config.get(CONF_WEATHER_ENTITY),
                 CONF_TEMP_LOW: self.config.get(CONF_TEMP_LOW),
                 CONF_TEMP_HIGH: self.config.get(CONF_TEMP_HIGH),
+                CONF_OUTSIDETEMP_ENTITY: self.config.get(CONF_OUTSIDETEMP_ENTITY),
                 CONF_CLIMATE_MODE: self.config.get(CONF_CLIMATE_MODE),
                 CONF_WEATHER_STATE: self.config.get(CONF_WEATHER_STATE),
             },
@@ -406,6 +417,12 @@ class OptionsFlowHandler(OptionsFlow):
     async def async_step_climate(self, user_input: dict[str, Any] | None = None):
         """Manage climate options."""
         if user_input is not None:
+            entities = [
+                CONF_OUTSIDETEMP_ENTITY,
+                CONF_WEATHER_ENTITY,
+                CONF_PRESENCE_ENTITY,
+            ]
+            self.optional_entities(entities, user_input)
             self.options.update(user_input)
             if self.options.get(CONF_WEATHER_ENTITY):
                 return await self.async_step_weather()
@@ -432,3 +449,9 @@ class OptionsFlowHandler(OptionsFlow):
     async def _update_options(self) -> FlowResult:
         """Update config entry options."""
         return self.async_create_entry(title="", data=self.options)
+
+    def optional_entities(self, keys: list, user_input: dict[str, Any] | None = None):
+        """Set value to None if key does not exist."""
+        for key in keys:
+            if key not in user_input:
+                user_input[key] = None

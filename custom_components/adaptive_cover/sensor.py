@@ -116,9 +116,7 @@ class AdaptiveCoverSensorEntity(
     @property
     def native_value(self) -> str | None:
         """Handle when entity is added."""
-        if self.data.climate_mode_toggle:
-            return self.data.states["climate"]
-        return self.data.states["normal"]
+        return self.data.states["state"]
 
     @property
     def device_info(self) -> DeviceInfo:
