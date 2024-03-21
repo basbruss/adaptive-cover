@@ -43,14 +43,16 @@
       "climate":{
         "data":{
           "temp_entity": "Inside temperature entity",
-          "presence_entity": "Presence entity",
+          "presence_entity": "Presence entity (optional)",
           "weather_entity": "Weather entity (optional)",
+          "outside_temp": "Outside temperature sensor (optional)",
           "temp_low": "Low temperature threshold",
           "temp_high": "High temperature threshold"
         },
         "data_description":{
           "presence_entity": "Entity to represent the presence status in the room or home",
-          "weather_entity": "Checks for weather conditions",
+          "weather_entity": "Checks for weather conditions and can be used for the outside temperature",
+          "outside_temp":"This entity overrides the outside temperature from the weather entity if both are set",
           "temp_low": "The minimum comfort temperature",
           "temp_high": "The maximum comfort temperature"
         },
@@ -175,14 +177,16 @@
       "climate":{
         "data":{
           "temp_entity": "Inside temperature entity",
-          "presence_entity": "Presence entity",
+          "presence_entity": "Presence entity (optional)",
           "weather_entity": "Weather entity (optional)",
+          "outside_temp": "Outside temperature sensor (optional)",
           "temp_low": "Low temperature threshold",
           "temp_high": "High temperature threshold"
         },
         "data_description":{
           "presence_entity": "Entity to represent the presence status in the room or home",
-          "weather_entity": "Checks for weather conditions",
+          "weather_entity": "Checks for weather conditions and can be used for the outside temperature",
+          "outside_temp":"This entity overrides the outside temperature from the weather entity if both are set",
           "temp_low": "The minimum comfort temperature",
           "temp_high": "The maximum comfort temperature"
         },
