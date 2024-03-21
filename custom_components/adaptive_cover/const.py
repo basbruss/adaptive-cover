@@ -38,6 +38,11 @@ CONF_CLIMATE_MODE = "climate_mode"
 CONF_WEATHER_STATE = "weather_state"
 CONF_MAX_POSITION = "max_position"
 
+CONF_DELTA_POSITION = "delta_position"
+CONF_DELTA_TIME = "delta_time"
+CONF_START_TIME = "start_time"
+CONF_START_ENTITY = "start_entity"
+
 STRATEGY_MODE_BASIC = "basic"
 STRATEGY_MODE_CLIMATE = "climate"
 STRATEGY_MODES = [

@@ -20,6 +20,8 @@ from .const import (
     CONF_BLUEPRINT,
     CONF_CLIMATE_MODE,
     CONF_DEFAULT_HEIGHT,
+    CONF_DELTA_POSITION,
+    CONF_DELTA_TIME,
     CONF_DISTANCE,
     CONF_ENTITIES,
     CONF_FOV_LEFT,
@@ -32,6 +34,8 @@ from .const import (
     CONF_MODE,
     CONF_PRESENCE_ENTITY,
     CONF_SENSOR_TYPE,
+    CONF_START_ENTITY,
+    CONF_START_TIME,
     CONF_SUNSET_OFFSET,
     CONF_SUNSET_POS,
     CONF_TEMP_ENTITY,
@@ -200,6 +204,20 @@ WEATHER_OPTIONS = vol.Schema(
 )
 
 
+AUTOMATION_CONFIG = vol.Schema(
+    {
+        vol.Required(CONF_DELTA_POSITION, default=1): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=1, max=90, step=1, mode="slider")
+        ),
+        vol.Required(CONF_DELTA_TIME): selector.TimeSelector(),
+        vol.Optional(CONF_START_TIME): selector.TimeSelector(),
+        vol.Optional(CONF_START_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain="sensor")
+        ),
+    }
+)
+
+
 class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle ConfigFlow."""
 
@@ -233,9 +251,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.type_blind = SensorType.BLIND
         if user_input is not None:
             self.config.update(user_input)
-            if self.config[CONF_CLIMATE_MODE] is True:
-                return await self.async_step_climate()
-            return await self.async_step_update()
+            return await self.async_step_automation()
         return self.async_show_form(
             step_id="vertical",
             data_schema=CLIMATE_MODE.extend(VERTICAL_OPTIONS.schema),
@@ -246,9 +262,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.type_blind = SensorType.AWNING
         if user_input is not None:
             self.config.update(user_input)
-            if self.config[CONF_CLIMATE_MODE] is True:
-                return await self.async_step_climate()
-            return await self.async_step_update()
+            return await self.async_step_automation()
         return self.async_show_form(
             step_id="horizontal",
             data_schema=CLIMATE_MODE.extend(HORIZONTAL_OPTIONS.schema),
@@ -259,12 +273,19 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.type_blind = SensorType.TILT
         if user_input is not None:
             self.config.update(user_input)
-            if self.config[CONF_CLIMATE_MODE] is True:
-                return await self.async_step_climate()
-            return await self.async_step_update()
+            return await self.async_step_automation()
         return self.async_show_form(
             step_id="tilt", data_schema=CLIMATE_MODE.extend(TILT_OPTIONS.schema)
         )
+
+    async def async_step_automation(self, user_input: dict[str, Any] | None = None):
+        """Manage automation options."""
+        if user_input is not None:
+            self.config.update(user_input)
+            if self.config[CONF_CLIMATE_MODE] is True:
+                return await self.async_step_climate()
+            return await self.async_step_update()
+        return self.async_show_form(step_id="automation", data_schema=AUTOMATION_CONFIG)
 
     async def async_step_climate(self, user_input: dict[str, Any] | None = None):
         """Manage climate options."""
@@ -321,6 +342,10 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_TEMP_HIGH: self.config.get(CONF_TEMP_HIGH),
                 CONF_CLIMATE_MODE: self.config.get(CONF_CLIMATE_MODE),
                 CONF_WEATHER_STATE: self.config.get(CONF_WEATHER_STATE),
+                CONF_DELTA_POSITION: self.config.get(CONF_DELTA_POSITION),
+                CONF_DELTA_TIME: self.config.get(CONF_DELTA_TIME),
+                CONF_START_TIME: self.config.get(CONF_START_TIME),
+                CONF_START_ENTITY: self.config.get(CONF_START_ENTITY),
             },
         )
 
