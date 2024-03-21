@@ -4,7 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from homeassistant.components.cover import DOMAIN as COVER_DOMAIN
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    SERVICE_SET_COVER_POSITION,
+    SERVICE_SET_COVER_TILT_POSITION,
+)
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -17,6 +23,8 @@ from .calculation import (
     NormalCoverState,
 )
 from .const import (
+    ATTR_POSITION,
+    ATTR_TILT_POSITION,
     CONF_AWNING_ANGLE,
     CONF_AZIMUTH,
     CONF_CLIMATE_MODE,
@@ -85,6 +93,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         await self.async_refresh()
 
     async def _async_update_data(self) -> AdaptiveCoverData:
+        self.entities = self.config_entry.options.get(CONF_ENTITIES, [])
+
         pos_sun = [
             get_safe_attribute(self.hass, "sun.sun", "azimuth"),
             get_safe_attribute(self.hass, "sun.sun", "elevation"),
@@ -159,6 +169,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             if self._climate_mode:
                 climate_state = 100 - climate_state
 
+        self.state = default_state
+
+        for entity in self.entities:
+            if self.check_position(entity):
+                await self.async_set_position(entity)
+
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
             states={
@@ -182,6 +198,26 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 "cover_type": self._cover_type,
             },
         )
+
+    async def async_set_position(self, entity):
+        """Call service to set cover position."""
+        service = SERVICE_SET_COVER_POSITION
+        service_data = {}
+        service_data[ATTR_ENTITY_ID] = entity
+
+        if self._cover_type == "cover_tilt":
+            service = SERVICE_SET_COVER_TILT_POSITION
+            service_data[ATTR_TILT_POSITION] = self.state
+        else:
+            service_data[ATTR_POSITION] = self.state
+
+        await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
+
+    def check_position(self, entity):
+        """Check cover positions to reduce calls."""
+        position = get_safe_attribute(self.hass, entity, "current_position")
+        if position is not None:
+            return position != self.state
 
     @property
     def switch_mode(self):

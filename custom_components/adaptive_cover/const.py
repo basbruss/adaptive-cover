@@ -5,6 +5,9 @@ import logging
 DOMAIN = "adaptive_cover"
 LOGGER = logging.getLogger(__package__)
 
+ATTR_POSITION = "position"
+ATTR_TILT_POSITION = "tilt_position"
+
 CONF_AZIMUTH = "set_azimuth"
 CONF_BLUEPRINT = "blueprint"
 CONF_HEIGHT_WIN = "window_height"

@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from homeassistant.components.input_boolean import DOMAIN as INPUT_DOMAIN
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import ATTR_ENTITY_ID, SERVICE_TOGGLE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -97,5 +99,8 @@ class AdaptiveCoverSwitch(
         """Turn the device off."""
         self._attr_is_on = False
         self.coordinator.switch_mode = False
+        await self.hass.services.async_call(
+            INPUT_DOMAIN, SERVICE_TOGGLE, {ATTR_ENTITY_ID: "input_boolean.test_service"}
+        )
         await self.coordinator.async_refresh()
         self.schedule_update_ha_state()
