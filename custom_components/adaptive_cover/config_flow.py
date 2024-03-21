@@ -367,6 +367,23 @@ class OptionsFlowHandler(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Manage the options."""
+        return self.async_show_menu(
+            step_id="init",
+            menu_options={
+                "automation": "Change Automation Config",
+                "blind": "Adjust blind parameters",
+            },
+        )
+
+    async def async_step_automation(self, user_input: dict[str, Any] | None = None):
+        """Manage automation options."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return await self._update_options()
+        return self.async_show_form(step_id="automation", data_schema=AUTOMATION_CONFIG)
+
+    async def async_step_blind(self, user_input: dict[str, Any] | None = None):
+        """Adjust blind parameters."""
         if self.sensor_type == SensorType.BLIND:
             return await self.async_step_vertical()
         if self.sensor_type == SensorType.AWNING:
