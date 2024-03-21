@@ -12,6 +12,7 @@ from homeassistant.const import (
     SERVICE_SET_COVER_TILT_POSITION,
 )
 from homeassistant.core import HomeAssistant, State
+from homeassistant.helpers.template import state_attr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .calculation import (
@@ -37,6 +38,7 @@ from .const import (
     CONF_INVERSE_STATE,
     CONF_LENGTH_AWNING,
     CONF_MAX_POSITION,
+    CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
     CONF_SUNSET_OFFSET,
     CONF_SUNSET_POS,
@@ -51,7 +53,6 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .helpers import get_safe_attribute
 
 
 @dataclass
@@ -84,6 +85,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._climate_mode = self.config_entry.options.get(CONF_CLIMATE_MODE, False)
         self._switch_mode = True if self._climate_mode else False
         self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
+        self._temp_toggle = False
 
     async def async_check_entity_state_change(
         self, entity: str, old_state: State | None, new_state: State | None
@@ -96,8 +98,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.entities = self.config_entry.options.get(CONF_ENTITIES, [])
 
         pos_sun = [
-            get_safe_attribute(self.hass, "sun.sun", "azimuth"),
-            get_safe_attribute(self.hass, "sun.sun", "elevation"),
+            state_attr(self.hass, "sun.sun", "azimuth"),
+            state_attr(self.hass, "sun.sun", "elevation"),
         ]
 
         common_data = [
@@ -152,6 +154,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.config_entry.options.get(CONF_PRESENCE_ENTITY),
                 self.config_entry.options.get(CONF_WEATHER_ENTITY),
                 self.config_entry.options.get(CONF_WEATHER_STATE),
+                self.config_entry.options.get(CONF_OUTSIDETEMP_ENTITY),
+                self._temp_toggle,
                 self._cover_type,
             ]
             climate = ClimateCoverData(*climate_data_var)
@@ -164,10 +168,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         default_state = round(NormalCoverState(cover_data).get_state())
 
+        state = default_state
+        if self._switch_mode:
+            state = climate_state
+
         if self._inverse_state:
-            default_state = 100 - default_state
-            if self._climate_mode:
-                climate_state = 100 - climate_state
+            state = 100 - state
 
         self.state = default_state
 
@@ -180,6 +186,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             states={
                 "normal": default_state,
                 "climate": climate_state,
+                "state": state,
                 "start": NormalCoverState(cover_data).cover.solar_times()[0],
                 "end": NormalCoverState(cover_data).cover.solar_times()[1],
                 "control": control_method,
@@ -196,6 +203,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 ],
                 "entity_id": self.config_entry.options.get(CONF_ENTITIES),
                 "cover_type": self._cover_type,
+                "outside": self.config_entry.options.get(CONF_OUTSIDETEMP_ENTITY),
+                "outside_temp": climate_data.outside_temperature,
+                "current_temp": climate_data.get_current_temperature,
+                "toggle": climate_data.temp_switch,
             },
         )
 
@@ -227,3 +238,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     @switch_mode.setter
     def switch_mode(self, value):
         self._switch_mode = value
+
+    @property
+    def temp_toggle(self):
+        """Let switch toggle climate mode."""
+        return self._temp_toggle
+
+    @temp_toggle.setter
+    def temp_toggle(self, value):
+        self._temp_toggle = value

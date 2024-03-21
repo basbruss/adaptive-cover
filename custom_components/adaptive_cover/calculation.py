@@ -7,10 +7,11 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.template import state_attr
 from numpy import cos, sin, tan
 from numpy import radians as rad
 
-from .helpers import get_domain, get_safe_attribute, get_safe_state
+from .helpers import get_domain, get_safe_state
 from .sun import SunData
 
 
@@ -147,19 +148,38 @@ class ClimateCoverData:
     presence_entity: str
     weather_entity: str
     weather_condition: list[str]
+    outside_entity: str
+    temp_switch: bool
     blind_type: str
 
     @property
-    def current_temperature(self) -> float:
-        """Get current temp from entity."""
+    def outside_temperature(self):
+        """Get outside temperature."""
+        temp = None
+        if self.weather_entity:
+            temp = state_attr(self.hass, self.weather_entity, "temperature")
+        if self.outside_entity:
+            temp = get_safe_state(self.outside_entity, self.hass)
+        return temp
+
+    @property
+    def inside_temperature(self):
+        """Get inside temp from entity."""
         if self.temp_entity is not None:
             if get_domain(self.temp_entity) != "climate":
-                temp = get_safe_state(self.hass, self.temp_entity)
+                temp = get_safe_state(self.temp_entity, self.hass)
             else:
-                temp = get_safe_attribute(
-                    self.hass, self.temp_entity, "current_temperature"
-                )
+                temp = state_attr(self.hass, self.temp_entity, "current_temperature")
             return temp
+
+    @property
+    def get_current_temperature(self) -> float:
+        """Get temperature."""
+        if self.temp_switch:
+            if self.outside_temperature:
+                return float(self.outside_temperature)
+        if self.inside_temperature:
+            return float(self.inside_temperature)
 
     @property
     def is_presence(self):
@@ -181,15 +201,15 @@ class ClimateCoverData:
     @property
     def is_winter(self) -> bool:
         """Check if temperature is below threshold."""
-        if self.temp_low is not None and self.current_temperature is not None:
-            return float(self.current_temperature) < self.temp_low
+        if self.temp_low is not None and self.get_current_temperature is not None:
+            return self.get_current_temperature < self.temp_low
         return False
 
     @property
     def is_summer(self) -> bool:
         """Check if temperature is over threshold."""
-        if self.temp_high is not None and self.current_temperature is not None:
-            return float(self.current_temperature) > self.temp_high
+        if self.temp_high is not None and self.get_current_temperature is not None:
+            return self.get_current_temperature > self.temp_high
         return False
 
     @property
@@ -197,10 +217,10 @@ class ClimateCoverData:
         """Check if condition can contain radiation in winter."""
         weather_state = None
         if self.weather_entity is not None:
-            weather_state = get_safe_state(self.hass, self.weather_entity)
+            weather_state = get_safe_state(self.weather_entity, self.hass)
         if self.weather_condition is not None:
             return weather_state in self.weather_condition
-        return False
+        return True
 
 
 @dataclass
@@ -212,11 +232,7 @@ class ClimateCoverState(NormalCoverState):
     def normal_type_cover(self) -> int:
         """Determine state for horizontal and vertical covers."""
         # glare does not matter
-        if (
-            self.climate_data.is_presence is False
-            and self.climate_data.current_temperature is not None
-            and self.cover.sol_elev > 0
-        ):
+        if self.climate_data.is_presence is False and self.cover.sol_elev > 0:
             # allow maximum solar radiation
             if self.climate_data.is_winter:
                 return 100
@@ -227,7 +243,7 @@ class ClimateCoverState(NormalCoverState):
 
         # prefer glare reduction over climate control
         # adjust according basic algorithm
-        if not self.climate_data.is_sunny and self.climate_data.is_winter:
+        if not self.climate_data.is_sunny and not self.climate_data.is_summer:
             return self.cover.default
         return super().get_state()
 
@@ -276,7 +292,7 @@ class ClimateCoverState(NormalCoverState):
     def tilt_state(self):
         """Add tilt specific controls."""
         if (
-            self.climate_data.current_temperature is not None
+            self.climate_data.get_current_temperature is not None
             and self.cover.sol_elev > 0
         ):
             if self.cover.mode == "mode1":

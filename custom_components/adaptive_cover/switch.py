@@ -13,7 +13,13 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_CLIMATE_MODE, CONF_SENSOR_TYPE, DOMAIN
+from .const import (
+    CONF_CLIMATE_MODE,
+    CONF_OUTSIDETEMP_ENTITY,
+    CONF_SENSOR_TYPE,
+    CONF_WEATHER_ENTITY,
+    DOMAIN,
+)
 from .coordinator import AdaptiveDataUpdateCoordinator
 
 
@@ -33,13 +39,28 @@ async def async_setup_entry(
         "Climate Mode",
         True,
         "mdi:home-thermometer-outline",
-        True,
+        "switch_mode",
+        coordinator,
+    )
+    temp_switch = AdaptiveCoverSwitch(
+        config_entry,
+        config_entry.entry_id,
+        "Outside Temperature",
+        False,
+        "mdi:thermometer",
+        "temp_toggle",
         coordinator,
     )
     climate_mode = config_entry.options.get(CONF_CLIMATE_MODE)
+    weather_entity = config_entry.options.get(CONF_WEATHER_ENTITY)
+    sensor_entity = config_entry.options.get(CONF_OUTSIDETEMP_ENTITY)
     switches = []
+
     if climate_mode:
         switches.append(climate_switch)
+        if weather_entity or sensor_entity:
+            switches.append(temp_switch)
+
     async_add_entities(switches)
 
 
@@ -58,7 +79,7 @@ class AdaptiveCoverSwitch(
         switch_name: str,
         state: bool,
         icon: str | None,
-        assumed: bool,
+        key: str,
         coordinator: AdaptiveDataUpdateCoordinator,
         device_class: SwitchDeviceClass | None = None,
     ) -> None:
@@ -70,9 +91,9 @@ class AdaptiveCoverSwitch(
             "cover_tilt": "Tilt",
         }
         self._name = config_entry.data["name"]
+        self._key = key
         self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
         self._switch_name = switch_name
-        self._attr_assumed_state = assumed
         self._attr_device_class = device_class
         self._attr_icon = icon
         self._attr_is_on = state
@@ -91,16 +112,13 @@ class AdaptiveCoverSwitch(
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
         self._attr_is_on = True
-        self.coordinator.switch_mode = True
+        setattr(self.coordinator, self._key, True)
         await self.coordinator.async_refresh()
         self.schedule_update_ha_state()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the device off."""
         self._attr_is_on = False
-        self.coordinator.switch_mode = False
-        await self.hass.services.async_call(
-            INPUT_DOMAIN, SERVICE_TOGGLE, {ATTR_ENTITY_ID: "input_boolean.test_service"}
-        )
+        setattr(self.coordinator, self._key, False)
         await self.coordinator.async_refresh()
         self.schedule_update_ha_state()

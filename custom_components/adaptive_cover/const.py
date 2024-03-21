@@ -37,6 +37,7 @@ CONF_MODE = "mode"
 CONF_CLIMATE_MODE = "climate_mode"
 CONF_WEATHER_STATE = "weather_state"
 CONF_MAX_POSITION = "max_position"
+CONF_OUTSIDETEMP_ENTITY = "outside_temp"
 
 CONF_DELTA_POSITION = "delta_position"
 CONF_DELTA_TIME = "delta_time"
