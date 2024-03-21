@@ -43,6 +43,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
+from .helpers import get_safe_attribute
 
 
 @dataclass
@@ -85,8 +86,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def _async_update_data(self) -> AdaptiveCoverData:
         pos_sun = [
-            self.hass.states.get("sun.sun").attributes["azimuth"],
-            self.hass.states.get("sun.sun").attributes["elevation"],
+            get_safe_attribute(self.hass, "sun.sun", "azimuth"),
+            get_safe_attribute(self.hass, "sun.sun", "elevation"),
         ]
 
         common_data = [
