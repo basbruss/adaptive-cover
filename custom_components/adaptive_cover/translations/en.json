@@ -9,6 +9,14 @@
           "mode": "Type of blind"
         }
       },
+      "automation":{
+        "data":{
+          "delta_position":"Minimum position change",
+          "delta_time": "Minimum time between position changes",
+          "start_time": "Start time of adaptive control",
+          "start_entity": "Entity with start time as state"
+        }
+      },
       "vertical": {
         "data": {
           "set_azimuth": "Window Azimuth",
