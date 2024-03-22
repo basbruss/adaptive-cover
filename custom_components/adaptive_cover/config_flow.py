@@ -219,7 +219,9 @@ AUTOMATION_CONFIG = vol.Schema(
         vol.Required(CONF_DELTA_POSITION, default=1): selector.NumberSelector(
             selector.NumberSelectorConfig(min=1, max=90, step=1, mode="slider")
         ),
-        vol.Required(CONF_DELTA_TIME): selector.TimeSelector(),
+        vol.Required(CONF_DELTA_TIME): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=2, max=60, step=1, mode="slider")
+        ),
         vol.Optional(CONF_START_TIME): selector.TimeSelector(),
         vol.Optional(CONF_START_ENTITY): selector.EntitySelector(
             selector.EntitySelectorConfig(domain="sensor")
