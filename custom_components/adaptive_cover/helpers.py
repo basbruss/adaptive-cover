@@ -5,7 +5,7 @@ import datetime as dt
 from homeassistant.core import HomeAssistant, split_entity_id
 
 
-def get_safe_state(entity_id: str, hass: HomeAssistant):
+def get_safe_state(hass: HomeAssistant, entity_id: str):
     """Get a safe state value if not available."""
     state = hass.states.get(entity_id)
     if not state or state.state in ["unknown", "unavailable"]:
