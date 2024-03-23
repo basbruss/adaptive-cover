@@ -187,10 +187,6 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 ],
                 "entity_id": self.config_entry.options.get(CONF_ENTITIES),
                 "cover_type": self._cover_type,
-                "outside": self.config_entry.options.get(CONF_OUTSIDETEMP_ENTITY),
-                "outside_temp": climate_data.outside_temperature,
-                "current_temp": climate_data.get_current_temperature,
-                "toggle": climate_data.temp_switch,
             },
         )
 

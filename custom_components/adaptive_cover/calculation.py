@@ -159,7 +159,10 @@ class ClimateCoverData:
         if self.weather_entity:
             temp = state_attr(self.hass, self.weather_entity, "temperature")
         if self.outside_entity:
-            temp = get_safe_state(self.outside_entity, self.hass)
+            temp = get_safe_state(
+                self.hass,
+                self.outside_entity,
+            )
         return temp
 
     @property
@@ -167,7 +170,10 @@ class ClimateCoverData:
         """Get inside temp from entity."""
         if self.temp_entity is not None:
             if get_domain(self.temp_entity) != "climate":
-                temp = get_safe_state(self.temp_entity, self.hass)
+                temp = get_safe_state(
+                    self.hass,
+                    self.temp_entity,
+                )
             else:
                 temp = state_attr(self.hass, self.temp_entity, "current_temperature")
             return temp
@@ -217,7 +223,7 @@ class ClimateCoverData:
         """Check if condition can contain radiation in winter."""
         weather_state = None
         if self.weather_entity is not None:
-            weather_state = get_safe_state(self.weather_entity, self.hass)
+            weather_state = get_safe_state(self.hass, self.weather_entity)
         if self.weather_condition is not None:
             return weather_state in self.weather_condition
         return True
