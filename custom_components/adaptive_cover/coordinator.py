@@ -58,7 +58,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .helpers import get_last_updated
+from .helpers import get_last_updated, get_timedelta_str
 
 
 @dataclass
@@ -103,7 +103,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     async def _async_update_data(self) -> AdaptiveCoverData:
         self.entities = self.config_entry.options.get(CONF_ENTITIES, [])
         self.min_change = self.config_entry.options.get(CONF_DELTA_POSITION, 1)
-        self.time_threshold = self.config_entry.options.get(CONF_DELTA_TIME, 0)
+        self.time_threshold = self.config_entry.options.get(CONF_DELTA_TIME)
 
         cover_data = self.get_blind_data()
 
@@ -141,8 +141,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         for entity in self.entities:
             last_updated = get_last_updated(entity, self.hass)
-            delta_time = now - last_updated >= dt.timedelta(minutes=0)
-            if self.check_position(entity) and delta_time:
+            delta_time = now - last_updated >= get_timedelta_str(self.time_threshold)
+            if self.check_position(entity) and delta_time or not cover_data.valid:
                 await self.async_set_position(entity)
 
         return AdaptiveCoverData(

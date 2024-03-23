@@ -2,6 +2,7 @@
 
 import datetime as dt
 
+import pandas as pd
 from homeassistant.core import HomeAssistant, split_entity_id
 
 
@@ -24,6 +25,12 @@ def get_time(time: str):
     """Convert string to datetime.time."""
     if time is not None:
         return dt.datetime.strptime(time, "%H:%M:%S")
+
+
+def get_timedelta_str(string: str):
+    """Convert string to timedelta."""
+    if string is not None:
+        return pd.to_timedelta(string)
 
 
 def get_datetime_from_state(state: str):
