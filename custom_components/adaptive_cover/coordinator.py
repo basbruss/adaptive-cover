@@ -58,7 +58,13 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .helpers import get_last_updated, get_timedelta_str
+from .helpers import (
+    get_datetime_from_state,
+    get_last_updated,
+    get_safe_state,
+    get_time,
+    get_timedelta_str,
+)
 
 
 @dataclass
@@ -104,6 +110,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.entities = self.config_entry.options.get(CONF_ENTITIES, [])
         self.min_change = self.config_entry.options.get(CONF_DELTA_POSITION, 1)
         self.time_threshold = self.config_entry.options.get(CONF_DELTA_TIME)
+        self.start_time = self.config_entry.options.get(CONF_START_TIME)
+        self.start_time_entity = self.config_entry.options.get(CONF_START_ENTITY)
 
         cover_data = self.get_blind_data()
 
@@ -171,6 +179,19 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 "start_entity": self.config_entry.options.get(CONF_START_ENTITY),
             },
         )
+
+    def after_start_time(self):
+        """Check if time is after start time."""
+        if self.start_time_entity is not None:
+            time = get_datetime_from_state(get_safe_state(self.start_time_entity))
+            now = dt.datetime.now(dt.UTC)
+            if now.date() == time.date():
+                return now >= time
+        if self.start_time is not None:
+            time = get_time(self.start_time)
+            now = dt.datetime.now().time()
+            return now >= time
+        return True
 
     async def async_set_position(self, entity):
         """Call service to set cover position."""
