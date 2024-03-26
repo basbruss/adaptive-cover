@@ -11,6 +11,7 @@ from homeassistant.helpers.event import (
 
 from .blueprint import configure_blueprint
 from .const import (
+    CONF_ENTITIES,
     CONF_PRESENCE_ENTITY,
     CONF_TEMP_ENTITY,
     CONF_WEATHER_ENTITY,
@@ -20,7 +21,7 @@ from .coordinator import AdaptiveDataUpdateCoordinator
 
 PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR]
 PLATFORMS_SW = [Platform.SENSOR, Platform.SWITCH, Platform.BINARY_SENSOR]
-CONF_ENTITIES = ["sun.sun"]
+CONF_SUN = ["sun.sun"]
 
 
 async def async_initialize_integration(
@@ -42,10 +43,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _temp_entity = entry.options.get(CONF_TEMP_ENTITY)
     _presence_entity = entry.options.get(CONF_PRESENCE_ENTITY)
     _weather_entity = entry.options.get(CONF_WEATHER_ENTITY)
+    _cover_entities = entry.options.get(CONF_ENTITIES, [])
     _entities = ["sun.sun"]
     for entity in [_temp_entity, _presence_entity, _weather_entity]:
         if entity is not None:
             _entities.append(entity)
+    _entities += _cover_entities
 
     entry.async_on_unload(
         async_track_state_change(

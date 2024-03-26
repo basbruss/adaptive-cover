@@ -99,6 +99,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
         self._temp_toggle = False
 
+        self.state_change_data: StateChangedData | None = None
+
     async def async_check_entity_state_change(
         self, entity: str, old_state: State | None, new_state: State | None
     ) -> None:
@@ -177,8 +179,20 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 "delta_time": self.config_entry.options.get(CONF_DELTA_TIME),
                 "start_time": self.config_entry.options.get(CONF_START_TIME),
                 "start_entity": self.config_entry.options.get(CONF_START_ENTITY),
+                "manual control": self.find_manual_control,
+                "states_data": self.state_change_data,
             },
         )
+
+    @property
+    def find_manual_control(self):
+        """."""
+        if self.state_change_data:
+            if self.state_change_data.entity_id.startswith("cover."):
+                return (
+                    self.state_change_data.new_state.attributes["current_position"]
+                    != self.state
+                )
 
     def after_start_time(self):
         """Check if time is after start time."""
