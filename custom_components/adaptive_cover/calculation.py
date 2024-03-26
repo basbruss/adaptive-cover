@@ -94,8 +94,10 @@ class AdaptiveGeneralCover(ABC):
     def sunset_valid(self) -> bool:
         """Determine if it is after sunset plus offset."""
         sunset = self.sun_data.sunset().replace(tzinfo=None)
-        condition = datetime.utcnow() > sunset + timedelta(minutes=self.sunset_off)
-        return condition
+        sunrise = self.sun_data.sunrise().replace(tzinfo=None)
+        after_sunset = datetime.utcnow() > (sunset + timedelta(minutes=self.sunset_off))
+        before_sunrise = datetime.utcnow() < (sunrise - timedelta(minutes=self.sunset_off))
+        return (after_sunset and before_sunrise)
 
     @property
     def default(self) -> float:

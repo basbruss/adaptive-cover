@@ -54,6 +54,10 @@ class SunData:
         """Fetch sunset time."""
         return self.location.sunset(date.today(), local=False)
 
+    def sunrise(self) -> datetime:
+        """Fetch tomorrow's sunrise time."""
+        return self.location.sunrise(date.today() + timedelta(1), local=False)
+
     # def df_today(self)-> pd.DataFrame:
     #     """Create dataframe with azimuth and elevation data"""
     #     df_today = pd.DataFrame({"azimuth":self.solar_azimuth, "elevation":self.solar_elevation})
