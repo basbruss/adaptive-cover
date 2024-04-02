@@ -42,7 +42,8 @@ def get_datetime_from_state(state: str):
 def get_last_updated(entity_id: str, hass: HomeAssistant):
     """Get last updated attribute from entity."""
     if entity_id is not None:
-        return hass.states.get(entity_id).last_updated
+        if hass.states.get(entity_id):
+            return hass.states.get(entity_id).last_updated
 
 
 def check_time_passed(time: dt.datetime):

@@ -146,18 +146,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         self.default_state = round(NormalCoverState(cover_data).get_state())
 
-        self.state
-
-        now = dt.datetime.now(dt.UTC)
-
         if self.control_toggle:
-            for entity in self.entities:
-                last_updated = get_last_updated(entity, self.hass)
-                delta_time = now - last_updated >= get_timedelta_str(
-                    self.time_threshold
-                )
-                if self.check_position(entity) and delta_time:
-                    await self.async_set_position(entity)
+            await self.async_handle_call_service()
 
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
@@ -197,19 +187,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     #                 self.state_change_data.new_state.attributes["current_position"]
     #                 != self.state
     #             )
-
-    def after_start_time(self):
-        """Check if time is after start time."""
-        if self.start_time_entity is not None:
-            time = get_datetime_from_state(get_safe_state(self.start_time_entity))
-            now = dt.datetime.now(dt.UTC)
-            if now.date() == time.date():
-                return now >= time
-        if self.start_time is not None:
-            time = get_time(self.start_time)
-            now = dt.datetime.now().time()
-            return now >= time
-        return True
+    async def async_handle_call_service(self):
+        """Handle call service."""
+        for entity in self.entities:
+            if self.check_position(entity) and self.check_time_delta(entity):
+                await self.async_set_position(entity)
 
     async def async_set_position(self, entity):
         """Call service to set cover position."""
@@ -225,11 +207,55 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
 
+    def get_blind_data(self):
+        """Assign correct class for type of blind."""
+        if self._cover_type == "cover_blind":
+            cover_data = AdaptiveVerticalCover(
+                self.hass, *self.pos_sun, *self.common_data, *self.vertical_data
+            )
+        if self._cover_type == "cover_awning":
+            cover_data = AdaptiveHorizontalCover(
+                self.hass,
+                *self.pos_sun,
+                *self.common_data,
+                *self.vertical_data,
+                *self.horizontal_data,
+            )
+        if self._cover_type == "cover_tilt":
+            cover_data = AdaptiveTiltCover(
+                self.hass, *self.pos_sun, *self.common_data, *self.tilt_data
+            )
+        return cover_data
+
+    def after_start_time(self):
+        """Check if time is after start time."""
+        if self.start_time_entity is not None:
+            time = get_datetime_from_state(get_safe_state(self.start_time_entity))
+            now = dt.datetime.now(dt.UTC)
+            if now.date() == time.date():
+                return now >= time
+        if self.start_time is not None:
+            time = get_time(self.start_time)
+            now = dt.datetime.now().time()
+            return now >= time
+        return True
+
     def check_position(self, entity):
         """Check cover positions to reduce calls."""
-        position = state_attr(self.hass, entity, "current_position")
+        if self._cover_type == "cover_tilt":
+            position = state_attr(self.hass, entity, "current_tilt_position")
+        else:
+            position = state_attr(self.hass, entity, "current_position")
         if position is not None:
             return abs(position - self.state) >= self.min_change
+        return True
+
+    def check_time_delta(self, entity):
+        """Check if time delta is passed."""
+        now = dt.datetime.now(dt.UTC)
+        last_updated = get_last_updated(entity, self.hass)
+        if last_updated is not None:
+            return now - last_updated >= get_timedelta_str(self.time_threshold)
         return True
 
     @property
@@ -279,26 +305,6 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.config_entry.options.get(CONF_TILT_MODE),
         ]
 
-    def get_blind_data(self):
-        """Assign correct class for type of blind."""
-        if self._cover_type == "cover_blind":
-            cover_data = AdaptiveVerticalCover(
-                self.hass, *self.pos_sun, *self.common_data, *self.vertical_data
-            )
-        if self._cover_type == "cover_awning":
-            cover_data = AdaptiveHorizontalCover(
-                self.hass,
-                *self.pos_sun,
-                *self.common_data,
-                *self.vertical_data,
-                *self.horizontal_data,
-            )
-        if self._cover_type == "cover_tilt":
-            cover_data = AdaptiveTiltCover(
-                self.hass, *self.pos_sun, *self.common_data, *self.tilt_data
-            )
-        return cover_data
-
     @property
     def state(self):
         """Handle the output of the state based on mode."""
@@ -308,9 +314,6 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self._inverse_state:
             state = 100 - state
         return state
-
-    async def async_handle_call_service(self):
-        """Handle call service."""
 
     @property
     def switch_mode(self):
