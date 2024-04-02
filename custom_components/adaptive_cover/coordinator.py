@@ -98,6 +98,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._switch_mode = True if self._climate_mode else False
         self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
         self._temp_toggle = False
+        self._control_toggle = True
 
         self.state_change_data: StateChangedData | None = None
 
@@ -149,11 +150,14 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         now = dt.datetime.now(dt.UTC)
 
-        for entity in self.entities:
-            last_updated = get_last_updated(entity, self.hass)
-            delta_time = now - last_updated >= get_timedelta_str(self.time_threshold)
-            if self.check_position(entity) and delta_time or not cover_data.valid:
-                await self.async_set_position(entity)
+        if self.control_toggle:
+            for entity in self.entities:
+                last_updated = get_last_updated(entity, self.hass)
+                delta_time = now - last_updated >= get_timedelta_str(
+                    self.time_threshold
+                )
+                if self.check_position(entity) and delta_time:
+                    await self.async_set_position(entity)
 
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
@@ -319,9 +323,18 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     @property
     def temp_toggle(self):
-        """Let switch toggle climate mode."""
+        """Let switch toggle between inside or outside temperature."""
         return self._temp_toggle
 
     @temp_toggle.setter
     def temp_toggle(self, value):
         self._temp_toggle = value
+
+    @property
+    def control_toggle(self):
+        """Toggle automation."""
+        return self._control_toggle
+
+    @control_toggle.setter
+    def control_toggle(self, value):
+        self._control_toggle = value
