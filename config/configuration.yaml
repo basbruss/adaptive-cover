@@ -11,3 +11,33 @@ frontend:
 
 logger:
   default: "info"
+
+cover:
+  - platform: template
+    covers:
+      vertical_blind:
+        device_class: blind
+        value_template: "{{is_state('input_boolean.test_service','on')}}"
+        position_template: "{{states('input_number.cover_position')|int}}"
+        set_cover_position:
+          service: input_number.set_value
+          data:
+            entity_id: "input_number.cover_position"
+            value: "{{position}}"
+  - platform: template
+    covers:
+      tilt_blind:
+        device_class: blind
+        value_template: "{{is_state('input_boolean.test_service','on')}}"
+        position_template: "{{states('input_number.cover_position_tilt')|int}}"
+        tilt_template: "{{states('input_number.cover_position_tilt')|int}}"
+        set_cover_position:
+          service: input_number.set_value
+          data:
+            entity_id: "input_number.cover_position_tilt"
+            value: "{{position}}"
+        set_cover_tilt_position:
+          service: input_number.set_value
+          data:
+            entity_id: "input_number.cover_position_tilt"
+            value: "{{tilt}}"
