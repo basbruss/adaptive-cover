@@ -179,20 +179,20 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 "delta_time": self.config_entry.options.get(CONF_DELTA_TIME),
                 "start_time": self.config_entry.options.get(CONF_START_TIME),
                 "start_entity": self.config_entry.options.get(CONF_START_ENTITY),
-                "manual control": self.find_manual_control,
+                # "manual control": self.find_manual_control,
                 "states_data": self.state_change_data,
             },
         )
 
-    @property
-    def find_manual_control(self):
-        """."""
-        if self.state_change_data:
-            if self.state_change_data.entity_id.startswith("cover."):
-                return (
-                    self.state_change_data.new_state.attributes["current_position"]
-                    != self.state
-                )
+    # @property
+    # def find_manual_control(self):
+    #     """."""
+    #     if self.state_change_data:
+    #         if self.state_change_data.entity_id.startswith("cover."):
+    #             return (
+    #                 self.state_change_data.new_state.attributes["current_position"]
+    #                 != self.state
+    #             )
 
     def after_start_time(self):
         """Check if time is after start time."""
