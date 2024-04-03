@@ -256,9 +256,9 @@ AUTOMATION_CONFIG = vol.Schema(
                 min=2, mode="box", unit_of_measurement="minutes"
             )
         ),
-        vol.Optional(CONF_START_TIME): selector.TimeSelector(),
+        vol.Optional(CONF_START_TIME, default="00:00:00"): selector.TimeSelector(),
         vol.Optional(CONF_START_ENTITY): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain="sensor")
+            selector.EntitySelectorConfig(domain=["sensor","input_datetime"])
         ),
     }
 )
