@@ -422,11 +422,7 @@ class OptionsFlowHandler(OptionsFlow):
     ) -> FlowResult:
         """Manage the options."""
         return self.async_show_menu(
-            step_id="init",
-            menu_options={
-                "automation": "Change Automation Config",
-                "blind": "Adjust blind parameters",
-            },
+            step_id="init", menu_options=["automation", "blind"]
         )
 
     async def async_step_automation(self, user_input: dict[str, Any] | None = None):
