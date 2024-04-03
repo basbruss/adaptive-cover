@@ -63,7 +63,6 @@ from .helpers import (
     get_last_updated,
     get_safe_state,
     get_time,
-    get_timedelta_str,
 )
 
 
@@ -167,8 +166,6 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     self.config_entry.options.get(CONF_FOV_LEFT),
                     self.config_entry.options.get(CONF_FOV_RIGHT),
                 ],
-                "entity_id": self.config_entry.options.get(CONF_ENTITIES),
-                "cover_type": self._cover_type,
                 # "manual control": self.find_manual_control,
                 # "states_data": self.state_change_data,
             },
