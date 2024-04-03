@@ -75,7 +75,7 @@ If you added a weather entity than it will only use the above calculations if th
 Tilted blinds will only defect from the above approach if the inside temperature is above the maximum comfort temperature. Than the slats will be positioned at 45 degrees as this is [founded optimal](https://www.mdpi.com/1996-1073/13/7/1731).
 
 ```mermaid
-    flowchart TD
+    flowchart LR
         A[Sundata] --> B{Normal}
         A --> C{Climate}
 
