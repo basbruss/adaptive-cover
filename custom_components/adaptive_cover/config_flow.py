@@ -77,25 +77,37 @@ CLIMATE_MODE = vol.Schema(
 OPTIONS = vol.Schema(
     {
         vol.Required(CONF_AZIMUTH, default=180): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=359, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0, max=359, mode="slider", unit_of_measurement="°"
+            )
         ),
         vol.Required(CONF_DEFAULT_HEIGHT, default=60): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=1, max=100, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=1, max=100, step=1, mode="slider", unit_of_measurement="%"
+            )
         ),
         vol.Optional(CONF_MAX_POSITION, default=100): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=1, max=100, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=1, max=100, step=1, mode="slider", unit_of_measurement="%"
+            )
         ),
         vol.Required(CONF_FOV_LEFT, default=90): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=1, max=90, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=1, max=90, step=1, mode="slider", unit_of_measurement="°"
+            )
         ),
         vol.Required(CONF_FOV_RIGHT, default=90): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=1, max=90, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=1, max=90, step=1, mode="slider", unit_of_measurement="°"
+            )
         ),
         vol.Required(CONF_SUNSET_POS, default=0): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=100, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0, max=100, step=1, mode="slider", unit_of_measurement="%"
+            )
         ),
         vol.Required(CONF_SUNSET_OFFSET, default=0): selector.NumberSelector(
-            selector.NumberSelectorConfig(mode="box")
+            selector.NumberSelectorConfig(mode="box", unit_of_measurement="minutes")
         ),
         vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
             selector.EntitySelectorConfig(domain="cover", multiple=True)
@@ -107,10 +119,14 @@ OPTIONS = vol.Schema(
 VERTICAL_OPTIONS = vol.Schema(
     {
         vol.Required(CONF_HEIGHT_WIN, default=2.1): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0.1, max=6, step=0.01, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0.1, max=6, step=0.01, mode="slider", unit_of_measurement="m"
+            )
         ),
         vol.Required(CONF_DISTANCE, default=0.5): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0.1, max=2, step=0.1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0.1, max=2, step=0.1, mode="slider", unit_of_measurement="m"
+            )
         ),
     }
 ).extend(OPTIONS.schema)
@@ -124,13 +140,19 @@ TEST_OPTIONS = vol.Schema(
 HORIZONTAL_OPTIONS = vol.Schema(
     {
         vol.Required(CONF_HEIGHT_AWNING, default=2.1): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0.1, max=6, step=0.01, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0.1, max=6, step=0.01, mode="slider", unit_of_measurement="m"
+            )
         ),
         vol.Required(CONF_LENGTH_AWNING, default=2.1): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0.3, max=6, step=0.01, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0.3, max=6, step=0.01, mode="slider", unit_of_measurement="m"
+            )
         ),
         vol.Required(CONF_AWNING_ANGLE, default=0): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=45, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0, max=45, mode="slider", unit_of_measurement="°"
+            )
         ),
     }
 ).extend(VERTICAL_OPTIONS.schema)
@@ -138,10 +160,14 @@ HORIZONTAL_OPTIONS = vol.Schema(
 TILT_OPTIONS = vol.Schema(
     {
         vol.Required(CONF_TILT_DEPTH, default=3): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0.1, max=15, step=0.1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0.1, max=15, step=0.1, mode="slider", unit_of_measurement="cm"
+            )
         ),
         vol.Required(CONF_TILT_DISTANCE, default=2): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0.1, max=15, step=0.1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0.1, max=15, step=0.1, mode="slider", unit_of_measurement="cm"
+            )
         ),
         vol.Required(CONF_TILT_MODE, default="mode2"): selector.SelectSelector(
             selector.SelectSelectorConfig(
@@ -157,10 +183,14 @@ CLIMATE_OPTIONS = vol.Schema(
             selector.EntityFilterSelectorConfig(domain=["climate", "sensor"])
         ),
         vol.Required(CONF_TEMP_LOW, default=21): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=86, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0, max=86, step=1, mode="slider", unit_of_measurement="°"
+            )
         ),
         vol.Required(CONF_TEMP_HIGH, default=25): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=90, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0, max=90, step=1, mode="slider", unit_of_measurement="°"
+            )
         ),
         vol.Optional(
             CONF_OUTSIDETEMP_ENTITY, default=vol.UNDEFINED
@@ -217,10 +247,14 @@ WEATHER_OPTIONS = vol.Schema(
 AUTOMATION_CONFIG = vol.Schema(
     {
         vol.Required(CONF_DELTA_POSITION, default=1): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=1, max=90, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=1, max=90, step=1, mode="slider", unit_of_measurement="%"
+            )
         ),
         vol.Optional(CONF_DELTA_TIME, default=2): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=2, mode="box")
+            selector.NumberSelectorConfig(
+                min=2, mode="box", unit_of_measurement="minutes"
+            )
         ),
         vol.Optional(CONF_START_TIME): selector.TimeSelector(),
         vol.Optional(CONF_START_ENTITY): selector.EntitySelector(
