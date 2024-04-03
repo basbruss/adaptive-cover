@@ -86,7 +86,7 @@
         "data": {
           "set_azimuth": "Raam Azimuth",
           "height_awning": "Zonneschermhoogte",
-          "lenght_awning": "Zonneschermspanlengte",
+          "length_awning": "Zonneschermspanlengte",
           "window_height": "Raamhoogte",
           "angle": "Zonneschermhoek",
           "distance_shaded_area": "Beschaduwde gebied",
@@ -240,7 +240,7 @@
         "data": {
           "set_azimuth": "Raam Azimuth",
           "height_awning": "Zonneschermhoogte",
-          "lenght_awning": "Zonneschermspanlengte",
+          "length_awning": "Zonneschermspanlengte",
           "window_height": "Raamhoogte",
           "angle": "Zonneschermhoek",
           "distance_shaded_area": "Beschaduwde gebied",

@@ -84,7 +84,7 @@
                 "data": {
                     "set_azimuth": "Window Azimuth",
                     "height_awning": "Awning Height",
-                    "lenght_awning": "Awning Span Length",
+                    "length_awning": "Awning Span Length",
                     "window_height": "Window Height",
                     "angle": "Awning Angle",
                     "distance_shaded_area": "Shaded area",
@@ -235,7 +235,7 @@
                     "data": {
                         "set_azimuth": "Window Azimuth",
                         "height_awning": "Awning Height",
-                        "lenght_awning": "Awning Span Length",
+                        "length_awning": "Awning Span Length",
                         "window_height": "Window Height",
                         "angle": "Awning Angle",
                         "distance_shaded_area": "Shaded area",
