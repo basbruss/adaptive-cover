@@ -74,6 +74,31 @@ The objective is to reduce glare while providing daylight to the room. All calcu
 If you added a weather entity than it will only use the above calculations if the weather state corresponds with the existence of direct sun rays. These states are `sunny`,`windy` and `partlycloudy`. If not equal to these states the position will default to the default value to allow more sunlight entering the room with minimizing the glare due to the weather condition. <br><br>
 Tilted blinds will only defect from the above approach if the inside temperature is above the maximum comfort temperature. Than the slats will be positioned at 45 degrees as this is [founded optimal](https://www.mdpi.com/1996-1073/13/7/1731).
 
+```mermaid
+    flowchart LR
+        A[Sundata] --> B{Normal}
+        A --> C{Climate}
+
+        B --> |Sun not infront| D{Default}
+        B --> |Sun infront| E(Calculated Position)
+
+        D --> H(Default Position)
+        D --> |Between sunset and sunrise|I(Sunset Default Position)
+
+        C --> F[No Presence]
+        C --> G[Presence]
+        G --> B
+
+        F --> M(Check weather)
+        M --> N(Conditions False)
+        M --> O(Conditions True)
+
+        O --> |Below minimal comfort temperature|K(Fully Open)
+        O --> |Above maximal comfort temperature|L(Fully Closed)
+        O --> |Inbetween comfort temperature thresholds |D
+        N --> D
+```
+
 ### Simulation
 ![combined_simulation](custom_components/adaptive_cover/simulation/sim_plot.png)
 
