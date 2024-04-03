@@ -17,7 +17,6 @@ from homeassistant.helpers import selector
 from .const import (
     CONF_AWNING_ANGLE,
     CONF_AZIMUTH,
-    CONF_BLUEPRINT,
     CONF_CLIMATE_MODE,
     CONF_DEFAULT_HEIGHT,
     CONF_DELTA_POSITION,
@@ -59,8 +58,7 @@ SENSOR_TYPE_MENU = [SensorType.BLIND, SensorType.AWNING, SensorType.TILT]
 CONFIG_SCHEMA = vol.Schema(
     {
         vol.Required("name"): selector.TextSelector(),
-        vol.Optional(CONF_BLUEPRINT, default=False): bool,
-        vol.Optional(CONF_MODE, default="basic"): selector.SelectSelector(
+        vol.Optional(CONF_MODE): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=SENSOR_TYPE_MENU, translation_key="mode"
             )
@@ -109,15 +107,21 @@ OPTIONS = vol.Schema(
         vol.Required(CONF_SUNSET_OFFSET, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(mode="box", unit_of_measurement="minutes")
         ),
-        vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain="cover", multiple=True)
-        ),
         vol.Required(CONF_INVERSE_STATE, default=False): bool,
     }
 )
 
 VERTICAL_OPTIONS = vol.Schema(
     {
+        vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain="cover",
+                multiple=True,
+                filter=selector.EntityFilterSelectorConfig(
+                    supported_features=["cover.CoverEntityFeature.SET_POSITION"]
+                ),
+            )
+        ),
         vol.Required(CONF_HEIGHT_WIN, default=2.1): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.1, max=6, step=0.01, mode="slider", unit_of_measurement="m"
@@ -131,11 +135,6 @@ VERTICAL_OPTIONS = vol.Schema(
     }
 ).extend(OPTIONS.schema)
 
-TEST_OPTIONS = vol.Schema(
-    {
-        vol.Optional(CONF_BLUEPRINT, default=True): bool,
-    }
-)
 
 HORIZONTAL_OPTIONS = vol.Schema(
     {
@@ -159,6 +158,15 @@ HORIZONTAL_OPTIONS = vol.Schema(
 
 TILT_OPTIONS = vol.Schema(
     {
+        vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain="cover",
+                multiple=True,
+                filter=selector.EntityFilterSelectorConfig(
+                    supported_features=["cover.CoverEntityFeature.SET_TILT_POSITION"]
+                ),
+            )
+        ),
         vol.Required(CONF_TILT_DEPTH, default=3): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.1, max=15, step=0.1, mode="slider", unit_of_measurement="cm"
@@ -258,7 +266,7 @@ AUTOMATION_CONFIG = vol.Schema(
         ),
         vol.Optional(CONF_START_TIME, default="00:00:00"): selector.TimeSelector(),
         vol.Optional(CONF_START_ENTITY): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=["sensor","input_datetime"])
+            selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
         ),
     }
 )
@@ -360,7 +368,6 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             title=f"{type[self.type_blind]} {self.config['name']}",
             data={
                 "name": self.config["name"],
-                CONF_BLUEPRINT: self.config[CONF_BLUEPRINT],
                 CONF_SENSOR_TYPE: self.type_blind,
             },
             options={
