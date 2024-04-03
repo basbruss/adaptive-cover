@@ -9,8 +9,8 @@ from homeassistant.helpers.event import (
     async_track_state_change,
 )
 
-from .blueprint import configure_blueprint
 from .const import (
+    CONF_ENTITIES,
     CONF_PRESENCE_ENTITY,
     CONF_TEMP_ENTITY,
     CONF_WEATHER_ENTITY,
@@ -18,9 +18,8 @@ from .const import (
 )
 from .coordinator import AdaptiveDataUpdateCoordinator
 
-PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR]
-PLATFORMS_SW = [Platform.SENSOR, Platform.SWITCH, Platform.BINARY_SENSOR]
-CONF_ENTITIES = ["sun.sun"]
+PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.BINARY_SENSOR]
+CONF_SUN = ["sun.sun"]
 
 
 async def async_initialize_integration(
@@ -42,10 +41,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _temp_entity = entry.options.get(CONF_TEMP_ENTITY)
     _presence_entity = entry.options.get(CONF_PRESENCE_ENTITY)
     _weather_entity = entry.options.get(CONF_WEATHER_ENTITY)
+    _cover_entities = entry.options.get(CONF_ENTITIES, [])
     _entities = ["sun.sun"]
     for entity in [_temp_entity, _presence_entity, _weather_entity]:
         if entity is not None:
             _entities.append(entity)
+    _entities += _cover_entities
 
     entry.async_on_unload(
         async_track_state_change(
@@ -58,9 +59,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
-    configure_blueprint(hass=hass, config_entry=entry)
-
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS_SW)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True
@@ -68,9 +67,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    if unload_ok := await hass.config_entries.async_unload_platforms(
-        entry, PLATFORMS_SW
-    ):
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok

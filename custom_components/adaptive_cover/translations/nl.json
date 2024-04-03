@@ -6,36 +6,50 @@
         "data": {
           "name": "Naam",
           "blueprint": "Voeg blueprint toe aan HomeAssistant",
-          "mode": "Type scherm"
+          "mode": "Type zonwering"
         }
       },
+      "automation": {
+        "data": {
+            "delta_position": "Minimale positieaanpassing",
+            "delta_time": "Minimale interval tussen positieveranderingen",
+            "start_time": "Starttijd",
+            "start_entity": "Entiteit die starttijd aangeeft"
+        },
+        "data_description": {
+            "delta_position": "Minimale verandering in positie vereist voordat de positie van de bekleding wordt aangepast",
+            "delta_time": "Minimale tijdsinterval tussen positieveranderingen; minimum is 2 minuten",
+            "start_time": "Starttijd voor elke dag; voor deze tijd blijft de bekleding stationair",
+            "start_entity": "Entiteit die de status van de starttijd vertegenwoordigt, die de hierboven ingestelde statische starttijd overschrijft. Handig voor het automatiseren van de starttijd met een entiteit"
+        }
+    },
       "vertical": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-          "window_height": "Raam Hoogte",
-          "distance_shaded_area": "Schaduwgebied",
-          "default_percentage": "Standaard Positie",
-          "max_position": "Maximale Posistie",
-          "fov_left": "Gezichtsveld links",
-          "fov_right": "Gezichtsveld rechts",
-          "group": "Cover Entities",
+          "window_height": "Raamhoogte",
+          "distance_shaded_area": "Beschaduwde gebied",
+          "default_percentage": "Standaard positie",
+          "max_position": "Maximale positie",
+          "fov_left": "Links gezichtsveld",
+          "fov_right": "Rechts gezichtsveld",
+          "group": "Cover Entiteiten",
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
-          "climate_mode": "Klimaat Modus"
+          "climate_mode": "Klimaatmodus"
         },
         "data_description": {
-          "set_azimuth": "Zet de Azimuth",
-          "window_height": "Zet de hoogte van het raam/de ramen in meters",
-          "distance_shaded_area": "Afstand van de cover tot het schaduwgebied in meters",
-          "default_percentage": "Standaard posistie van de cover in percentages",
-          "max_position": "Maximale posistie tot waar de cover aangepast mag worden in percentages",
-          "fov_left": "Aantal graden aan de linker kant vanuit het midden gezien van het raam",
-          "fov_right": "Aantal graden aan de rechter kant vanuit het midden gezien van het raam",
-          "group": "Selecteer de entities die worden bestuurd met de Blueprint",
-          "sunset_position": "Standaard posistie bij zonsondergang in percentages",
-          "sunset_offset": "Tijd voor of na zonsondergang in minuten",
-          "climate_mode": "Configureer extra variabelen voor klimaat modus"
+          "set_azimuth": "Stel Azimuth in",
+          "window_height": "Specificeer raamhoogte in meters",
+          "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",
+          "default_percentage": "Standaard bekledingspositie als percentage",
+          "max_position": "Maximale verstelbare bekledingspositie als percentage",
+          "fov_left": "Gezichtshoek naar links van het raamcentrum",
+          "fov_right": "Gezichtshoek naar rechts van het raamcentrum",
+          "group": "Selecteer entiteiten om te besturen via integratie",
+          "sunset_position": "Positie om naar over te schakelen na zonsondergang",
+          "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "climate_mode": "Configureer variabelen voor klimaatmodus"
         },
         "description": "Voeg configuratie variabelen toe",
         "title": "Verticaal scherm"
@@ -50,11 +64,11 @@
           "temp_high": "Maximale comfort temperatuur"
         },
         "data_description":{
-          "presence_entity": "",
-          "weather_entity":"Met de weer entiteit kunt u zelf de weercondities instellen, tevens kan deze ook gebruikt worden om te schakelen op de buitentemperatuur",
-          "outside_temp": "Overschrijft de temperatuur waarde van de weersentiteit indien bij zijn ingesteld",
-          "temp_low": "",
-          "temp_high": ""
+          "presence_entity": "Entiteit die de aanwezigheidsstatus van de ruimte of het huis vertegenwoordigt",
+          "weather_entity": "Controleert weersomstandigheden, en buitentemperatuur",
+          "outside_temp": "Overschrijft de buitentemperatuur van de weerentiteit als beide zijn ingesteld",
+          "temp_low": "Minimale comfortabele temperatuur",
+          "temp_high": "Maximale comfortabele temperatuur"
         },
         "description": "Voeg additionele klimaat configuratie variabelen toe. Weer and Aanwezigheid entiteiten zijn optioneel",
         "title": "Klimaat instellingen"
@@ -64,22 +78,22 @@
           "weather_state": "Weer Condities"
         },
         "data_description":{
-          "weather_state": "Selecteer de weercondities waarbij automatische controle is toegestaan"
+          "weather_state": "Kies de weersomstandigheden die automatische raambediening mogelijk maken."
         },
         "title": "Weer Condities"
       },
       "horizontal": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-          "window_height": "Raam Hoogte",
-          "height_awing": "Hoogte Scherm",
-          "lenght_awning": "Spanlengte Scherm",
-          "angle": "Montage Hoek",
-          "distance_shaded_area": "Schaduwgebied",
-          "default_percentage": "Standaard Positie",
-          "max_position": "Maximale Posistie",
-          "fov_left": "Gezichtsveld links",
-          "fov_right": "Gezichtsveld rechts",
+          "height_awning": "Zonneschermhoogte",
+          "length_awning": "Zonneschermspanlengte",
+          "window_height": "Raamhoogte",
+          "angle": "Zonneschermhoek",
+          "distance_shaded_area": "Beschaduwde gebied",
+          "default_percentage": "Standaard positie",
+          "max_position": "Maximale positie",
+          "fov_left": "Links gezichtsveld",
+          "fov_right": "Rechts gezichtsveld",
           "group": "Cover Entities",
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
@@ -88,20 +102,20 @@
 
         },
         "data_description": {
-          "set_azimuth": "Zet de Azimuth",
-          "height_awing": "Hoogte van het (zonne)scherm vanaf de grond",
-          "lenght_awning": "De spanlengte van het scherm in volledige open positie",
-          "window_height": "Zet de hoogte van het raam/de ramen in meters",
-          "angle": "De hoek gemeten vanaf de muur richting de grond waarin het scherm is gemonteerd",
-          "distance_shaded_area": "Afstand van de cover tot het schaduwgebied in meters",
-          "default_percentage": "Standaard posistie van de cover in percentages",
-          "max_position": "Maximale posistie tot waar de cover aangepast mag worden in percentages",
-          "fov_left": "Aantal graden aan de linker kant vanuit het midden gezien van het raam",
-          "fov_right": "Aantal graden aan de rechter kant vanuit het midden gezien van het raam",
-          "group": "Selecteer de entities die worden bestuurd met de Blueprint",
-          "sunset_position": "Standaard posistie bij zonsondergang in percentages",
-          "sunset_offset": "Tijd voor of na zonsondergang in minuten",
-          "climate_mode": "Configureer extra variabelen voor klimaat modus"
+          "set_azimuth": "Stel Azimuth in",
+          "height_awning": "Pas de hoogte van het zonnescherm aan vanaf de grond",
+          "window_height": "Specificeer de hoogte van het raam(raam(en)) in meters",
+          "length_awning": "Totale spanwijdte van het zonnescherm in meters",
+          "angle": "Hoek van het bevestigde zonnescherm gemeten loodrecht vanaf de muur naar de grond",
+          "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",
+          "default_percentage": "Standaard bekledingspositie als percentage",
+          "max_position": "Maximale verstelbare bekledingspositie als percentage",
+          "fov_left": "Gezichtshoek naar links van het raamcentrum",
+          "fov_right": "Gezichtshoek naar rechts van het raamcentrum",
+          "group": "Selecteer entiteiten om te besturen via integratie",
+          "sunset_position": "Positie om naar over te schakelen na zonsondergang",
+          "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "climate_mode": "Configureer variabelen voor klimaatmodus"
         },
         "description": "Voeg configuratie variabelen toe",
         "title": "Horizontaal scherm"
@@ -109,67 +123,87 @@
       "tilt": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-          "slat_depth": "Lat diepte",
-          "slat_distance": "Ruimte tussen latten",
-          "default_percentage": "Standaard Positie",
-          "max_position": "Maximale Posistie",
-          "fov_left": "Gezichtsveld links",
-          "fov_right": "Gezichtsveld rechts",
+        "slat_depth": "Lameldiepte",
+        "slat_distance": "Lamelafstand",
+        "default_percentage": "Standaard positie",
+        "max_position": "Maximale positie",
+        "fov_left": "Links gezichtsveld",
+        "fov_right": "Rechts gezichtsveld",
           "group": "Cover Entities",
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
           "climate_mode": "Klimaat Modus",
-          "tilt_mode": "Type besturing"
+          "tilt_mode": "Type beweging"
         },
         "data_description": {
-          "set_azimuth": "Zet de Azimuth",
-          "slat_depth": "Diepte van een individuele lat in cm",
-          "slat_distance": "Verticale afstand tussen twee latten in cm",
-          "default_percentage": "Standaard posistie van de cover in percentages",
-          "max_position": "Maximale posistie tot waar de cover aangepast mag worden in percentages",
-          "fov_left": "Aantal graden aan de linker kant vanuit het midden gezien van het raam",
-          "fov_right": "Aantal graden aan de rechter kant vanuit het midden gezien van het raam",
-          "group": "Selecteer de entities die worden bestuurd met de Blueprint",
-          "sunset_position": "Standaard posistie bij zonsondergang in percentages",
-          "sunset_offset": "Tijd voor of na zonsondergang in minuten",
-          "climate_mode": "Configureer extra variabelen voor klimaat modus",
-          "tilt_mode": "Selecteer de wijze van aansturing"
+          "set_azimuth": "Stel Azimuth in",
+          "slat_depth": "Diepte van elke individuele lamel in centimeters",
+          "slat_distance": "Verticale afstand tussen twee lamellen in centimeters",
+          "default_percentage": "Standaard bekledingspositie als percentage",
+          "max_position": "Maximale verstelbare bekledingspositie als percentage",
+          "fov_left": "Gradaties om te overwegen vanaf de linkerkant van het raamcentrum",
+          "fov_right": "Gradaties om te overwegen vanaf de rechterkant van het raamcentrum",
+          "group": "Selecteer entiteiten om te besturen via integratie",
+          "sunset_position": "Positie om naar over te schakelen na zonsondergang",
+          "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "climate_mode": "Configureer variabelen voor klimaatmodus",
+          "tilt_mode": "Kies het type beweging"
         },
         "description": "Voeg configuratie variabelen toe",
-        "title": "Luxaflex"
+        "title": "Kantelbare Cover"
         }
       }
     },
   "options": {
     "step": {
+      "init":{
+        "menu_options":{
+          "automation": "Wijzig Automatiseringsinstellingen",
+          "blind": "Pas parameters van de zonwering aan"
+        }
+      },
+      "automation": {
+        "data": {
+            "delta_position": "Minimale positieaanpassing",
+            "delta_time": "Minimale interval tussen positieveranderingen",
+            "start_time": "Starttijd",
+            "start_entity": "Entiteit die starttijd aangeeft"
+        },
+        "data_description": {
+            "delta_position": "Minimale verandering in positie vereist voordat de positie van de bekleding wordt aangepast",
+            "delta_time": "Minimale tijdsinterval tussen positieveranderingen; minimum is 2 minuten",
+            "start_time": "Starttijd voor elke dag; voor deze tijd blijft de bekleding stationair",
+            "start_entity": "Entiteit die de status van de starttijd vertegenwoordigt, die de hierboven ingestelde statische starttijd overschrijft. Handig voor het automatiseren van de starttijd met een entiteit"
+        }
+    },
       "vertical": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-          "window_height": "Raam Hoogte",
-          "distance_shaded_area": "Schaduwgebied",
-          "default_percentage": "Standaard Positie",
-          "max_position": "Maximale Posistie",
-          "fov_left": "Gezichtsveld links",
-          "fov_right": "Gezichtsveld rechts",
-          "group": "Cover Entities",
+          "window_height": "Raamhoogte",
+          "distance_shaded_area": "Beschaduwde gebied",
+          "default_percentage": "Standaard positie",
+          "max_position": "Maximale positie",
+          "fov_left": "Links gezichtsveld",
+          "fov_right": "Rechts gezichtsveld",
+          "group": "Cover Entiteiten",
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
-          "climate_mode": "Klimaat Modus"
+          "climate_mode": "Klimaatmodus"
         },
         "data_description": {
-          "set_azimuth": "Zet de Azimuth",
-          "window_height": "Zet de hoogte van het raam/de ramen in meters",
-          "distance_shaded_area": "Afstand van de cover tot het schaduwgebied in meters",
-          "default_percentage": "Standaard posistie van de cover in percentages",
-          "max_position": "Maximale posistie tot waar de cover aangepast mag worden in percentages",
-          "fov_left": "Aantal graden aan de linker kant vanuit het midden gezien van het raam",
-          "fov_right": "Aantal graden aan de rechter kant vanuit het midden gezien van het raam",
-          "group": "Selecteer de entities die worden bestuurd met de Blueprint",
-          "sunset_position": "Standaard posistie bij zonsondergang in percentages",
-          "sunset_offset": "Tijd voor of na zonsondergang in minuten",
-          "climate_mode": "Configureer extra variabelen voor klimaat modus"
+          "set_azimuth": "Stel Azimuth in",
+          "window_height": "Specificeer raamhoogte in meters",
+          "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",
+          "default_percentage": "Standaard bekledingspositie als percentage",
+          "max_position": "Maximale verstelbare bekledingspositie als percentage",
+          "fov_left": "Gezichtshoek naar links van het raamcentrum",
+          "fov_right": "Gezichtshoek naar rechts van het raamcentrum",
+          "group": "Selecteer entiteiten om te besturen via integratie",
+          "sunset_position": "Positie om naar over te schakelen na zonsondergang",
+          "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "climate_mode": "Configureer variabelen voor klimaatmodus"
         },
         "description": "Voeg configuratie variabelen toe",
         "title": "Verticaal scherm"
@@ -184,11 +218,11 @@
           "temp_high": "Maximale comfort temperatuur"
         },
         "data_description":{
-          "presence_entity": "",
-          "weather_entity":"Met de weer entiteit kunt u zelf de weercondities instellen, tevens kan deze ook gebruikt worden om te schakelen op de buitentemperatuur",
-          "outside_temp": "Overschrijft de temperatuur waarde van de weersentiteit indien bij zijn ingesteld",
-          "temp_low": "",
-          "temp_high": ""
+          "presence_entity": "Entiteit die de aanwezigheidsstatus van de ruimte of het huis vertegenwoordigt",
+          "weather_entity": "Controleert weersomstandigheden, en buitentemperatuur",
+          "outside_temp": "Overschrijft de buitentemperatuur van de weerentiteit als beide zijn ingesteld",
+          "temp_low": "Minimale comfortabele temperatuur",
+          "temp_high": "Maximale comfortabele temperatuur"
         },
         "description": "Voeg additionele klimaat configuratie variabelen toe. Weer and Aanwezigheid entiteiten zijn optioneel",
         "title": "Klimaat instellingen"
@@ -198,22 +232,22 @@
           "weather_state": "Weer Condities"
         },
         "data_description":{
-          "weather_state": "Selecteer de weercondities waarbij automatische controle is toegestaan"
+          "weather_state": "Kies de weersomstandigheden die automatische raambediening mogelijk maken."
         },
         "title": "Weer Condities"
       },
       "horizontal": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-          "window_height": "Raam Hoogte",
-          "height_awing": "Hoogte Scherm",
-          "lenght_awning": "Spanlengte Scherm",
-          "angle": "Montage Hoek",
-          "distance_shaded_area": "Schaduwgebied",
-          "default_percentage": "Standaard Positie",
-          "max_position": "Maximale Posistie",
-          "fov_left": "Gezichtsveld links",
-          "fov_right": "Gezichtsveld rechts",
+          "height_awning": "Zonneschermhoogte",
+          "length_awning": "Zonneschermspanlengte",
+          "window_height": "Raamhoogte",
+          "angle": "Zonneschermhoek",
+          "distance_shaded_area": "Beschaduwde gebied",
+          "default_percentage": "Standaard positie",
+          "max_position": "Maximale positie",
+          "fov_left": "Links gezichtsveld",
+          "fov_right": "Rechts gezichtsveld",
           "group": "Cover Entities",
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
@@ -222,20 +256,20 @@
 
         },
         "data_description": {
-          "set_azimuth": "Zet de Azimuth",
-          "height_awing": "Hoogte van het (zonne)scherm vanaf de grond",
-          "lenght_awning": "De spanlengte van het scherm in volledige open positie",
-          "window_height": "Zet de hoogte van het raam/de ramen in meters",
-          "angle": "De hoek gemeten vanaf de muur richting de grond waarin het scherm is gemonteerd",
-          "distance_shaded_area": "Afstand van de cover tot het schaduwgebied in meters",
-          "default_percentage": "Standaard posistie van de cover in percentages",
-          "max_position": "Maximale posistie tot waar de cover aangepast mag worden in percentages",
-          "fov_left": "Aantal graden aan de linker kant vanuit het midden gezien van het raam",
-          "fov_right": "Aantal graden aan de rechter kant vanuit het midden gezien van het raam",
-          "group": "Selecteer de entities die worden bestuurd met de Blueprint",
-          "sunset_position": "Standaard posistie bij zonsondergang in percentages",
-          "sunset_offset": "Tijd voor of na zonsondergang in minuten",
-          "climate_mode": "Configureer extra variabelen voor klimaat modus"
+          "set_azimuth": "Stel Azimuth in",
+          "height_awning": "Pas de hoogte van het zonnescherm aan vanaf de grond",
+          "window_height": "Specificeer de hoogte van het raam(raam(en)) in meters",
+          "length_awning": "Totale spanwijdte van het zonnescherm in meters",
+          "angle": "Hoek van het bevestigde zonnescherm gemeten loodrecht vanaf de muur naar de grond",
+          "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",
+          "default_percentage": "Standaard bekledingspositie als percentage",
+          "max_position": "Maximale verstelbare bekledingspositie als percentage",
+          "fov_left": "Gezichtshoek naar links van het raamcentrum",
+          "fov_right": "Gezichtshoek naar rechts van het raamcentrum",
+          "group": "Selecteer entiteiten om te besturen via integratie",
+          "sunset_position": "Positie om naar over te schakelen na zonsondergang",
+          "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "climate_mode": "Configureer variabelen voor klimaatmodus"
         },
         "description": "Voeg configuratie variabelen toe",
         "title": "Horizontaal scherm"
@@ -243,44 +277,44 @@
       "tilt": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-          "slat_depth": "Lat diepte",
-          "slat_distance": "Ruimte tussen latten",
-          "default_percentage": "Standaard Positie",
-          "max_position": "Maximale Posistie",
-          "fov_left": "Gezichtsveld links",
-          "fov_right": "Gezichtsveld rechts",
+        "slat_depth": "Lameldiepte",
+        "slat_distance": "Lamelafstand",
+        "default_percentage": "Standaard positie",
+        "max_position": "Maximale positie",
+        "fov_left": "Links gezichtsveld",
+        "fov_right": "Rechts gezichtsveld",
           "group": "Cover Entities",
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
           "climate_mode": "Klimaat Modus",
-          "tilt_mode": "Type besturing"
+          "tilt_mode": "Type beweging"
         },
         "data_description": {
-          "set_azimuth": "Zet de Azimuth",
-          "slat_depth": "Diepte van een individuele lat in cm",
-          "slat_distance": "Verticale afstand tussen twee latten in cm",
-          "default_percentage": "Standaard posistie van de cover in percentages",
-          "max_position": "Maximale posistie tot waar de cover aangepast mag worden in percentages",
-          "fov_left": "Aantal graden aan de linker kant vanuit het midden gezien van het raam",
-          "fov_right": "Aantal graden aan de rechter kant vanuit het midden gezien van het raam",
-          "group": "Selecteer de entities die worden bestuurd met de Blueprint",
-          "sunset_position": "Standaard posistie bij zonsondergang in percentages",
-          "sunset_offset": "Tijd voor of na zonsondergang in minuten",
-          "climate_mode": "Configureer extra variabelen voor klimaat modus",
-          "tilt_mode": "Selecteer de wijze van aansturing"
+          "set_azimuth": "Stel Azimuth in",
+          "slat_depth": "Diepte van elke individuele lamel in centimeters",
+          "slat_distance": "Verticale afstand tussen twee lamellen in centimeters",
+          "default_percentage": "Standaard bekledingspositie als percentage",
+          "max_position": "Maximale verstelbare bekledingspositie als percentage",
+          "fov_left": "Gradaties om te overwegen vanaf de linkerkant van het raamcentrum",
+          "fov_right": "Gradaties om te overwegen vanaf de rechterkant van het raamcentrum",
+          "group": "Selecteer entiteiten om te besturen via integratie",
+          "sunset_position": "Positie om naar over te schakelen na zonsondergang",
+          "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "climate_mode": "Configureer variabelen voor klimaatmodus",
+          "tilt_mode": "Kies het type beweging"
         },
         "description": "Voeg configuratie variabelen toe",
-        "title": "Luxaflex"
-      }
-    }
-  },
+        "title": "Kantelbare Cover"
+        }
+  }
+},
   "selector": {
     "mode":{
       "options":{
         "cover_blind": "Verticaal scherm",
         "cover_awning": "Horizontaal scherm",
-        "cover_tilt": "Luxaflex"
+        "cover_tilt": "Kantelbaar scherm"
       }
     },
     "tilt_mode": {

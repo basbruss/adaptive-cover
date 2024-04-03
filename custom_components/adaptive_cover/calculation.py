@@ -96,8 +96,10 @@ class AdaptiveGeneralCover(ABC):
         sunset = self.sun_data.sunset().replace(tzinfo=None)
         sunrise = self.sun_data.sunrise().replace(tzinfo=None)
         after_sunset = datetime.utcnow() > (sunset + timedelta(minutes=self.sunset_off))
-        before_sunrise = datetime.utcnow() < (sunrise - timedelta(minutes=self.sunset_off))
-        return (after_sunset and before_sunrise)
+        before_sunrise = datetime.utcnow() < (
+            sunrise + timedelta(minutes=self.sunset_off)
+        )
+        return after_sunset or before_sunrise
 
     @property
     def default(self) -> float:

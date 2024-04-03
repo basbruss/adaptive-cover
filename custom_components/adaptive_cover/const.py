@@ -5,6 +5,9 @@ import logging
 DOMAIN = "adaptive_cover"
 LOGGER = logging.getLogger(__package__)
 
+ATTR_POSITION = "position"
+ATTR_TILT_POSITION = "tilt_position"
+
 CONF_AZIMUTH = "set_azimuth"
 CONF_BLUEPRINT = "blueprint"
 CONF_HEIGHT_WIN = "window_height"
@@ -14,7 +17,7 @@ CONF_FOV_LEFT = "fov_left"
 CONF_FOV_RIGHT = "fov_right"
 CONF_ENTITIES = "group"
 CONF_HEIGHT_AWNING = "height_awning"
-CONF_LENGTH_AWNING = "lenght_awning"
+CONF_LENGTH_AWNING = "length_awning"
 CONF_AWNING_ANGLE = "angle"
 CONF_SENSOR_TYPE = "sensor_type"
 CONF_INVERSE_STATE = "inverse_state"
@@ -35,6 +38,11 @@ CONF_CLIMATE_MODE = "climate_mode"
 CONF_WEATHER_STATE = "weather_state"
 CONF_MAX_POSITION = "max_position"
 CONF_OUTSIDETEMP_ENTITY = "outside_temp"
+
+CONF_DELTA_POSITION = "delta_position"
+CONF_DELTA_TIME = "delta_time"
+CONF_START_TIME = "start_time"
+CONF_START_ENTITY = "start_entity"
 
 STRATEGY_MODE_BASIC = "basic"
 STRATEGY_MODE_CLIMATE = "climate"

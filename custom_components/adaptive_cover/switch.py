@@ -13,6 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     CONF_CLIMATE_MODE,
+    CONF_ENTITIES,
     CONF_OUTSIDETEMP_ENTITY,
     CONF_SENSOR_TYPE,
     CONF_WEATHER_ENTITY,
@@ -31,12 +32,19 @@ async def async_setup_entry(
         config_entry.entry_id
     ]
 
+    control_switch = AdaptiveCoverSwitch(
+        config_entry,
+        config_entry.entry_id,
+        "Toggle Control",
+        True,
+        "control_toggle",
+        coordinator,
+    )
     climate_switch = AdaptiveCoverSwitch(
         config_entry,
         config_entry.entry_id,
         "Climate Mode",
         True,
-        "mdi:home-thermometer-outline",
         "switch_mode",
         coordinator,
     )
@@ -45,14 +53,17 @@ async def async_setup_entry(
         config_entry.entry_id,
         "Outside Temperature",
         False,
-        "mdi:thermometer",
         "temp_toggle",
         coordinator,
     )
+
     climate_mode = config_entry.options.get(CONF_CLIMATE_MODE)
     weather_entity = config_entry.options.get(CONF_WEATHER_ENTITY)
     sensor_entity = config_entry.options.get(CONF_OUTSIDETEMP_ENTITY)
     switches = []
+
+    if len(config_entry.options.get(CONF_ENTITIES)) >= 1:
+        switches.append(control_switch)
 
     if climate_mode:
         switches.append(climate_switch)
@@ -76,7 +87,6 @@ class AdaptiveCoverSwitch(
         unique_id: str,
         switch_name: str,
         state: bool,
-        icon: str | None,
         key: str,
         coordinator: AdaptiveDataUpdateCoordinator,
         device_class: SwitchDeviceClass | None = None,
@@ -90,10 +100,10 @@ class AdaptiveCoverSwitch(
         }
         self._name = config_entry.data["name"]
         self._key = key
+        self._attr_translation_key = key
         self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
         self._switch_name = switch_name
         self._attr_device_class = device_class
-        self._attr_icon = icon
         self._attr_is_on = state
         self._attr_unique_id = f"{unique_id}_{switch_name}"
         self._device_id = unique_id

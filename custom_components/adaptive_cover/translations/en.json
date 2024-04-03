@@ -1,293 +1,321 @@
 {
-  "title": "Adaptive Cover",
-  "config": {
-    "step": {
-      "user": {
-        "data": {
-          "name": "Name",
-          "blueprint": "Add blueprint to HomeAssistant",
-          "mode": "Type of blind"
+    "title": "Adaptive Cover",
+    "config": {
+        "step": {
+            "user": {
+                "data": {
+                    "name": "Name",
+                    "blueprint": "Add blueprint to HomeAssistant",
+                    "mode": "Type of blind"
+                }
+            },
+            "automation": {
+                "data": {
+                    "delta_position": "Minimum position adjustment",
+                    "delta_time": "Minimum interval between position changes",
+                    "start_time": "Starting time",
+                    "start_entity": "Entity indicating starting time"
+                },
+                "data_description": {
+                    "delta_position": "Minimum change in position required before adjusting the cover's position",
+                    "delta_time": "Minimum time interval between position changes; minimum is 2 minutes",
+                    "start_time": "Starting time for each day; before this time, the cover will remain stationary",
+                    "start_entity": "Entity representing starting time state, overriding the fixed start time set above. Useful for automating the start time with an entity"
+                }
+            },
+            "vertical": {
+                "data": {
+                    "set_azimuth": "Window Azimuth",
+                    "window_height": "Window Height",
+                    "distance_shaded_area": "Shaded area",
+                    "default_percentage": "Default Position",
+                    "max_position": "Maximum Position",
+                    "fov_left": "Field of view left",
+                    "fov_right": "Field of view right",
+                    "group": "Cover Entities",
+                    "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+                    "sunset_position": "Sunset Position",
+                    "sunset_offset": "Sunset Offset",
+                    "climate_mode": "Climate Mode"
+                },
+                "data_description": {
+                    "set_azimuth": "Adjust Azimuth",
+                    "window_height": "Specify window height in meters",
+                    "distance_shaded_area": "Distance from cover to shaded area in meters",
+                    "default_percentage": "Default cover position as a percentage",
+                    "max_position": "Maximum adjustable cover position as a percentage",
+                    "fov_left": "Field of view angle to the left of the window center",
+                    "fov_right": "Field of view angle to the right of the window center",
+                    "group": "Select entities to control via integration",
+                    "sunset_position": "Position to switch to after sunset",
+                    "sunset_offset": "Offset (±) from sunset time in minutes",
+                    "climate_mode": "Configure variables for climate mode"
+                },
+                "description": "Add configuration variables to the sensor",
+                "title": "Vertical cover"
+            },
+            "climate": {
+                "data": {
+                    "temp_entity": "Inside temperature entity",
+                    "presence_entity": "Presence entity (optional)",
+                    "weather_entity": "Weather entity (optional)",
+                    "outside_temp": "Outside temperature sensor (optional)",
+                    "temp_low": "Low temperature threshold",
+                    "temp_high": "High temperature threshold"
+                },
+                "data_description": {
+                    "presence_entity": "Entity representing room or home presence status",
+                    "weather_entity": "Monitors weather conditions, and outside temperature",
+                    "outside_temp": "Overrides outside temperature from weather entity if both are set",
+                    "temp_low": "Minimum comfortable temperature",
+                    "temp_high": "Maximum comfortable temperature"
+                },
+                "description": "Add additional climate configuration variables.",
+                "title": "Climate settings"
+            },
+            "weather": {
+                "data": {"weather_state": "Weather Conditions"},
+                "data_description": {
+                    "weather_state": "Choose the weather conditions that enable automatic window control."
+                },
+                "title": "Weather Conditions"
+            },
+            "horizontal": {
+                "data": {
+                    "set_azimuth": "Window Azimuth",
+                    "height_awning": "Awning Height",
+                    "length_awning": "Awning Span Length",
+                    "window_height": "Window Height",
+                    "angle": "Awning Angle",
+                    "distance_shaded_area": "Shaded area",
+                    "default_percentage": "Default Position",
+                    "max_position": "Maximum Position",
+                    "fov_left": "Field of view left",
+                    "fov_right": "Field of view right",
+                    "group": "Cover Entities",
+                    "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+                    "sunset_position": "Sunset Position",
+                    "sunset_offset": "Sunset Offset",
+                    "climate_mode": "Climate Mode"
+                },
+                "data_description": {
+                    "set_azimuth": "Specify the Azimuth",
+                    "height_awning": "Adjust the height of the awning from the ground",
+                    "window_height": "Specify the height of the window(s) in meters",
+                    "length_awning": "Total span length in meters",
+                    "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
+                    "distance_shaded_area": "Distance from cover to shaded area in meters",
+                    "default_percentage": "Default cover position as a percentage",
+                    "max_position": "Maximum adjustable cover position as a percentage",
+                    "fov_left": "Field of view degrees to the left of the window center",
+                    "fov_right": "Field of view degrees to the right of the window center",
+                    "group": "Select entities to control via integration",
+                    "sunset_position": "Position to switch to after sunset",
+                    "sunset_offset": "Offset (±) from sunset time in minutes",
+                    "climate_mode": "Configure variables for climate mode"
+                },
+                "description": "Add configuration variables to the sensor",
+                "title": "Horizontal cover"
+            },
+            "tilt": {
+                "data": {
+                    "set_azimuth": "Window Azimuth",
+                    "slat_depth": "Slat Depth",
+                    "slat_distance": "Slat Spacing",
+                    "default_percentage": "Default Position",
+                    "max_position": "Maximum Position",
+                    "fov_left": "Field of view left",
+                    "fov_right": "Field of view right",
+                    "group": "Cover Entities",
+                    "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+                    "sunset_position": "Sunset Position",
+                    "sunset_offset": "Sunset Offset",
+                    "climate_mode": "Climate Mode",
+                    "tilt_mode": "Type of movement"
+                },
+                "data_description": {
+                    "set_azimuth": "Specify the Azimuth",
+                    "slat_depth": "Depth of each individual slat in centimeters",
+                    "slat_distance": "Vertical distance between two slats in centimeters",
+                    "default_percentage": "Default cover position as a percentage",
+                    "max_position": "Maximum adjustable cover position as a percentage",
+                    "fov_left": "Degrees to consider from the left side of the window center",
+                    "fov_right": "Degrees to consider from the right side of the window center",
+                    "group": "Select entities to control via integration",
+                    "sunset_position": "Position to transition to after sunset",
+                    "sunset_offset": "Offset (±) from sunset time in minutes",
+                    "climate_mode": "Configure variables for climate mode",
+                    "tilt_mode": "Choose the type of movement"
+                },
+                "description": "Add configuration variables to the sensor",
+                "title": "Tilted cover"
+            }
         }
       },
-      "vertical": {
-        "data": {
-          "set_azimuth": "Window Azimuth",
-          "window_height": "Window Height",
-          "distance_shaded_area": "Shaded area",
-          "default_percentage": "Default Position",
-          "max_position": "Maximum Position",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
-          "group": "Cover Entities",
-          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "climate_mode": "Climate Mode"
-        },
-        "data_description": {
-          "set_azimuth": "Set the Azimuth",
-          "window_height": "Set the height of the window(s) in meters",
-          "distance_shaded_area": "Distance from cover to shaded area in meters",
-          "default_percentage": "Default posistion of cover in percentages",
-          "max_position": "Highest position the cover may be adjusted to in percentages",
-          "fov_left": "Degrees to take in account from the left side of the center of the window",
-          "fov_right": "Degrees to take in account from the right side of the center of the window",
-          "group": "Select entities to be controlled with the Blueprint",
-          "sunset_position": "Position to change to after sunset",
-          "sunset_offset": "Offset (+-) from sunset in minutes",
-          "climate_mode": "Configure variables for climate mode"
-        },
-        "description": "Add configuration variables to the sensor",
-        "title": "Vertical cover"
-      },
-      "climate":{
-        "data":{
-          "temp_entity": "Inside temperature entity",
-          "presence_entity": "Presence entity (optional)",
-          "weather_entity": "Weather entity (optional)",
-          "outside_temp": "Outside temperature sensor (optional)",
-          "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
-        },
-        "data_description":{
-          "presence_entity": "Entity to represent the presence status in the room or home",
-          "weather_entity": "Checks for weather conditions and can be used for the outside temperature",
-          "outside_temp":"This entity overrides the outside temperature from the weather entity if both are set",
-          "temp_low": "The minimum comfort temperature",
-          "temp_high": "The maximum comfort temperature"
-        },
-        "description": "Add additional climate configuration variables. Weather and Presence are optional",
-        "title": "Climate settings"
-      },
-      "weather":{
-        "data":{
-          "weather_state": "Weather Conditions"
-        },
-        "data_description":{
-          "weather_state": "Select the weather conditions that allow the window to be controlled automatically"
-        },
-        "title": "Weather Conditions"
-      },
-      "horizontal": {
-        "data": {
-          "set_azimuth": "Window Azimuth",
-          "height_awning": "Awning Height",
-          "lenght_awning": "Awning Span Length",
-          "window_height": "Window Height",
-          "angle": "Awning Angle",
-          "distance_shaded_area": "Shaded area",
-          "default_percentage": "Default Position",
-          "max_position": "Maximum Position",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
-          "group": "Cover Entities",
-          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "climate_mode": "Climate Mode"
-
-        },
-        "data_description": {
-          "set_azimuth": "Set the Azimuth",
-          "height_awning": "Set the height of the awning from the floor",
-          "window_height": "Set the height of the window(s) in meters",
-          "lenght_awning": "The total length of the span in meters",
-          "angle": "The angle of the attached awning measured perpendicular from the wall downward to the floor",
-          "distance_shaded_area": "Distance from cover to shaded area in meters",
-          "default_percentage": "Default posistion of cover in percentages",
-          "max_position": "Highest position the cover may be adjusted to in percentages",
-          "fov_left": "Degrees to take in account from the left side of the center of the window",
-          "fov_right": "Degrees to take in account from the right side of the center of the window",
-          "group": "Select entities to be controlled with the Blueprint",
-          "sunset_position": "Position to change to after sunset",
-          "sunset_offset": "Offset (+-) from sunset in minutes",
-          "climate_mode": "Configure variables for climate mode"
-        },
-        "description": "Add configuration variables to the sensor",
-        "title": "Horizontal cover"
-      },
-      "tilt": {
-        "data": {
-          "set_azimuth": "Window Azimuth",
-          "slat_depth": "Slat Depth",
-          "slat_distance": "Slat Spacing",
-          "default_percentage": "Default Position",
-          "max_position": "Maximum Position",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
-          "group": "Cover Entities",
-          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "climate_mode": "Climate Mode",
-          "tilt_mode": "Type of movement"
-        },
-        "data_description": {
-          "set_azimuth": "Set the Azimuth",
-          "slat_depth": "Depth of individual slat in cm",
-          "slat_distance": "Vertical distance between two slats in cm",
-          "default_percentage": "Default posistion of cover in percentages",
-          "max_position": "Highest position the cover may be adjusted to in percentages",
-          "fov_left": "Degrees to take in account from the left side of the center of the window",
-          "fov_right": "Degrees to take in account from the right side of the center of the window",
-          "group": "Select entities to be controlled with the Blueprint",
-          "sunset_position": "Position to change to after sunset",
-          "sunset_offset": "Offset (+-) from sunset in minutes",
-          "climate_mode": "Configure variables for climate mode",
-          "tilt_mode": "Select the type of movement"
-        },
-        "description": "Add configuration variables to the sensor",
-        "title": "Tilted cover"
-      }
-    }
-  },
-  "options": {
-    "step": {
-      "vertical": {
-        "data": {
-          "set_azimuth": "Window Azimuth",
-          "window_height": "Window Height",
-          "distance_shaded_area": "Shaded area",
-          "default_percentage": "Default Position",
-          "max_position": "Maximum Position",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
-          "group": "Cover Entities",
-          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "climate_mode": "Climate Mode"
-        },
-        "data_description": {
-          "set_azimuth": "Set the Azimuth",
-          "window_height": "Set the height of the window(s) in meters",
-          "distance_shaded_area": "Distance from cover to shaded area in meters",
-          "default_percentage": "Default posistion of cover in percentages",
-          "max_position": "Highest position the cover may be adjusted to in percentages",
-          "fov_left": "Degrees to take in account from the left side of the center of the window",
-          "fov_right": "Degrees to take in account from the right side of the center of the window",
-          "group": "Select entities to be controlled with the Blueprint",
-          "sunset_position": "Position to change to after sunset",
-          "sunset_offset": "Offset (+-) from sunset in minutes",
-          "climate_mode": "Configure variables for climate mode"
-        },
-        "description": "Add configuration variables to the sensor",
-        "title": "Vertical cover"
-      },
-      "climate":{
-        "data":{
-          "temp_entity": "Inside temperature entity",
-          "presence_entity": "Presence entity (optional)",
-          "weather_entity": "Weather entity (optional)",
-          "outside_temp": "Outside temperature sensor (optional)",
-          "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
-        },
-        "data_description":{
-          "presence_entity": "Entity to represent the presence status in the room or home",
-          "weather_entity": "Checks for weather conditions and can be used for the outside temperature",
-          "outside_temp":"This entity overrides the outside temperature from the weather entity if both are set",
-          "temp_low": "The minimum comfort temperature",
-          "temp_high": "The maximum comfort temperature"
-        },
-        "description": "Add additional climate configuration variables. Weather and Presence are optional",
-        "title": "Climate settings"
-      },
-      "weather":{
-        "data":{
-          "weather_state": "Weather Conditions"
-        },
-        "data_description":{
-          "weather_state": "Select the weather conditions that allow the window to be controlled automatically"
-        },
-        "title": "Weather Conditions"
-      },
-      "horizontal": {
-        "data": {
-          "set_azimuth": "Window Azimuth",
-          "height_awning": "Awning Height",
-          "lenght_awning": "Awning Span Length",
-          "window_height": "Window Height",
-          "angle": "Awning Angle",
-          "distance_shaded_area": "Shaded area",
-          "default_percentage": "Default Position",
-          "max_position": "Maximum Position",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
-          "group": "Cover Entities",
-          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "climate_mode": "Climate Mode"
-
-        },
-        "data_description": {
-          "set_azimuth": "Set the Azimuth",
-          "height_awning": "Set the height of the awning from the floor",
-          "window_height": "Set the height of the window(s) in meters",
-          "lenght_awning": "The total length of the span in meters",
-          "angle": "The angle of the attached awning measured perpendicular from the wall downward to the floor",
-          "distance_shaded_area": "Distance from cover to shaded area in meters",
-          "default_percentage": "Default posistion of cover in percentages",
-          "max_position": "Highest position the cover may be adjusted to in percentages",
-          "fov_left": "Degrees to take in account from the left side of the center of the window",
-          "fov_right": "Degrees to take in account from the right side of the center of the window",
-          "group": "Select entities to be controlled with the Blueprint",
-          "sunset_position": "Position to change to after sunset",
-          "sunset_offset": "Offset (+-) from sunset in minutes",
-          "climate_mode": "Configure variables for climate mode"
-        },
-        "description": "Add configuration variables to the sensor",
-        "title": "Horizontal cover"
-      },
-      "tilt": {
-        "data": {
-          "set_azimuth": "Window Azimuth",
-          "slat_depth": "Slat Depth",
-          "slat_distance": "Slat Spacing",
-          "default_percentage": "Default Position",
-          "max_position": "Maximum Position",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
-          "group": "Cover Entities",
-          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "climate_mode": "Climate Mode",
-          "tilt_mode": "Type of movement"
-        },
-        "data_description": {
-          "set_azimuth": "Set the Azimuth",
-          "slat_depth": "Depth of individual slat in cm",
-          "slat_distance": "Vertical distance between two slats in cm",
-          "default_percentage": "Default posistion of cover in percentages",
-          "max_position": "Highest position the cover may be adjusted to in percentages",
-          "fov_left": "Degrees to take in account from the left side of the center of the window",
-          "fov_right": "Degrees to take in account from the right side of the center of the window",
-          "group": "Select entities to be controlled with the Blueprint",
-          "sunset_position": "Position to change to after sunset",
-          "sunset_offset": "Offset (+-) from sunset in minutes",
-          "climate_mode": "Configure variables for climate mode",
-          "tilt_mode": "Select the type of movement"
-        },
-        "description": "Add configuration variables to the sensor",
-        "title": "Tilted cover"
-      }
-    }
-  },
-  "selector": {
-    "mode":{
-      "options":{
-        "cover_blind": "Vertical blind",
-        "cover_awning": "Horizontal blind",
-        "cover_tilt": "Tilted blind"
-      }
-    },
-    "tilt_mode": {
-      "options": {
-        "mode1": "single direction (0% = closed / 100% = open)",
-        "mode2": "bi-directional (0% = closed / 50% = open / 100% = closed)"
-      }
-    }
-  }
-}
+        "options": {
+            "step": {
+                "init":{
+                  "menu_options":{
+                    "automation": "Modify Automation Configuration",
+                    "blind": "Fine-tune Blind Settings"
+                  }
+                },
+                "automation": {
+                    "data": {
+                        "delta_position": "Minimum position adjustment",
+                        "delta_time": "Minimum interval between position changes",
+                        "start_time": "Starting time",
+                        "start_entity": "Entity indicating starting time"
+                    },
+                    "data_description": {
+                        "delta_position": "Minimum change in position required before adjusting the cover's position",
+                        "delta_time": "Minimum time interval between position changes; minimum is 2 minutes",
+                        "start_time": "Starting time for each day; before this time, the cover will remain stationary",
+                        "start_entity": "Entity representing starting time state, overriding the fixed start time set above. Useful for automating the start time with an entity"
+                    }
+                },
+                "vertical": {
+                    "data": {
+                        "set_azimuth": "Window Azimuth",
+                        "window_height": "Window Height",
+                        "distance_shaded_area": "Shaded area",
+                        "default_percentage": "Default Position",
+                        "max_position": "Maximum Position",
+                        "fov_left": "Field of view left",
+                        "fov_right": "Field of view right",
+                        "group": "Cover Entities",
+                        "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+                        "sunset_position": "Sunset Position",
+                        "sunset_offset": "Sunset Offset",
+                        "climate_mode": "Climate Mode"
+                    },
+                    "data_description": {
+                        "set_azimuth": "Adjust Azimuth",
+                        "window_height": "Specify window height in meters",
+                        "distance_shaded_area": "Distance from cover to shaded area in meters",
+                        "default_percentage": "Default cover position as a percentage",
+                        "max_position": "Maximum adjustable cover position as a percentage",
+                        "fov_left": "Field of view angle to the left of the window center",
+                        "fov_right": "Field of view angle to the right of the window center",
+                        "group": "Select entities to control via integration",
+                        "sunset_position": "Position to switch to after sunset",
+                        "sunset_offset": "Offset (±) from sunset time in minutes",
+                        "climate_mode": "Configure variables for climate mode"
+                    },
+                    "description": "Add configuration variables to the sensor",
+                    "title": "Vertical cover"
+                },
+                "climate": {
+                    "data": {
+                        "temp_entity": "Inside temperature entity",
+                        "presence_entity": "Presence entity (optional)",
+                        "weather_entity": "Weather entity (optional)",
+                        "outside_temp": "Outside temperature sensor (optional)",
+                        "temp_low": "Low temperature threshold",
+                        "temp_high": "High temperature threshold"
+                    },
+                    "data_description": {
+                        "presence_entity": "Entity representing room or home presence status",
+                        "weather_entity": "Monitors weather conditions, and outside temperature",
+                        "outside_temp": "Overrides outside temperature from weather entity if both are set",
+                        "temp_low": "Minimum comfortable temperature",
+                        "temp_high": "Maximum comfortable temperature"
+                    },
+                    "description": "Add additional climate configuration variables.",
+                    "title": "Climate settings"
+                },
+                "weather": {
+                    "data": {"weather_state": "Weather Conditions"},
+                    "data_description": {
+                        "weather_state": "Choose the weather conditions that enable automatic window control."
+                    },
+                    "title": "Weather Conditions"
+                },
+                "horizontal": {
+                    "data": {
+                        "set_azimuth": "Window Azimuth",
+                        "height_awning": "Awning Height",
+                        "length_awning": "Awning Span Length",
+                        "window_height": "Window Height",
+                        "angle": "Awning Angle",
+                        "distance_shaded_area": "Shaded area",
+                        "default_percentage": "Default Position",
+                        "max_position": "Maximum Position",
+                        "fov_left": "Field of view left",
+                        "fov_right": "Field of view right",
+                        "group": "Cover Entities",
+                        "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+                        "sunset_position": "Sunset Position",
+                        "sunset_offset": "Sunset Offset",
+                        "climate_mode": "Climate Mode"
+                    },
+                    "data_description": {
+                        "set_azimuth": "Specify the Azimuth",
+                        "height_awning": "Adjust the height of the awning from the ground",
+                        "window_height": "Specify the height of the window(s) in meters",
+                        "length_awning": "Total span length in meters",
+                        "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
+                        "distance_shaded_area": "Distance from cover to shaded area in meters",
+                        "default_percentage": "Default cover position as a percentage",
+                        "max_position": "Maximum adjustable cover position as a percentage",
+                        "fov_left": "Field of view degrees to the left of the window center",
+                        "fov_right": "Field of view degrees to the right of the window center",
+                        "group": "Select entities to control via integration",
+                        "sunset_position": "Position to switch to after sunset",
+                        "sunset_offset": "Offset (±) from sunset time in minutes",
+                        "climate_mode": "Configure variables for climate mode"
+                    },
+                    "description": "Add configuration variables to the sensor",
+                    "title": "Horizontal cover"
+                },
+                "tilt": {
+                    "data": {
+                        "set_azimuth": "Window Azimuth",
+                        "slat_depth": "Slat Depth",
+                        "slat_distance": "Slat Spacing",
+                        "default_percentage": "Default Position",
+                        "max_position": "Maximum Position",
+                        "fov_left": "Field of view left",
+                        "fov_right": "Field of view right",
+                        "group": "Cover Entities",
+                        "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+                        "sunset_position": "Sunset Position",
+                        "sunset_offset": "Sunset Offset",
+                        "climate_mode": "Climate Mode",
+                        "tilt_mode": "Type of movement"
+                    },
+                    "data_description": {
+                        "set_azimuth": "Specify the Azimuth",
+                        "slat_depth": "Depth of each individual slat in centimeters",
+                        "slat_distance": "Vertical distance between two slats in centimeters",
+                        "default_percentage": "Default cover position as a percentage",
+                        "max_position": "Maximum adjustable cover position as a percentage",
+                        "fov_left": "Degrees to consider from the left side of the window center",
+                        "fov_right": "Degrees to consider from the right side of the window center",
+                        "group": "Select entities to control via integration",
+                        "sunset_position": "Position to transition to after sunset",
+                        "sunset_offset": "Offset (±) from sunset time in minutes",
+                        "climate_mode": "Configure variables for climate mode",
+                        "tilt_mode": "Choose the type of movement"
+                    },
+                    "description": "Add configuration variables to the sensor",
+                    "title": "Tilted cover"
+                }
+            }
+          },
+            "selector": {
+                "mode": {
+                    "options": {
+                        "cover_blind": "Vertical blind",
+                        "cover_awning": "Horizontal blind",
+                        "cover_tilt": "Tilted blind"
+                    }
+                },
+                "tilt_mode": {
+                    "options": {
+                        "mode1": "single direction (0% = closed / 100% = open)",
+                        "mode2": "bi-directional (0% = closed / 50% = open / 100% = closed)"
+                    }
+                }
+            }
+        }

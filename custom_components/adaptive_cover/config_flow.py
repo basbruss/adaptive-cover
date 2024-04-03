@@ -17,9 +17,10 @@ from homeassistant.helpers import selector
 from .const import (
     CONF_AWNING_ANGLE,
     CONF_AZIMUTH,
-    CONF_BLUEPRINT,
     CONF_CLIMATE_MODE,
     CONF_DEFAULT_HEIGHT,
+    CONF_DELTA_POSITION,
+    CONF_DELTA_TIME,
     CONF_DISTANCE,
     CONF_ENTITIES,
     CONF_FOV_LEFT,
@@ -33,6 +34,8 @@ from .const import (
     CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
     CONF_SENSOR_TYPE,
+    CONF_START_ENTITY,
+    CONF_START_TIME,
     CONF_SUNSET_OFFSET,
     CONF_SUNSET_POS,
     CONF_TEMP_ENTITY,
@@ -55,8 +58,7 @@ SENSOR_TYPE_MENU = [SensorType.BLIND, SensorType.AWNING, SensorType.TILT]
 CONFIG_SCHEMA = vol.Schema(
     {
         vol.Required("name"): selector.TextSelector(),
-        vol.Optional(CONF_BLUEPRINT, default=False): bool,
-        vol.Optional(CONF_MODE, default="basic"): selector.SelectSelector(
+        vol.Optional(CONF_MODE): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=SENSOR_TYPE_MENU, translation_key="mode"
             )
@@ -73,28 +75,37 @@ CLIMATE_MODE = vol.Schema(
 OPTIONS = vol.Schema(
     {
         vol.Required(CONF_AZIMUTH, default=180): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=359, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0, max=359, mode="slider", unit_of_measurement="°"
+            )
         ),
         vol.Required(CONF_DEFAULT_HEIGHT, default=60): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=1, max=100, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=1, max=100, step=1, mode="slider", unit_of_measurement="%"
+            )
         ),
         vol.Optional(CONF_MAX_POSITION, default=100): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=1, max=100, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=1, max=100, step=1, mode="slider", unit_of_measurement="%"
+            )
         ),
         vol.Required(CONF_FOV_LEFT, default=90): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=1, max=90, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=1, max=90, step=1, mode="slider", unit_of_measurement="°"
+            )
         ),
         vol.Required(CONF_FOV_RIGHT, default=90): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=1, max=90, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=1, max=90, step=1, mode="slider", unit_of_measurement="°"
+            )
         ),
         vol.Required(CONF_SUNSET_POS, default=0): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=100, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0, max=100, step=1, mode="slider", unit_of_measurement="%"
+            )
         ),
         vol.Required(CONF_SUNSET_OFFSET, default=0): selector.NumberSelector(
-            selector.NumberSelectorConfig(mode="box")
-        ),
-        vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain="cover", multiple=True)
+            selector.NumberSelectorConfig(mode="box", unit_of_measurement="minutes")
         ),
         vol.Required(CONF_INVERSE_STATE, default=False): bool,
     }
@@ -102,42 +113,69 @@ OPTIONS = vol.Schema(
 
 VERTICAL_OPTIONS = vol.Schema(
     {
+        vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                multiple=True,
+                filter=selector.EntityFilterSelectorConfig(
+                    domain="cover",
+                    supported_features=["cover.CoverEntityFeature.SET_POSITION"],
+                ),
+            )
+        ),
         vol.Required(CONF_HEIGHT_WIN, default=2.1): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0.1, max=6, step=0.01, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0.1, max=6, step=0.01, mode="slider", unit_of_measurement="m"
+            )
         ),
         vol.Required(CONF_DISTANCE, default=0.5): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0.1, max=2, step=0.1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0.1, max=2, step=0.1, mode="slider", unit_of_measurement="m"
+            )
         ),
     }
 ).extend(OPTIONS.schema)
 
-TEST_OPTIONS = vol.Schema(
-    {
-        vol.Optional(CONF_BLUEPRINT, default=True): bool,
-    }
-)
 
 HORIZONTAL_OPTIONS = vol.Schema(
     {
         vol.Required(CONF_HEIGHT_AWNING, default=2.1): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0.1, max=6, step=0.01, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0.1, max=6, step=0.01, mode="slider", unit_of_measurement="m"
+            )
         ),
         vol.Required(CONF_LENGTH_AWNING, default=2.1): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0.3, max=6, step=0.01, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0.3, max=6, step=0.01, mode="slider", unit_of_measurement="m"
+            )
         ),
         vol.Required(CONF_AWNING_ANGLE, default=0): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=45, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0, max=45, mode="slider", unit_of_measurement="°"
+            )
         ),
     }
 ).extend(VERTICAL_OPTIONS.schema)
 
 TILT_OPTIONS = vol.Schema(
     {
+        vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                multiple=True,
+                filter=selector.EntityFilterSelectorConfig(
+                    domain="cover",
+                    supported_features=["cover.CoverEntityFeature.SET_TILT_POSITION"],
+                ),
+            )
+        ),
         vol.Required(CONF_TILT_DEPTH, default=3): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0.1, max=15, step=0.1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0.1, max=15, step=0.1, mode="slider", unit_of_measurement="cm"
+            )
         ),
         vol.Required(CONF_TILT_DISTANCE, default=2): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0.1, max=15, step=0.1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0.1, max=15, step=0.1, mode="slider", unit_of_measurement="cm"
+            )
         ),
         vol.Required(CONF_TILT_MODE, default="mode2"): selector.SelectSelector(
             selector.SelectSelectorConfig(
@@ -153,10 +191,14 @@ CLIMATE_OPTIONS = vol.Schema(
             selector.EntityFilterSelectorConfig(domain=["climate", "sensor"])
         ),
         vol.Required(CONF_TEMP_LOW, default=21): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=86, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0, max=86, step=1, mode="slider", unit_of_measurement="°"
+            )
         ),
         vol.Required(CONF_TEMP_HIGH, default=25): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=90, step=1, mode="slider")
+            selector.NumberSelectorConfig(
+                min=0, max=90, step=1, mode="slider", unit_of_measurement="°"
+            )
         ),
         vol.Optional(
             CONF_OUTSIDETEMP_ENTITY, default=vol.UNDEFINED
@@ -210,6 +252,26 @@ WEATHER_OPTIONS = vol.Schema(
 )
 
 
+AUTOMATION_CONFIG = vol.Schema(
+    {
+        vol.Required(CONF_DELTA_POSITION, default=1): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=1, max=90, step=1, mode="slider", unit_of_measurement="%"
+            )
+        ),
+        vol.Optional(CONF_DELTA_TIME, default=2): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=2, mode="box", unit_of_measurement="minutes"
+            )
+        ),
+        vol.Optional(CONF_START_TIME, default="00:00:00"): selector.TimeSelector(),
+        vol.Optional(CONF_START_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
+        ),
+    }
+)
+
+
 class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle ConfigFlow."""
 
@@ -243,9 +305,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.type_blind = SensorType.BLIND
         if user_input is not None:
             self.config.update(user_input)
-            if self.config[CONF_CLIMATE_MODE] is True:
-                return await self.async_step_climate()
-            return await self.async_step_update()
+            return await self.async_step_automation()
         return self.async_show_form(
             step_id="vertical",
             data_schema=CLIMATE_MODE.extend(VERTICAL_OPTIONS.schema),
@@ -256,9 +316,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.type_blind = SensorType.AWNING
         if user_input is not None:
             self.config.update(user_input)
-            if self.config[CONF_CLIMATE_MODE] is True:
-                return await self.async_step_climate()
-            return await self.async_step_update()
+            return await self.async_step_automation()
         return self.async_show_form(
             step_id="horizontal",
             data_schema=CLIMATE_MODE.extend(HORIZONTAL_OPTIONS.schema),
@@ -269,12 +327,19 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.type_blind = SensorType.TILT
         if user_input is not None:
             self.config.update(user_input)
-            if self.config[CONF_CLIMATE_MODE] is True:
-                return await self.async_step_climate()
-            return await self.async_step_update()
+            return await self.async_step_automation()
         return self.async_show_form(
             step_id="tilt", data_schema=CLIMATE_MODE.extend(TILT_OPTIONS.schema)
         )
+
+    async def async_step_automation(self, user_input: dict[str, Any] | None = None):
+        """Manage automation options."""
+        if user_input is not None:
+            self.config.update(user_input)
+            if self.config[CONF_CLIMATE_MODE] is True:
+                return await self.async_step_climate()
+            return await self.async_step_update()
+        return self.async_show_form(step_id="automation", data_schema=AUTOMATION_CONFIG)
 
     async def async_step_climate(self, user_input: dict[str, Any] | None = None):
         """Manage climate options."""
@@ -303,7 +368,6 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             title=f"{type[self.type_blind]} {self.config['name']}",
             data={
                 "name": self.config["name"],
-                CONF_BLUEPRINT: self.config[CONF_BLUEPRINT],
                 CONF_SENSOR_TYPE: self.type_blind,
             },
             options={
@@ -332,6 +396,10 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_OUTSIDETEMP_ENTITY: self.config.get(CONF_OUTSIDETEMP_ENTITY),
                 CONF_CLIMATE_MODE: self.config.get(CONF_CLIMATE_MODE),
                 CONF_WEATHER_STATE: self.config.get(CONF_WEATHER_STATE),
+                CONF_DELTA_POSITION: self.config.get(CONF_DELTA_POSITION),
+                CONF_DELTA_TIME: self.config.get(CONF_DELTA_TIME),
+                CONF_START_TIME: self.config.get(CONF_START_TIME),
+                CONF_START_ENTITY: self.config.get(CONF_START_ENTITY),
             },
         )
 
@@ -353,6 +421,19 @@ class OptionsFlowHandler(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Manage the options."""
+        return self.async_show_menu(
+            step_id="init", menu_options=["automation", "blind"]
+        )
+
+    async def async_step_automation(self, user_input: dict[str, Any] | None = None):
+        """Manage automation options."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return await self._update_options()
+        return self.async_show_form(step_id="automation", data_schema=AUTOMATION_CONFIG)
+
+    async def async_step_blind(self, user_input: dict[str, Any] | None = None):
+        """Adjust blind parameters."""
         if self.sensor_type == SensorType.BLIND:
             return await self.async_step_vertical()
         if self.sensor_type == SensorType.AWNING:
