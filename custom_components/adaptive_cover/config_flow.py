@@ -115,10 +115,10 @@ VERTICAL_OPTIONS = vol.Schema(
     {
         vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
             selector.EntitySelectorConfig(
-                domain="cover",
                 multiple=True,
                 filter=selector.EntityFilterSelectorConfig(
-                    supported_features=["cover.CoverEntityFeature.SET_POSITION"]
+                    domain="cover",
+                    supported_features=["cover.CoverEntityFeature.SET_POSITION"],
                 ),
             )
         ),
@@ -160,10 +160,10 @@ TILT_OPTIONS = vol.Schema(
     {
         vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
             selector.EntitySelectorConfig(
-                domain="cover",
                 multiple=True,
                 filter=selector.EntityFilterSelectorConfig(
-                    supported_features=["cover.CoverEntityFeature.SET_TILT_POSITION"]
+                    domain="cover",
+                    supported_features=["cover.CoverEntityFeature.SET_TILT_POSITION"],
                 ),
             )
         ),

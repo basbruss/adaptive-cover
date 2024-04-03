@@ -111,7 +111,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     async def _async_update_data(self) -> AdaptiveCoverData:
         self.entities = self.config_entry.options.get(CONF_ENTITIES, [])
         self.min_change = self.config_entry.options.get(CONF_DELTA_POSITION, 1)
-        self.time_threshold = self.config_entry.options.get(CONF_DELTA_TIME)
+        self.time_threshold = self.config_entry.options.get(CONF_DELTA_TIME, 2)
         self.start_time = self.config_entry.options.get(CONF_START_TIME)
         self.start_time_entity = self.config_entry.options.get(CONF_START_ENTITY)
 
