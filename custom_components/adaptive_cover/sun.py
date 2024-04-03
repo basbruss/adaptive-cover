@@ -1,8 +1,10 @@
 """Fetch sun data."""
-from datetime import date, timedelta, datetime
+
+from datetime import date, datetime, timedelta
+
 import pandas as pd
-from homeassistant.helpers.sun import get_astral_location
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.sun import get_astral_location
 
 
 class SunData:
@@ -55,8 +57,8 @@ class SunData:
         return self.location.sunset(date.today(), local=False)
 
     def sunrise(self) -> datetime:
-        """Fetch tomorrow's sunrise time."""
-        return self.location.sunrise(date.today() + timedelta(1), local=False)
+        """Fetch sunrise time."""
+        return self.location.sunrise(date.today(), local=False)
 
     # def df_today(self)-> pd.DataFrame:
     #     """Create dataframe with azimuth and elevation data"""
