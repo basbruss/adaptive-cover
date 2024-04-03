@@ -169,12 +169,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 ],
                 "entity_id": self.config_entry.options.get(CONF_ENTITIES),
                 "cover_type": self._cover_type,
-                "delta_position": self.config_entry.options.get(CONF_DELTA_POSITION),
-                "delta_time": self.config_entry.options.get(CONF_DELTA_TIME),
-                "start_time": self.config_entry.options.get(CONF_START_TIME),
-                "start_entity": self.config_entry.options.get(CONF_START_ENTITY),
                 # "manual control": self.find_manual_control,
-                "states_data": self.state_change_data,
+                # "states_data": self.state_change_data,
             },
         )
 
@@ -190,7 +186,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     async def async_handle_call_service(self):
         """Handle call service."""
         for entity in self.entities:
-            if self.check_position(entity) and self.check_time_delta(entity):
+            if (
+                self.check_position(entity)
+                and self.check_time_delta(entity)
+                and self.after_start_time
+            ):
                 await self.async_set_position(entity)
 
     async def async_set_position(self, entity):
@@ -227,6 +227,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             )
         return cover_data
 
+    @property
     def after_start_time(self):
         """Check if time is after start time."""
         if self.start_time_entity is not None:
@@ -255,7 +256,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         now = dt.datetime.now(dt.UTC)
         last_updated = get_last_updated(entity, self.hass)
         if last_updated is not None:
-            return now - last_updated >= get_timedelta_str(self.time_threshold)
+            return now - last_updated >= dt.timedelta(minutes=self.time_threshold)
         return True
 
     @property
