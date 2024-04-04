@@ -166,20 +166,27 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     self.config_entry.options.get(CONF_FOV_LEFT),
                     self.config_entry.options.get(CONF_FOV_RIGHT),
                 ],
-                # "manual control": self.find_manual_control,
-                # "states_data": self.state_change_data,
+                "manual control": self.find_manual_control,
+                "states_data": self.state_change_data,
             },
         )
 
-    # @property
-    # def find_manual_control(self):
-    #     """."""
-    #     if self.state_change_data:
-    #         if self.state_change_data.entity_id.startswith("cover."):
-    #             return (
-    #                 self.state_change_data.new_state.attributes["current_position"]
-    #                 != self.state
-    #             )
+    @property
+    def find_manual_control(self):
+        """Find position change other than calculated state."""
+        if self.state_change_data:
+            if self.state_change_data.entity_id.startswith("cover."):
+                if self._cover_type == 'cover_tilt':
+                    return (
+                        self.state_change_data.new_state.attributes["current_tilt_position"]
+                        != self.state
+                    )
+                else:
+                    return (
+                        self.state_change_data.new_state.attributes["current_position"]
+                        != self.state
+                    )
+
     async def async_handle_call_service(self):
         """Handle call service."""
         for entity in self.entities:
