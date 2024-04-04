@@ -233,7 +233,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             if now.date() == time.date():
                 return now >= time
         if self.start_time is not None:
-            time = get_time(self.start_time)
+            time = get_time(self.start_time).time()
             now = dt.datetime.now().time()
             return now >= time
         return True
