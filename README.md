@@ -107,6 +107,36 @@ The objective is to reduce glare while providing daylight to the room. All calcu
 If you added a weather entity than it will only use the above calculations if the weather state corresponds with the existence of direct sun rays. These states are `sunny`,`windy` and `partlycloudy`. If not equal to these states the position will default to the default value to allow more sunlight entering the room with minimizing the glare due to the weather condition. <br><br>
 Tilted blinds will only defect from the above approach if the inside temperature is above the maximum comfort temperature. Than the slats will be positioned at 45 degrees as this is [founded optimal](https://www.mdpi.com/1996-1073/13/7/1731).
 
+## Entities
+
+The integration provides dynamically based on the modes and/or variables that are configured in total of 3 switches and 5 sensors.
+
+1. A cover position sensor: Represents the best position for the cover based on all the inputs and mode selected.
+
+2. A switch to toggle the adaptive control.
+
+3. A switch to toggle the climate mode on/off. (_only if additional parameters needed for the climate mode are configured_)
+
+4. A switch to toggle between inside or outdoor temperatures. (_Only if a weather entity or outside temperature sensor and a indoor temperature sensor are configured_)
+
+5. A sensor indicating the start time of the sun being in sight of the cover/window.
+
+6. A sensor indicating the end time of the sun being in sight of the cover/window.
+
+7. A binary sensor that turns on if the sun is insight of the window.
+
+8. A sensor that shows the climate control strategy used in climate mode.
+
+![entities](https://github.com/basbruss/adaptive-cover/blob/main/images/entities.png)
+
+## Features Planned
+
+- Manual override controls
+  - Time to revert back to adaptive control
+  - Reset button
+  - Wait until next manual/none adaptive change
+
+- Algorithm to control radiation and/or illumination
 
 ### Simulation
 ![combined_simulation](custom_components/adaptive_cover/simulation/sim_plot.png)
