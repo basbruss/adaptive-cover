@@ -41,3 +41,15 @@ cover:
           data:
             entity_id: "input_number.cover_position_tilt"
             value: "{{tilt}}"
+
+input_number:
+  cover_position:
+    name: Cover Position
+    min: 0
+    max: 100
+    step: 1
+  cover_position_tilt:
+    name: Cover Position Tilt
+    min: 0
+    max: 100
+    step: 1
