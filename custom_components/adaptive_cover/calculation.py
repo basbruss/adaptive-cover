@@ -24,6 +24,7 @@ class AdaptiveGeneralCover(ABC):
     sol_elev: float
     sunset_pos: int
     sunset_off: int
+    sunrise_off: int
     timezone: str
     fov_left: int
     fov_right: int
@@ -97,7 +98,7 @@ class AdaptiveGeneralCover(ABC):
         sunrise = self.sun_data.sunrise().replace(tzinfo=None)
         after_sunset = datetime.utcnow() > (sunset + timedelta(minutes=self.sunset_off))
         before_sunrise = datetime.utcnow() < (
-            sunrise + timedelta(minutes=self.sunset_off)
+            sunrise + timedelta(minutes=self.sunrise_off)
         )
         return after_sunset or before_sunrise
 

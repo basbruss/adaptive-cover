@@ -36,6 +36,7 @@ from .const import (
     CONF_SENSOR_TYPE,
     CONF_START_ENTITY,
     CONF_START_TIME,
+    CONF_SUNRISE_OFFSET,
     CONF_SUNSET_OFFSET,
     CONF_SUNSET_POS,
     CONF_TEMP_ENTITY,
@@ -105,6 +106,9 @@ OPTIONS = vol.Schema(
             )
         ),
         vol.Required(CONF_SUNSET_OFFSET, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(mode="box", unit_of_measurement="minutes")
+        ),
+        vol.Required(CONF_SUNRISE_OFFSET, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(mode="box", unit_of_measurement="minutes")
         ),
         vol.Required(CONF_INVERSE_STATE, default=False): bool,
@@ -383,6 +387,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_INVERSE_STATE: self.config.get(CONF_INVERSE_STATE),
                 CONF_SUNSET_POS: self.config.get(CONF_SUNSET_POS),
                 CONF_SUNSET_OFFSET: self.config.get(CONF_SUNSET_OFFSET),
+                CONF_SUNRISE_OFFSET: self.config.get(CONF_SUNRISE_OFFSET),
                 CONF_LENGTH_AWNING: self.config.get(CONF_LENGTH_AWNING),
                 CONF_AWNING_ANGLE: self.config.get(CONF_AWNING_ANGLE),
                 CONF_TILT_DISTANCE: self.config.get(CONF_TILT_DISTANCE),
