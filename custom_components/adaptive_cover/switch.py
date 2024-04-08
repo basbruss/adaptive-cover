@@ -5,11 +5,14 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.const import STATE_ON
+
 
 from .const import (
     CONF_CLIMATE_MODE,
@@ -74,7 +77,7 @@ async def async_setup_entry(
 
 
 class AdaptiveCoverSwitch(
-    CoordinatorEntity[AdaptiveDataUpdateCoordinator], SwitchEntity
+    CoordinatorEntity[AdaptiveDataUpdateCoordinator], SwitchEntity, RestoreEntity
 ):
     """Representation of a adaptive cover switch."""
 
@@ -86,7 +89,7 @@ class AdaptiveCoverSwitch(
         config_entry,
         unique_id: str,
         switch_name: str,
-        state: bool,
+        initial_state: bool,
         key: str,
         coordinator: AdaptiveDataUpdateCoordinator,
         device_class: SwitchDeviceClass | None = None,
@@ -99,12 +102,13 @@ class AdaptiveCoverSwitch(
             "cover_tilt": "Tilt",
         }
         self._name = config_entry.data["name"]
+        self._state: bool | None = None
         self._key = key
         self._attr_translation_key = key
         self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
         self._switch_name = switch_name
         self._attr_device_class = device_class
-        self._attr_is_on = state
+        self._initial_state = initial_state
         self._attr_unique_id = f"{unique_id}_{switch_name}"
         self._device_id = unique_id
         self._attr_device_info = DeviceInfo(
@@ -130,3 +134,14 @@ class AdaptiveCoverSwitch(
         setattr(self.coordinator, self._key, False)
         await self.coordinator.async_refresh()
         self.schedule_update_ha_state()
+
+    async def async_added_to_hass(self) -> None:
+        """Call when entity about to be added to hass."""
+        last_state = await self.async_get_last_state()
+        # _LOGGER.debug("%s: last state is %s", self._name, last_state)
+        if (last_state is None and self._initial_state) or (
+            last_state is not None and last_state.state == STATE_ON
+        ):
+            await self.async_turn_on()
+        else:
+            await self.async_turn_off()
