@@ -43,7 +43,7 @@ async def async_setup_entry(
     control_switch = AdaptiveCoverSwitch(
         config_entry,
         config_entry.entry_id,
-        "Adaptive Control",
+        "Toggle Control",
         True,
         "control_toggle",
         coordinator,
@@ -71,7 +71,7 @@ async def async_setup_entry(
     switches = []
 
     if len(config_entry.options.get(CONF_ENTITIES)) >= 1:
-        switches=[control_switch, manual_switch]
+        switches = [control_switch, manual_switch]
 
     if climate_mode:
         switches.append(climate_switch)
