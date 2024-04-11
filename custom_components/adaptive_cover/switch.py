@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
@@ -15,6 +14,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
+    _LOGGER,
     CONF_CLIMATE_MODE,
     CONF_ENTITIES,
     CONF_OUTSIDETEMP_ENTITY,
