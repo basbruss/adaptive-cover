@@ -101,10 +101,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
         self._temp_toggle = False
         self._control_toggle = True
-        self._manual_duration = {"hours": 0, "minutes": 2, "seconds": 0}
+        self.manual_duration = self.config_entry.options.get(
+            CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
+        )
 
         self.state_change_data: StateChangedData | None = None
-        self.manager = AdaptiveCoverManager(self._manual_duration)
+        self.manager = AdaptiveCoverManager(self.manual_duration)
 
     async def async_check_entity_state_change(
         self, entity: str, old_state: State | None, new_state: State | None
@@ -119,6 +121,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.time_threshold = self.config_entry.options.get(CONF_DELTA_TIME, 2)
         self.start_time = self.config_entry.options.get(CONF_START_TIME)
         self.start_time_entity = self.config_entry.options.get(CONF_START_ENTITY)
+        self.manual_reset = self.config_entry.options.get(
+            CONF_MANUAL_OVERRIDE_RESET, False
+        )
+        self.manual_duration = self.config_entry.options.get(
+            CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
+        )
 
         cover_data = self.get_blind_data()
 
@@ -152,17 +160,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         self.default_state = round(NormalCoverState(cover_data).get_state())
 
-        entity_id = False
-        if self.state_change_data is not None:
-            event = self.state_change_data
-            entity_id = event.entity_id
-            self.manager.state_change(event, self.state, self._cover_type)
-            self.manager.reset_if_needed()
+        self.manager.state_change(
+            self.state_change_data, self.state, self._cover_type, self.manual_reset
+        )
 
         if self.control_toggle:
             for cover in self.entities:
-                if not self.manager.is_cover_manual(cover):
-                    await self.async_handle_call_service(cover)
+                await self.async_handle_call_service(cover)
 
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
@@ -183,11 +187,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     self.config_entry.options.get(CONF_FOV_RIGHT),
                 ],
                 # "manual control": self.find_manual_control,
-                "function": "",
                 "manual_control": self.manager.manual_control,
                 "manual_control_time": self.manager.manual_control_time,
-                "states_data": entity_id,
-                "data": self.state_change_data,
+                "bool": self.manager.is_cover_manual(self.entities[0]),
+                "reset_duration": self.manager.reset_duration,
             },
         )
 
@@ -366,8 +369,10 @@ class AdaptiveCoverManager:
         """Update set with entities."""
         self.covers.update(entity)
 
-    def state_change(self, states_data, our_state, blind_type):
+    def state_change(self, states_data, our_state, blind_type, allow_reset):
         event = states_data
+        if event is None:
+            return
         entity_id = event.entity_id
         if entity_id not in self.covers:
             return
@@ -380,26 +385,33 @@ class AdaptiveCoverManager:
             new_position = new_state.attributes.get("current_position")
 
         if new_position != our_state:
-            if self.manual_control.get("entity_id") is not True:
-                self.mark_manual_control(entity_id)
+            self.mark_manual_control(entity_id)
+            self.set_last_updated(entity_id, new_state, allow_reset)
 
-                # if self.manual_control_time.get(entity_id):
-                #     return
-
-                last_updated = new_state.last_updated
-                self.set_last_updated(entity_id, last_updated)
+    def set_last_updated(self, entity_id, new_state, allow_reset):
+        if entity_id not in self.manual_control_time or allow_reset:
+            last_updated = new_state.last_updated
+            self.manual_control_time[entity_id] = last_updated
+            _LOGGER.debug(
+                "Updating last updated to %s for %s. Allow reset:%s",
+                last_updated,
+                entity_id,
+                allow_reset,
+            )
+        if not allow_reset:
+            _LOGGER.debug(
+                "Already time specified, reset is not allowed by user setting:%s",
+                allow_reset,
+            )
 
     def mark_manual_control(self, cover: str) -> None:
         self.manual_control[cover] = True
-
-    def set_last_updated(self, entity_id, last_updated):
-        self.manual_control_time[entity_id] = last_updated
 
     def reset_if_needed(self):
         """Reset manual control state of the covers."""
         current_time = dt.datetime.now(dt.UTC)
         # Iterate over a copy of the dictionary
-        for entity_id, last_updated in list(self.manual_control_time.items()):
+        for entity_id, last_updated in self.manual_control_time.items():
             if current_time - last_updated > dt.timedelta(**self.reset_duration):
                 self.manual_control[entity_id] = False
                 self.manual_control_time.pop(entity_id, None)

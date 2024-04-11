@@ -36,6 +36,7 @@ from .const import (
     CONF_SENSOR_TYPE,
     CONF_START_ENTITY,
     CONF_START_TIME,
+    CONF_SUNRISE_OFFSET,
     CONF_SUNSET_OFFSET,
     CONF_SUNSET_POS,
     CONF_TEMP_ENTITY,
@@ -268,6 +269,10 @@ AUTOMATION_CONFIG = vol.Schema(
         vol.Optional(CONF_START_ENTITY): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
         ),
+        vol.Required(
+            CONF_MANUAL_OVERRIDE_DURATION, default={"minutes": 15}
+        ): selector.DurationSelector(),
+        vol.Required(CONF_MANUAL_OVERRIDE_RESET, default=False): bool,
     }
 )
 
@@ -400,6 +405,10 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_DELTA_TIME: self.config.get(CONF_DELTA_TIME),
                 CONF_START_TIME: self.config.get(CONF_START_TIME),
                 CONF_START_ENTITY: self.config.get(CONF_START_ENTITY),
+                CONF_MANUAL_OVERRIDE_DURATION: self.config.get(
+                    CONF_MANUAL_OVERRIDE_DURATION
+                ),
+                CONF_MANUAL_OVERRIDE_RESET: self.config.get(CONF_MANUAL_OVERRIDE_RESET),
             },
         )
 
