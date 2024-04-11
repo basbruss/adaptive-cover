@@ -108,6 +108,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.state_change_data: StateChangedData | None = None
         self.manager = AdaptiveCoverManager(self.manual_duration)
 
+    async def async_config_entry_first_refresh(self):
+        """Call the first update from config_entry."""
+        await super().async_config_entry_first_refresh()
+        # Call your custom method here
+        for cover in self.entities:
+            await self.async_set_position(cover)
+
     async def async_check_entity_state_change(
         self, entity: str, old_state: State | None, new_state: State | None
     ) -> None:
