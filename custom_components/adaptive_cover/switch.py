@@ -1,18 +1,18 @@
 """Switch platform for the Adaptive Cover integration."""
 
 from __future__ import annotations
+
 import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_ON
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.const import STATE_ON
-
 
 from .const import (
     CONF_CLIMATE_MODE,
@@ -94,7 +94,7 @@ class AdaptiveCoverSwitch(
         coordinator: AdaptiveDataUpdateCoordinator,
         device_class: SwitchDeviceClass | None = None,
     ) -> None:
-        """Initialize the Demo switch."""
+        """Initialize the switch."""
         super().__init__(coordinator=coordinator)
         self.type = {
             "cover_blind": "Vertical",
