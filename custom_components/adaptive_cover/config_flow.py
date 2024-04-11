@@ -430,7 +430,9 @@ class OptionsFlowHandler(OptionsFlow):
         if user_input is not None:
             self.options.update(user_input)
             return await self._update_options()
-        return self.async_show_form(step_id="automation", data_schema=AUTOMATION_CONFIG)
+        return self.async_show_form(step_id="automation", data_schema=self.add_suggested_values_to_schema(
+                AUTOMATION_CONFIG, user_input or self.options
+            ))
 
     async def async_step_blind(self, user_input: dict[str, Any] | None = None):
         """Adjust blind parameters."""
