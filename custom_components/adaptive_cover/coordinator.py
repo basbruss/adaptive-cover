@@ -45,6 +45,7 @@ from .const import (
     CONF_PRESENCE_ENTITY,
     CONF_START_ENTITY,
     CONF_START_TIME,
+    CONF_SUNRISE_OFFSET,
     CONF_SUNSET_OFFSET,
     CONF_SUNSET_POS,
     CONF_TEMP_ENTITY,
@@ -270,6 +271,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         return [
             self.config_entry.options.get(CONF_SUNSET_POS),
             self.config_entry.options.get(CONF_SUNSET_OFFSET),
+            self.config_entry.options.get(CONF_SUNRISE_OFFSET,self.config_entry.options.get(CONF_SUNSET_OFFSET)),
             self.hass.config.time_zone,
             self.config_entry.options.get(CONF_FOV_LEFT),
             self.config_entry.options.get(CONF_FOV_RIGHT),
