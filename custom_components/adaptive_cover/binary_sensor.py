@@ -41,7 +41,7 @@ async def async_setup_entry(
     manual_override = AdaptiveCoverBinarySensor(
         config_entry,
         config_entry.entry_id,
-        "Manual Override Active",
+        "Manual Override",
         False,
         "manual_override",
         BinarySensorDeviceClass.RUNNING,

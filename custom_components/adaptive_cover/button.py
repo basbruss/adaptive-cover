@@ -43,6 +43,7 @@ class AdaptiveCoverButton(
 
     _attr_has_entity_name = True
     _attr_should_poll = False
+    _attr_icon = "mdi:cog-refresh-outline"
 
     def __init__(
         self,
