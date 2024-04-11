@@ -77,8 +77,13 @@ class AdaptiveCoverButton(
     async def async_press(self) -> None:
         """Handle the button press."""
         for entity in self._entities:
-            _LOGGER.debug("resetting manual override for: %s", entity)
-            await self.coordinator.async_set_position(entity)
-            self.coordinator.manager.reset(entity)
-
+            if self.coordinator.manager.is_cover_manual(entity):
+                _LOGGER.debug("Resetting manual override for: %s", entity)
+                await self.coordinator.async_set_position(entity)
+                self.coordinator.manager.reset(entity)
+            else:
+                _LOGGER.debug(
+                    "Resetting manual override for %s is not needed since it is already auto-cotrolled",
+                    entity,
+                )
         await self.coordinator.async_refresh()

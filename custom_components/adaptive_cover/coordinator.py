@@ -170,7 +170,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         if self.control_toggle:
             for cover in self.entities:
-                if self.manager.is_cover_manual(cover):
+                if not self.manager.is_cover_manual(cover):
                     await self.async_handle_call_service(cover)
 
         return AdaptiveCoverData(
