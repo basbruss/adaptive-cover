@@ -4,6 +4,7 @@ import logging
 
 DOMAIN = "adaptive_cover"
 LOGGER = logging.getLogger(__package__)
+_LOGGER = logging.getLogger(__name__)
 
 ATTR_POSITION = "position"
 ATTR_TILT_POSITION = "tilt_position"
@@ -40,10 +41,13 @@ CONF_WEATHER_STATE = "weather_state"
 CONF_MAX_POSITION = "max_position"
 CONF_OUTSIDETEMP_ENTITY = "outside_temp"
 
+
 CONF_DELTA_POSITION = "delta_position"
 CONF_DELTA_TIME = "delta_time"
 CONF_START_TIME = "start_time"
 CONF_START_ENTITY = "start_entity"
+CONF_MANUAL_OVERRIDE_DURATION = "manual_override_duration"
+CONF_MANUAL_OVERRIDE_RESET = "manual_override_reset"
 
 STRATEGY_MODE_BASIC = "basic"
 STRATEGY_MODE_CLIMATE = "climate"

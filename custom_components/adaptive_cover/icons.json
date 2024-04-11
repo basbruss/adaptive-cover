@@ -1,35 +1,41 @@
 {
-    "entity": {
-      "binary_sensor": {
-        "sun_motion": {
-          "default": "mdi:weather-sunny",
-          "state":{
-            "off": "mdi:weather-sunny-off"
-          }
+  "entity": {
+    "binary_sensor": {
+      "sun_motion": {
+        "default": "mdi:weather-sunny",
+        "state": {
+          "off": "mdi:weather-sunny-off"
         }
       },
-      "sensor": {
-        "control": {
-          "default": "mdi:white-balance-sunny",
-          "state":{
-            "winter": "mdi:snowflake",
-            "summer": "mdi:heat-wave"
-          }
+      "manual_override": {
+        "default": "mdi:cog-outline",
+        "state": {
+          "off": "mdi:cog-sync-outline"
+        }
+      }
+    },
+    "sensor": {
+      "control": {
+        "default": "mdi:white-balance-sunny",
+        "state": {
+          "winter": "mdi:snowflake",
+          "summer": "mdi:heat-wave"
+        }
+      }
+    },
+    "switch": {
+      "control_toggle": {
+        "default": "mdi:toggle-switch-outline",
+        "state": {
+          "off": "mdi:toggle-switch-off-outline"
         }
       },
-      "switch":{
-        "control_toggle":{
-          "default":"mdi:toggle-switch-outline",
-          "state":{
-            "off":"mdi:toggle-switch-off-outline"
-          }
-        },
-        "temp_toggle":{
-          "default":"mdi:thermometer"
-        },
-        "switch_mode":{
-          "default":"mdi:home-thermometer-outline"
-        }
+      "temp_toggle": {
+        "default": "mdi:thermometer"
+      },
+      "switch_mode": {
+        "default": "mdi:home-thermometer-outline"
       }
     }
   }
+}

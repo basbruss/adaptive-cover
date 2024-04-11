@@ -11,18 +11,22 @@
       },
       "automation": {
         "data": {
-            "delta_position": "Minimale positieaanpassing",
-            "delta_time": "Minimale interval tussen positieveranderingen",
-            "start_time": "Starttijd",
-            "start_entity": "Entiteit die starttijd aangeeft"
+          "delta_position": "Minimale positieaanpassing",
+          "delta_time": "Minimale interval tussen positieveranderingen",
+          "start_time": "Starttijd",
+          "start_entity": "Entiteit die starttijd aangeeft",
+          "manual_override_duration": "Duur van handmatige overschrijving",
+          "manual_override_reset": "Reset handmatige overschrijvingsduur"
         },
         "data_description": {
-            "delta_position": "Minimale verandering in positie vereist voordat de positie van de bekleding wordt aangepast",
-            "delta_time": "Minimale tijdsinterval tussen positieveranderingen; minimum is 2 minuten",
-            "start_time": "Starttijd voor elke dag; voor deze tijd blijft de bekleding stationair",
-            "start_entity": "Entiteit die de status van de starttijd vertegenwoordigt, die de hierboven ingestelde statische starttijd overschrijft. Handig voor het automatiseren van de starttijd met een entiteit"
+          "delta_position": "Minimale verandering in positie vereist voordat de positie van de bekleding wordt aangepast",
+          "delta_time": "Minimale tijdsinterval tussen positieveranderingen; minimum is 2 minuten",
+          "start_time": "Starttijd voor elke dag; voor deze tijd blijft de bekleding stationair",
+          "start_entity": "Entiteit die de status van de starttijd vertegenwoordigt, die de hierboven ingestelde statische starttijd overschrijft. Handig voor het automatiseren van de starttijd met een entiteit",
+          "manual_override_duration": "De duur van handmatige bediening voordat wordt teruggekeerd naar automatische bediening",
+          "manual_override_reset": "Optie om de duur van handmatige overschrijving na elke handmatige aanpassing te resetten; als dit is uitgeschakeld, geldt de duur alleen voor de eerste handmatige aanpassing"
         }
-    },
+      },
       "vertical": {
         "data": {
           "set_azimuth": "Raam Azimuth",
@@ -49,13 +53,14 @@
           "group": "Selecteer entiteiten om te besturen via integratie",
           "sunset_position": "Positie om naar over te schakelen na zonsondergang",
           "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
           "climate_mode": "Configureer variabelen voor klimaatmodus"
         },
         "description": "Voeg configuratie variabelen toe",
         "title": "Verticaal scherm"
       },
-      "climate":{
-        "data":{
+      "climate": {
+        "data": {
           "temp_entity": "Binnen temperatuur entiteit",
           "presence_entity": "Aanwezigheid entiteit (optioneel)",
           "weather_entity": "Weer entiteit (optioneel)",
@@ -63,7 +68,7 @@
           "temp_low": "Minimale comfort temperatuur",
           "temp_high": "Maximale comfort temperatuur"
         },
-        "data_description":{
+        "data_description": {
           "presence_entity": "Entiteit die de aanwezigheidsstatus van de ruimte of het huis vertegenwoordigt",
           "weather_entity": "Controleert weersomstandigheden, en buitentemperatuur",
           "outside_temp": "Overschrijft de buitentemperatuur van de weerentiteit als beide zijn ingesteld",
@@ -73,11 +78,11 @@
         "description": "Voeg additionele klimaat configuratie variabelen toe. Weer and Aanwezigheid entiteiten zijn optioneel",
         "title": "Klimaat instellingen"
       },
-      "weather":{
-        "data":{
+      "weather": {
+        "data": {
           "weather_state": "Weer Condities"
         },
-        "data_description":{
+        "data_description": {
           "weather_state": "Kies de weersomstandigheden die automatische raambediening mogelijk maken."
         },
         "title": "Weer Condities"
@@ -99,7 +104,6 @@
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
           "climate_mode": "Klimaat Modus"
-
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -115,6 +119,7 @@
           "group": "Selecteer entiteiten om te besturen via integratie",
           "sunset_position": "Positie om naar over te schakelen na zonsondergang",
           "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
           "climate_mode": "Configureer variabelen voor klimaatmodus"
         },
         "description": "Voeg configuratie variabelen toe",
@@ -123,12 +128,12 @@
       "tilt": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-        "slat_depth": "Lameldiepte",
-        "slat_distance": "Lamelafstand",
-        "default_percentage": "Standaard positie",
-        "max_position": "Maximale positie",
-        "fov_left": "Links gezichtsveld",
-        "fov_right": "Rechts gezichtsveld",
+          "slat_depth": "Lameldiepte",
+          "slat_distance": "Lamelafstand",
+          "default_percentage": "Standaard positie",
+          "max_position": "Maximale positie",
+          "fov_left": "Links gezichtsveld",
+          "fov_right": "Rechts gezichtsveld",
           "group": "Cover Entities",
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
@@ -147,36 +152,41 @@
           "group": "Selecteer entiteiten om te besturen via integratie",
           "sunset_position": "Positie om naar over te schakelen na zonsondergang",
           "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
           "climate_mode": "Configureer variabelen voor klimaatmodus",
           "tilt_mode": "Kies het type beweging"
         },
         "description": "Voeg configuratie variabelen toe",
         "title": "Kantelbare Cover"
-        }
       }
-    },
+    }
+  },
   "options": {
     "step": {
-      "init":{
-        "menu_options":{
+      "init": {
+        "menu_options": {
           "automation": "Wijzig Automatiseringsinstellingen",
           "blind": "Pas parameters van de zonwering aan"
         }
       },
       "automation": {
         "data": {
-            "delta_position": "Minimale positieaanpassing",
-            "delta_time": "Minimale interval tussen positieveranderingen",
-            "start_time": "Starttijd",
-            "start_entity": "Entiteit die starttijd aangeeft"
+          "delta_position": "Minimale positieaanpassing",
+          "delta_time": "Minimale interval tussen positieveranderingen",
+          "start_time": "Starttijd",
+          "start_entity": "Entiteit die starttijd aangeeft",
+          "manual_override_duration": "Duur van handmatige overschrijving",
+          "manual_override_reset": "Reset handmatige overschrijvingsduur"
         },
         "data_description": {
-            "delta_position": "Minimale verandering in positie vereist voordat de positie van de bekleding wordt aangepast",
-            "delta_time": "Minimale tijdsinterval tussen positieveranderingen; minimum is 2 minuten",
-            "start_time": "Starttijd voor elke dag; voor deze tijd blijft de bekleding stationair",
-            "start_entity": "Entiteit die de status van de starttijd vertegenwoordigt, die de hierboven ingestelde statische starttijd overschrijft. Handig voor het automatiseren van de starttijd met een entiteit"
+          "delta_position": "Minimale verandering in positie vereist voordat de positie van de bekleding wordt aangepast",
+          "delta_time": "Minimale tijdsinterval tussen positieveranderingen; minimum is 2 minuten",
+          "start_time": "Starttijd voor elke dag; voor deze tijd blijft de bekleding stationair",
+          "start_entity": "Entiteit die de status van de starttijd vertegenwoordigt, die de hierboven ingestelde statische starttijd overschrijft. Handig voor het automatiseren van de starttijd met een entiteit",
+          "manual_override_duration": "De duur van handmatige bediening voordat wordt teruggekeerd naar automatische bediening",
+          "manual_override_reset": "Optie om de duur van handmatige overschrijving na elke handmatige aanpassing te resetten; als dit is uitgeschakeld, geldt de duur alleen voor de eerste handmatige aanpassing"
         }
-    },
+      },
       "vertical": {
         "data": {
           "set_azimuth": "Raam Azimuth",
@@ -203,13 +213,14 @@
           "group": "Selecteer entiteiten om te besturen via integratie",
           "sunset_position": "Positie om naar over te schakelen na zonsondergang",
           "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
           "climate_mode": "Configureer variabelen voor klimaatmodus"
         },
         "description": "Voeg configuratie variabelen toe",
         "title": "Verticaal scherm"
       },
-      "climate":{
-        "data":{
+      "climate": {
+        "data": {
           "temp_entity": "Binnen temperatuur entiteit",
           "presence_entity": "Aanwezigheid entiteit (optioneel)",
           "weather_entity": "Weer entiteit (optioneel)",
@@ -217,7 +228,7 @@
           "temp_low": "Minimale comfort temperatuur",
           "temp_high": "Maximale comfort temperatuur"
         },
-        "data_description":{
+        "data_description": {
           "presence_entity": "Entiteit die de aanwezigheidsstatus van de ruimte of het huis vertegenwoordigt",
           "weather_entity": "Controleert weersomstandigheden, en buitentemperatuur",
           "outside_temp": "Overschrijft de buitentemperatuur van de weerentiteit als beide zijn ingesteld",
@@ -227,11 +238,11 @@
         "description": "Voeg additionele klimaat configuratie variabelen toe. Weer and Aanwezigheid entiteiten zijn optioneel",
         "title": "Klimaat instellingen"
       },
-      "weather":{
-        "data":{
+      "weather": {
+        "data": {
           "weather_state": "Weer Condities"
         },
-        "data_description":{
+        "data_description": {
           "weather_state": "Kies de weersomstandigheden die automatische raambediening mogelijk maken."
         },
         "title": "Weer Condities"
@@ -253,7 +264,6 @@
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
           "climate_mode": "Klimaat Modus"
-
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -269,6 +279,7 @@
           "group": "Selecteer entiteiten om te besturen via integratie",
           "sunset_position": "Positie om naar over te schakelen na zonsondergang",
           "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
           "climate_mode": "Configureer variabelen voor klimaatmodus"
         },
         "description": "Voeg configuratie variabelen toe",
@@ -277,12 +288,12 @@
       "tilt": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-        "slat_depth": "Lameldiepte",
-        "slat_distance": "Lamelafstand",
-        "default_percentage": "Standaard positie",
-        "max_position": "Maximale positie",
-        "fov_left": "Links gezichtsveld",
-        "fov_right": "Rechts gezichtsveld",
+          "slat_depth": "Lameldiepte",
+          "slat_distance": "Lamelafstand",
+          "default_percentage": "Standaard positie",
+          "max_position": "Maximale positie",
+          "fov_left": "Links gezichtsveld",
+          "fov_right": "Rechts gezichtsveld",
           "group": "Cover Entities",
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
@@ -301,17 +312,18 @@
           "group": "Selecteer entiteiten om te besturen via integratie",
           "sunset_position": "Positie om naar over te schakelen na zonsondergang",
           "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
           "climate_mode": "Configureer variabelen voor klimaatmodus",
           "tilt_mode": "Kies het type beweging"
         },
         "description": "Voeg configuratie variabelen toe",
         "title": "Kantelbare Cover"
-        }
-  }
-},
+      }
+    }
+  },
   "selector": {
-    "mode":{
-      "options":{
+    "mode": {
+      "options": {
         "cover_blind": "Verticaal scherm",
         "cover_awning": "Horizontaal scherm",
         "cover_tilt": "Kantelbaar scherm"
