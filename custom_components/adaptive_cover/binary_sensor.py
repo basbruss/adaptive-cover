@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import Any
+
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -31,10 +34,20 @@ async def async_setup_entry(
         config_entry.entry_id,
         "Sun Infront",
         False,
+        "sun_motion",
         BinarySensorDeviceClass.MOTION,
         coordinator,
     )
-    async_add_entities([binary_sensor])
+    manual_override = AdaptiveCoverBinarySensor(
+        config_entry,
+        config_entry.entry_id,
+        "Manual Override Active",
+        False,
+        "manual_override",
+        BinarySensorDeviceClass.RUNNING,
+        coordinator,
+    )
+    async_add_entities([binary_sensor, manual_override])
 
 
 class AdaptiveCoverBinarySensor(
@@ -44,7 +57,6 @@ class AdaptiveCoverBinarySensor(
 
     _attr_has_entity_name = True
     _attr_should_poll = False
-    _attr_translation_key = "sun_motion"
 
     def __init__(
         self,
@@ -52,6 +64,7 @@ class AdaptiveCoverBinarySensor(
         unique_id: str,
         binary_name: str,
         state: bool,
+        key: str,
         device_class: BinarySensorDeviceClass,
         coordinator: AdaptiveDataUpdateCoordinator,
     ) -> None:
@@ -62,6 +75,8 @@ class AdaptiveCoverBinarySensor(
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
         }
+        self._key = key
+        self._attr_translation_key = key
         self._name = config_entry.data["name"]
         self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
         self._binary_name = binary_name
@@ -82,4 +97,9 @@ class AdaptiveCoverBinarySensor(
     @property
     def is_on(self) -> bool:
         """Return true if the binary sensor is on."""
-        return self.coordinator.data.states["binary"]
+        return self.coordinator.data.states[self._key]
+
+    @property
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:  # noqa: D102
+        if self._key == "manual_override":
+            return {"manual_controlled": self.coordinator.data.states["manual_list"]}

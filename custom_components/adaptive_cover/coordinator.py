@@ -188,7 +188,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 "start": NormalCoverState(cover_data).cover.solar_times()[0],
                 "end": NormalCoverState(cover_data).cover.solar_times()[1],
                 "control": control_method,
-                "binary": NormalCoverState(cover_data).cover.valid,
+                "sun_motion": NormalCoverState(cover_data).cover.valid,
+                "manual_override": self.manager.binary_cover_manual,
+                "manual_list": self.manager.manual_controlled,
             },
             attributes={
                 "default": self.config_entry.options.get(CONF_DEFAULT_HEIGHT),
@@ -446,3 +448,11 @@ class AdaptiveCoverManager:
 
     def is_cover_manual(self, entity_id):
         return self.manual_control.get(entity_id, False)
+
+    @property
+    def binary_cover_manual(self):
+        return any(value for value in self.manual_control.values())
+
+    @property
+    def manual_controlled(self):
+        return [k for k, v in self.manual_control.items() if v]
