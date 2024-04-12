@@ -62,12 +62,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .helpers import (
-    get_datetime_from_state,
-    get_last_updated,
-    get_safe_state,
-    get_time,
-)
+from .helpers import get_datetime_from_state, get_last_updated, get_safe_state, get_time
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -415,6 +410,8 @@ class AdaptiveCoverManager:
             )
             self.mark_manual_control(entity_id)
             self.set_last_updated(entity_id, new_state, allow_reset)
+        else:
+            self.reset(entity_id)
 
     def set_last_updated(self, entity_id, new_state, allow_reset):
         """Set last updated time for manual control."""
@@ -445,7 +442,7 @@ class AdaptiveCoverManager:
         for entity_id, last_updated in manual_control_time_copy.items():
             if current_time - last_updated > self.reset_duration:
                 _LOGGER.debug(
-                    "Resetting manual override for %s, because duration has elasped",
+                    "Resetting manual override for %s, because duration has elapsed",
                     entity_id,
                 )
                 self.reset(entity_id)
