@@ -11,6 +11,8 @@ frontend:
 
 logger:
   default: "info"
+  logs:
+    custom_components.adaptive_cover: debug
 
 cover:
   - platform: template

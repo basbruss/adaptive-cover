@@ -110,6 +110,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.state_change = False
         self.state_change_data: StateChangedData | None = None
         self.manager = AdaptiveCoverManager(self.manual_duration)
+        self.send_call = False
 
     async def async_config_entry_first_refresh(self):
         """Call the first update from config_entry."""
@@ -171,9 +172,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         self.default_state = round(NormalCoverState(cover_data).get_state())
 
+        state_range = range(
+            int(self.state - self.min_change), int(self.state + 1 + self.min_change)
+        )
+
         if self.state_change:
             self.manager.state_change(
-                self.state_change_data, self.state, self._cover_type, self.manual_reset
+                self.state_change_data, state_range, self._cover_type, self.manual_reset
             )
             self.state_change = False  # reset state change
         await self.manager.reset_if_needed()
@@ -296,7 +301,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         return [
             self.config_entry.options.get(CONF_SUNSET_POS),
             self.config_entry.options.get(CONF_SUNSET_OFFSET),
-            self.config_entry.options.get(CONF_SUNRISE_OFFSET,self.config_entry.options.get(CONF_SUNSET_OFFSET)),
+            self.config_entry.options.get(
+                CONF_SUNRISE_OFFSET, self.config_entry.options.get(CONF_SUNSET_OFFSET)
+            ),
             self.hass.config.time_zone,
             self.config_entry.options.get(CONF_FOV_LEFT),
             self.config_entry.options.get(CONF_FOV_RIGHT),
@@ -399,7 +406,7 @@ class AdaptiveCoverManager:
         else:
             new_position = new_state.attributes.get("current_position")
 
-        if new_position != our_state:
+        if new_position not in our_state:
             _LOGGER.debug(
                 "Set manual control for %s, for at least %s seconds, reset_allowed: %s",
                 entity_id,
