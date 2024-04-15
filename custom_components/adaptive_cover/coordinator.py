@@ -228,9 +228,6 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     self.config_entry.options.get(CONF_FOV_LEFT),
                     self.config_entry.options.get(CONF_FOV_RIGHT),
                 ],
-                "wait_for_target": self.wait_for_target,
-                "target_call": self.target_call,
-                "manual_control": self.manager.manual_controlled,
             },
         )
 
