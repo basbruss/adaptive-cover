@@ -102,10 +102,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.manual_duration = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
         )
-        self.state_change = False
+        self.cover_state_change = False
         self.state_change_data: StateChangedData | None = None
         self.manager = AdaptiveCoverManager(self.manual_duration)
-        self.send_call = False
+        self.wait_for_target = {}
+        self.target_call = {}
 
     async def async_config_entry_first_refresh(self):
         """Call the first update from config_entry."""
