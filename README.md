@@ -15,6 +15,7 @@ This integration builds upon the template sensor from this forum post [Automatic
 - Two mode approach with multiple strategies [Modes(`basic`,`climate`)](https://github.com/basbruss/adaptive-cover?tab=readme-ov-file#strategy)
 - Binary Sensor to track when the sun is in front of the window
 - Sensors for `start` and `end` time
+- Auto manual override detection
 
 - **Climate Mode**
 
