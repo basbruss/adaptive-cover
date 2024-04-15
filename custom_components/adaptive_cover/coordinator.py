@@ -102,9 +102,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.manual_duration = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
         )
-        self.state_change = False
+        self.cover_state_change = False
         self.state_change_data: StateChangedData | None = None
         self.manager = AdaptiveCoverManager(self.manual_duration)
+        self.wait_for_target = {}
+        self.target_call = {}
 
     async def async_config_entry_first_refresh(self):
         """Call the first update from config_entry."""
@@ -117,9 +119,33 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self, entity: str, old_state: State | None, new_state: State | None
     ) -> None:
         """Fetch and process state change event."""
-        self.state_change_data = StateChangedData(entity, old_state, new_state)
-        self.state_change = True
+        # self.state_change = True
         await self.async_refresh()
+
+    async def async_check_cover_state_change(
+        self, entity: str, old_state: State | None, new_state: State | None
+    ) -> None:
+        """Fetch and process state change event."""
+        self.state_change_data = StateChangedData(entity, old_state, new_state)
+        self.cover_state_change = True
+        self.process_entity_state_change()
+        await self.async_refresh()
+
+    def process_entity_state_change(self):
+        """Process state change event."""
+        event = self.state_change_data
+        _LOGGER.debug("Processing state change event: %s", event)
+        entity_id = event.entity_id
+        if self.wait_for_target.get(entity_id):
+            position = event.new_state.attributes.get(
+                "current_position"
+                if self._cover_type != "cover_tilt"
+                else "current_tilt_position"
+            )
+            if position == self.target_call.get(entity_id):
+                self.wait_for_target[entity_id] = False
+                _LOGGER.debug("Position %s reached for %s", position, entity_id)
+        _LOGGER.debug("Wait for target: %s", self.wait_for_target)
 
     async def _async_update_data(self) -> AdaptiveCoverData:
         self.entities = self.config_entry.options.get(CONF_ENTITIES, [])
@@ -166,15 +192,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         self.default_state = round(NormalCoverState(cover_data).get_state())
 
-        state_range = range(
-            int(self.state - self.min_change), int(self.state + 1 + self.min_change)
-        )
-
-        if self.state_change:
-            self.manager.state_change(
-                self.state_change_data, state_range, self._cover_type, self.manual_reset
+        if self.cover_state_change:
+            self.manager.handle_state_change(
+                self.state_change_data,
+                self.state,
+                self._cover_type,
+                self.manual_reset,
+                self.wait_for_target,
             )
-            self.state_change = False  # reset state change
+            self.cover_state_change = False  # reset state change
         await self.manager.reset_if_needed()
 
         if self.control_toggle:
@@ -202,6 +228,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     self.config_entry.options.get(CONF_FOV_LEFT),
                     self.config_entry.options.get(CONF_FOV_RIGHT),
                 ],
+                "wait_for_target": self.wait_for_target,
+                "target_call": self.target_call,
+                "manual_control": self.manager.manual_controlled,
             },
         )
 
@@ -226,6 +255,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         else:
             service_data[ATTR_POSITION] = self.state
 
+        self.wait_for_target[entity] = True
+        self.target_call[entity] = self.state
         await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
         _LOGGER.debug("Run %s with data %s", service, service_data)
 
@@ -384,13 +415,17 @@ class AdaptiveCoverManager:
         """Update set with entities."""
         self.covers.update(entity)
 
-    def state_change(self, states_data, our_state, blind_type, allow_reset):
+    def handle_state_change(
+        self, states_data, our_state, blind_type, allow_reset, wait_target_call
+    ):
         """Process state change event."""
         event = states_data
         if event is None:
             return
         entity_id = event.entity_id
         if entity_id not in self.covers:
+            return
+        if wait_target_call[entity_id]:
             return
 
         new_state = event.new_state
@@ -400,7 +435,7 @@ class AdaptiveCoverManager:
         else:
             new_position = new_state.attributes.get("current_position")
 
-        if new_position not in our_state:
+        if new_position != our_state:
             _LOGGER.debug(
                 "Set manual control for %s, for at least %s seconds, reset_allowed: %s",
                 entity_id,
@@ -409,8 +444,6 @@ class AdaptiveCoverManager:
             )
             self.mark_manual_control(entity_id)
             self.set_last_updated(entity_id, new_state, allow_reset)
-        else:
-            self.reset(entity_id)
 
     def set_last_updated(self, entity_id, new_state, allow_reset):
         """Set last updated time for manual control."""
@@ -450,6 +483,7 @@ class AdaptiveCoverManager:
         """Reset manual control for a cover."""
         self.manual_control[entity_id] = False
         self.manual_control_time.pop(entity_id, None)
+        _LOGGER.debug("Reset manual override for %s", entity_id)
 
     def is_cover_manual(self, entity_id):
         """Check if a cover is under manual control."""
