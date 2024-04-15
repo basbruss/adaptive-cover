@@ -109,23 +109,28 @@ Tilted blinds will only defect from the above approach if the inside temperature
 
 ## Entities
 
-The integration provides dynamically based on the modes and/or variables that are configured in total of 3 switches and 5 sensors.
+The integration adds dynamically based on the used features multiple entities.
 
-1. A cover position sensor: Represents the best position for the cover based on all the inputs and mode selected.
+These entities are always available:
+| Entities                                      | Default        | Description                                                                                                            |
+| --------------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `sensor.{type}_cover_position_{name}`         |                | Reflects the current state determined by predefined settings and factors such as sun position, weather, and temperature   |
+| `sensor.{type}_control_method_{name}`         | `intermediate` | Indicates the active control strategy based on weather conditions. Options include `winter`, `summer`, and `intermediate` |
+| `sensor.{type}_start_sun_{name}`              |                | Shows the starting time when the sun enters the window's view, with an interval of every 5 minutes..               |
+| `sensor.{type}_end_sun_{name}`                |                | Indicates the ending time when the sun exits the window's view, with an interval of every 5 minutes.         |
+| `binary_sensor.{type}_manual_override_{name}` | `off`          | Indicates if manual override is engaged for any blinds.                             |
+| `binary_sensor.{type}_sun_infront_{name}`     | `off`          | Indicates whether the sun is in front of the window within the designated field of view.              |
+| `switch.{type}_toggle_control_{name}`     | `on`          | Activates the adaptive control feature. When enabled, blinds adjust based on calculated position, unless manually overridden.                         |
+| `switch.{type}_manual_override_{name}`     | `on`          | Enables detection of manual overrides. A cover is marked if its position differs from the calculated one, resetting to adaptive control after a set duration.                   |
+| `button.{type}_reset_manual_override_{name}`     | `on`          | Resets manual override tags for all covers; if `switch.{type}_toggle_control_{name}` is on, it also restores blinds to their correct positions.      |
 
-2. A switch to toggle the adaptive control.
+When climate mode is setup you will also get these entities:
 
-3. A switch to toggle the climate mode on/off. (_only if additional parameters needed for the climate mode are configured_)
+| Entities                                      | Default        | Description                                                                                                            |
+| --------------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `switch.{type}_climate_mode_{name}`         |        `on`      | Enables climate mode strategy; otherwise, defaults to the standard strategy.   |
+| `switch.{type}_outside_temperature_{name}`         |        `on`      | Switches between inside and outside temperatures as the basis for determining the climate control strategy.   |
 
-4. A switch to toggle between inside or outdoor temperatures. (_Only if a weather entity or outside temperature sensor and a indoor temperature sensor are configured_)
-
-5. A sensor indicating the start time of the sun being in sight of the cover/window.
-
-6. A sensor indicating the end time of the sun being in sight of the cover/window.
-
-7. A binary sensor that turns on if the sun is insight of the window.
-
-8. A sensor that shows the climate control strategy used in climate mode.
 
 ![entities](https://github.com/basbruss/adaptive-cover/blob/main/images/entities.png)
 
