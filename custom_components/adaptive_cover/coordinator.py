@@ -192,14 +192,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         self.default_state = round(NormalCoverState(cover_data).get_state())
 
-        state_range = range(
-            int(self.state - self.min_change), int(self.state + 1 + self.min_change)
-        )
-
         if self.cover_state_change:
             self.manager.handle_state_change(
                 self.state_change_data,
-                state_range,
+                self.state,
                 self._cover_type,
                 self.manual_reset,
                 self.wait_for_target,
