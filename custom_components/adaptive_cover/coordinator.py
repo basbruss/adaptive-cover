@@ -105,7 +105,6 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.state_change = False
         self.state_change_data: StateChangedData | None = None
         self.manager = AdaptiveCoverManager(self.manual_duration)
-        self.send_call = False
 
     async def async_config_entry_first_refresh(self):
         """Call the first update from config_entry."""

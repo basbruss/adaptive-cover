@@ -80,7 +80,8 @@ class AdaptiveCoverButton(
         for entity in self._entities:
             if self.coordinator.manager.is_cover_manual(entity):
                 _LOGGER.debug("Resetting manual override for: %s", entity)
-                await self.coordinator.async_set_position(entity)
+                if self.coordinator._control_toggle:
+                    await self.coordinator.async_set_position(entity)
                 self.coordinator.manager.reset(entity)
             else:
                 _LOGGER.debug(
