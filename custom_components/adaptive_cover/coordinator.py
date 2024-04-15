@@ -435,7 +435,7 @@ class AdaptiveCoverManager:
         else:
             new_position = new_state.attributes.get("current_position")
 
-        if new_position not in our_state:
+        if new_position != our_state:
             _LOGGER.debug(
                 "Set manual control for %s, for at least %s seconds, reset_allowed: %s",
                 entity_id,
