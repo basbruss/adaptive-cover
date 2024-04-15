@@ -47,7 +47,7 @@ async def async_setup_entry(
         BinarySensorDeviceClass.RUNNING,
         coordinator,
     )
-    async_add_entities([binary_sensor])
+    async_add_entities([binary_sensor, manual_override])
 
 
 class AdaptiveCoverBinarySensor(

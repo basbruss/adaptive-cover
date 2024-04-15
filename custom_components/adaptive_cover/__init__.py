@@ -46,13 +46,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     for entity in [_temp_entity, _presence_entity, _weather_entity]:
         if entity is not None:
             _entities.append(entity)
-    _entities += _cover_entities
 
     entry.async_on_unload(
         async_track_state_change(
             hass,
             _entities,
             coordinator.async_check_entity_state_change,
+        )
+    )
+
+    entry.async_on_unload(
+        async_track_state_change(
+            hass,
+            _cover_entities,
+            coordinator.async_check_cover_state_change,
         )
     )
 
