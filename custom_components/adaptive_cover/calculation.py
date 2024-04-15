@@ -346,6 +346,23 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
 
 
 @dataclass
+class AdaptiveDoubleRollerCover(AdaptiveVerticalCover):
+    """Calculate state for Double roller blinds."""
+
+    def calc_sun_percentage(self):
+        """Calculate the sun percentage based on the solar position and field of view."""
+        azi_min = min(self.fov_left, 90)
+        azi_max = min(self.fov_right, 90)
+
+        if 0 <= self.gamma <= azi_min:
+            return round(100 - self.gamma / azi_min * 100)
+        elif 0 >= self.gamma >= -azi_max:
+            return round(100 + (self.gamma / azi_max * 100))
+        else:
+            return int(self.default)
+
+
+@dataclass
 class AdaptiveHorizontalCover(AdaptiveVerticalCover):
     """Calculate state for Horizontal blinds."""
 

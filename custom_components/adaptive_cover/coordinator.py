@@ -18,6 +18,7 @@ from homeassistant.helpers.template import state_attr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .calculation import (
+    AdaptiveDoubleRollerCover,
     AdaptiveHorizontalCover,
     AdaptiveTiltCover,
     AdaptiveVerticalCover,
@@ -274,6 +275,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self._cover_type == "cover_tilt":
             cover_data = AdaptiveTiltCover(
                 self.hass, *self.pos_sun, *self.common_data, *self.tilt_data
+            )
+        if self._cover_type == "cover_double_roller":
+            cover_data = AdaptiveDoubleRollerCover(
+                self.hass, *self.pos_sun, *self.common_data, *self.vertical_data
             )
         return cover_data
 
