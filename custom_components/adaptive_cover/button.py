@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -81,10 +83,12 @@ class AdaptiveCoverButton(
             if self.coordinator.manager.is_cover_manual(entity):
                 _LOGGER.debug("Resetting manual override for: %s", entity)
                 await self.coordinator.async_set_position(entity)
+                while self.coordinator.wait_for_target.get(entity):
+                    await asyncio.sleep(1)
                 self.coordinator.manager.reset(entity)
             else:
                 _LOGGER.debug(
-                    "Resetting manual override for %s is not needed since it is already auto-cotrolled",
+                    "Resetting manual override for %s is not needed since it is already auto-controlled",
                     entity,
                 )
         await self.coordinator.async_refresh()
