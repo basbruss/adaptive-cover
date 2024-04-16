@@ -328,7 +328,8 @@
       "options": {
         "cover_blind": "Vertical blind",
         "cover_awning": "Horizontal blind",
-        "cover_tilt": "Tilted blind"
+        "cover_tilt": "Tilted blind",
+        "cover_double_roller": "Zebra blind"
       }
     },
     "tilt_mode": {

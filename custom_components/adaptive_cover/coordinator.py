@@ -36,6 +36,7 @@ from .const import (
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
     CONF_DISTANCE,
+    CONF_DOUBLE_ROLLER,
     CONF_ENTITIES,
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
@@ -100,6 +101,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
         self._temp_toggle = False
         self._control_toggle = True
+        self._double_toggle = self.config_entry.options.get(CONF_DOUBLE_ROLLER, True)
         self.manual_duration = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
         )
@@ -213,6 +215,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             climate_mode_toggle=self.switch_mode,
             states={
                 "state": self.state,
+                "double_state": NormalCoverState(cover_data).cover.calc_sun_percentage()
+                if self._cover_type == "cover_double_roller"
+                else None,
                 "start": NormalCoverState(cover_data).cover.solar_times()[0],
                 "end": NormalCoverState(cover_data).cover.solar_times()[1],
                 "control": control_method,
@@ -400,6 +405,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     @control_toggle.setter
     def control_toggle(self, value):
         self._control_toggle = value
+
+    @property
+    def double_toggle(self):
+        """Toggle automation."""
+        return self._double_toggle
+
+    @double_toggle.setter
+    def double_toggle(self, value):
+        self._double_toggle = value
 
 
 class AdaptiveCoverManager:

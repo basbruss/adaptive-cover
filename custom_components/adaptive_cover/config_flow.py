@@ -22,6 +22,7 @@ from .const import (
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
     CONF_DISTANCE,
+    CONF_DOUBLE_ROLLER,
     CONF_ENTITIES,
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
@@ -55,7 +56,12 @@ from .const import (
 
 # DEFAULT_NAME = "Adaptive Cover"
 
-SENSOR_TYPE_MENU = [SensorType.BLIND, SensorType.AWNING, SensorType.TILT]
+SENSOR_TYPE_MENU = [
+    SensorType.BLIND,
+    SensorType.AWNING,
+    SensorType.TILT,
+    SensorType.DOUBLE_ROLLER,
+]
 
 
 CONFIG_SCHEMA = vol.Schema(
@@ -226,6 +232,12 @@ CLIMATE_OPTIONS = vol.Schema(
     }
 )
 
+DOUBLE_ROLLER_OPTIONS = vol.Schema(
+    {
+        vol.Optional(CONF_DOUBLE_ROLLER, default=True): selector.BooleanSelector(),
+    }
+).extend(VERTICAL_OPTIONS.schema)
+
 WEATHER_OPTIONS = vol.Schema(
     {
         vol.Optional(
@@ -308,6 +320,8 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 return await self.async_step_horizontal()
             if self.config[CONF_MODE] == SensorType.TILT:
                 return await self.async_step_tilt()
+            if self.config[CONF_MODE] == SensorType.DOUBLE_ROLLER:
+                return await self.async_step_double_roller()
         return self.async_show_form(step_id="user", data_schema=CONFIG_SCHEMA)
 
     async def async_step_vertical(self, user_input: dict[str, Any] | None = None):
@@ -342,6 +356,17 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             step_id="tilt", data_schema=CLIMATE_MODE.extend(TILT_OPTIONS.schema)
         )
 
+    async def async_step_double_roller(self, user_input: dict[str, Any] | None = None):
+        """Show basic config for zebra blinds."""
+        self.type_blind = SensorType.DOUBLE_ROLLER
+        if user_input is not None:
+            self.config.update(user_input)
+            return await self.async_step_automation()
+        return self.async_show_form(
+            step_id="double_roller",
+            data_schema=CLIMATE_MODE.extend(DOUBLE_ROLLER_OPTIONS.schema),
+        )
+
     async def async_step_automation(self, user_input: dict[str, Any] | None = None):
         """Manage automation options."""
         if user_input is not None:
@@ -373,6 +398,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
+            "cover_double_roller": "Double Roller",
         }
         return self.async_create_entry(
             title=f"{type[self.type_blind]} {self.config['name']}",
@@ -415,6 +441,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                     CONF_MANUAL_OVERRIDE_DURATION
                 ),
                 CONF_MANUAL_OVERRIDE_RESET: self.config.get(CONF_MANUAL_OVERRIDE_RESET),
+                CONF_DOUBLE_ROLLER: self.config.get(CONF_DOUBLE_ROLLER),
             },
         )
 
@@ -460,6 +487,8 @@ class OptionsFlowHandler(OptionsFlow):
             return await self.async_step_horizontal()
         if self.sensor_type == SensorType.TILT:
             return await self.async_step_tilt()
+        if self.sensor_type == SensorType.DOUBLE_ROLLER:
+            return await self.async_step_double_roller()
 
     async def async_step_vertical(self, user_input: dict[str, Any] | None = None):
         """Show basic config for vertical blinds."""
@@ -510,6 +539,22 @@ class OptionsFlowHandler(OptionsFlow):
             return await self._update_options()
         return self.async_show_form(
             step_id="tilt",
+            data_schema=self.add_suggested_values_to_schema(
+                schema, user_input or self.options
+            ),
+        )
+
+    async def async_step_double_roller(self, user_input: dict[str, Any] | None = None):
+        """Show basic config for zebra blinds."""
+        self.type_blind = SensorType.DOUBLE_ROLLER
+        schema = CLIMATE_MODE.extend(DOUBLE_ROLLER_OPTIONS.schema)
+        if self.options[CONF_CLIMATE_MODE]:
+            schema = DOUBLE_ROLLER_OPTIONS
+        if user_input is not None:
+            self.options.update(user_input)
+            return await self.async_step_automation()
+        return self.async_show_form(
+            step_id="double_roller",
             data_schema=self.add_suggested_values_to_schema(
                 schema, user_input or self.options
             ),

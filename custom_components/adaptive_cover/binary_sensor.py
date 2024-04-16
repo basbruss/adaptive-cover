@@ -74,6 +74,7 @@ class AdaptiveCoverBinarySensor(
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
+            "cover_double_roller": "Double Roller",
         }
         self._key = key
         self._attr_translation_key = key

@@ -16,6 +16,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     _LOGGER,
     CONF_CLIMATE_MODE,
+    CONF_DOUBLE_ROLLER,
     CONF_ENTITIES,
     CONF_OUTSIDETEMP_ENTITY,
     CONF_SENSOR_TYPE,
@@ -67,6 +68,14 @@ async def async_setup_entry(
         "temp_toggle",
         coordinator,
     )
+    double_switch = AdaptiveCoverSwitch(
+        config_entry,
+        config_entry.entry_id,
+        "Control Vertical",
+        config_entry.options.get(CONF_DOUBLE_ROLLER, True),
+        "double_toggle",
+        coordinator,
+    )
 
     climate_mode = config_entry.options.get(CONF_CLIMATE_MODE)
     weather_entity = config_entry.options.get(CONF_WEATHER_ENTITY)
@@ -80,6 +89,9 @@ async def async_setup_entry(
         switches.append(climate_switch)
         if weather_entity or sensor_entity:
             switches.append(temp_switch)
+
+    if coordinator._cover_type == "cover_double_roller":
+        switches.append(double_switch)
 
     async_add_entities(switches)
 
@@ -108,6 +120,7 @@ class AdaptiveCoverSwitch(
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
+            "cover_double_roller": "Double Roller",
         }
         self._name = config_entry.data["name"]
         self._state: bool | None = None

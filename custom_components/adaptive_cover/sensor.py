@@ -38,7 +38,13 @@ async def async_setup_entry(
     ]
 
     sensor = AdaptiveCoverSensorEntity(
-        config_entry.entry_id, hass, config_entry, name, coordinator
+        config_entry.entry_id,
+        hass,
+        config_entry,
+        "state",
+        "Cover Position",
+        name,
+        coordinator,
     )
     start = AdaptiveCoverTimeSensorEntity(
         config_entry.entry_id,
@@ -63,7 +69,19 @@ async def async_setup_entry(
     control = AdaptiveCoverControlSensorEntity(
         config_entry.entry_id, hass, config_entry, name, coordinator
     )
-    async_add_entities([sensor, start, end, control])
+    double_roller = AdaptiveCoverSensorEntity(
+        config_entry.entry_id,
+        hass,
+        config_entry,
+        "double_state",
+        "Cover Double Position",
+        name,
+        coordinator,
+    )
+    entities = [sensor, start, end, control]
+    if coordinator._cover_type == "cover_double_roller":
+        entities.append(double_roller)
+    async_add_entities(entities)
 
 
 class AdaptiveCoverSensorEntity(
@@ -82,6 +100,8 @@ class AdaptiveCoverSensorEntity(
         unique_id: str,
         hass,
         config_entry,
+        key: str,
+        sensor_name: str,
         name: str,
         coordinator: AdaptiveDataUpdateCoordinator,
     ) -> None:
@@ -91,10 +111,12 @@ class AdaptiveCoverSensorEntity(
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
+            "cover_double_roller": "Double Roller",
         }
         self.coordinator = coordinator
         self.data = self.coordinator.data
-        self._sensor_name = "Cover Position"
+        self.key = key
+        self._sensor_name = sensor_name
         self._attr_unique_id = f"{unique_id}_{self._sensor_name}"
         self.hass = hass
         self.config_entry = config_entry
@@ -116,7 +138,7 @@ class AdaptiveCoverSensorEntity(
     @property
     def native_value(self) -> str | None:
         """Handle when entity is added."""
-        return self.data.states["state"]
+        return self.data.states[self.key]
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -129,7 +151,8 @@ class AdaptiveCoverSensorEntity(
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:  # noqa: D102
-        return self.data.attributes
+        if self.key == "state":
+            return self.data.attributes
 
 
 class AdaptiveCoverTimeSensorEntity(
@@ -158,6 +181,7 @@ class AdaptiveCoverTimeSensorEntity(
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
+            "cover_double_roller": "Double Roller",
         }
         self._attr_icon = icon
         self.key = key
@@ -221,6 +245,7 @@ class AdaptiveCoverControlSensorEntity(
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
+            "cover_double_roller": "Double Roller",
         }
         self.coordinator = coordinator
         self.data = self.coordinator.data

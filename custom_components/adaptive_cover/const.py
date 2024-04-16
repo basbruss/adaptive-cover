@@ -40,6 +40,7 @@ CONF_CLIMATE_MODE = "climate_mode"
 CONF_WEATHER_STATE = "weather_state"
 CONF_MAX_POSITION = "max_position"
 CONF_OUTSIDETEMP_ENTITY = "outside_temp"
+CONF_DOUBLE_ROLLER = "double_roller"
 
 
 CONF_DELTA_POSITION = "delta_position"
@@ -63,3 +64,4 @@ class SensorType:
     BLIND = "cover_blind"
     AWNING = "cover_awning"
     TILT = "cover_tilt"
+    DOUBLE_ROLLER = "cover_double_roller"
