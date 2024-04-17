@@ -123,7 +123,7 @@ OPTIONS = vol.Schema(
     }
 )
 
-VERTICAL_OPTIONS = vol.Schema(
+SET_POSITION_OPTION = vol.Schema(
     {
         vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
             selector.EntitySelectorConfig(
@@ -134,6 +134,11 @@ VERTICAL_OPTIONS = vol.Schema(
                 ),
             )
         ),
+    }
+)
+
+VERTICAL = vol.Schema(
+    {
         vol.Required(CONF_HEIGHT_WIN, default=2.1): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.1, max=6, step=0.01, mode="slider", unit_of_measurement="m"
@@ -147,6 +152,7 @@ VERTICAL_OPTIONS = vol.Schema(
     }
 ).extend(OPTIONS.schema)
 
+VERTICAL_OPTIONS = SET_POSITION_OPTION.extend(VERTICAL.schema)
 
 HORIZONTAL_OPTIONS = vol.Schema(
     {
@@ -234,9 +240,21 @@ CLIMATE_OPTIONS = vol.Schema(
 
 DOUBLE_ROLLER_OPTIONS = vol.Schema(
     {
+        vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                multiple=True,
+                filter=selector.EntityFilterSelectorConfig(
+                    domain="cover",
+                    supported_features=[
+                        "cover.CoverEntityFeature.SET_TILT_POSITION",
+                        "cover.CoverEntityFeature.SET_TILT_POSITION",
+                    ],
+                ),
+            )
+        ),
         vol.Optional(CONF_DOUBLE_ROLLER, default=True): selector.BooleanSelector(),
     }
-).extend(VERTICAL_OPTIONS.schema)
+).extend(VERTICAL.schema)
 
 WEATHER_OPTIONS = vol.Schema(
     {
