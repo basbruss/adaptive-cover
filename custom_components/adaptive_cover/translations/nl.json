@@ -27,6 +27,40 @@
           "manual_override_reset": "Optie om de duur van handmatige overschrijving na elke handmatige aanpassing te resetten; als dit is uitgeschakeld, geldt de duur alleen voor de eerste handmatige aanpassing"
         }
       },
+      "double_roller": {
+        "data": {
+          "double_roller": "Pas ook de verticale positie aan",
+          "set_azimuth": "Raam Azimuth",
+          "window_height": "Raamhoogte",
+          "distance_shaded_area": "Beschaduwde gebied",
+          "default_percentage": "Standaard positie",
+          "max_position": "Maximale positie",
+          "fov_left": "Links gezichtsveld",
+          "fov_right": "Rechts gezichtsveld",
+          "group": "Cover Entiteiten",
+          "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
+          "sunset_position": "Zonsondergang Posistie",
+          "sunset_offset": "Afwijking Zonsondergang",
+          "climate_mode": "Klimaatmodus"
+        },
+        "data_description": {
+          "double_roller": "Stel de initiële waarde van de schakelaar in om de verticale positie aan te passen",
+          "set_azimuth": "Stel Azimuth in",
+          "window_height": "Specificeer raamhoogte in meters",
+          "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",
+          "default_percentage": "Standaard bekledingspositie als percentage",
+          "max_position": "Maximale verstelbare bekledingspositie als percentage",
+          "fov_left": "Gezichtshoek naar links van het raamcentrum",
+          "fov_right": "Gezichtshoek naar rechts van het raamcentrum",
+          "group": "Selecteer entiteiten om te besturen via integratie",
+          "sunset_position": "Positie om naar over te schakelen na zonsondergang",
+          "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
+          "climate_mode": "Configureer variabelen voor klimaatmodus"
+        },
+        "description": "Configuratie van duo-rolgordijnen die kantel- en positieaanpassingen ondersteunt",
+        "title": "Duo Rolgordijn"
+      },
       "vertical": {
         "data": {
           "set_azimuth": "Raam Azimuth",
@@ -187,6 +221,40 @@
           "manual_override_reset": "Optie om de duur van handmatige overschrijving na elke handmatige aanpassing te resetten; als dit is uitgeschakeld, geldt de duur alleen voor de eerste handmatige aanpassing"
         }
       },
+      "double_roller": {
+        "data": {
+          "double_roller": "Pas ook de verticale positie aan",
+          "set_azimuth": "Raam Azimuth",
+          "window_height": "Raamhoogte",
+          "distance_shaded_area": "Beschaduwde gebied",
+          "default_percentage": "Standaard positie",
+          "max_position": "Maximale positie",
+          "fov_left": "Links gezichtsveld",
+          "fov_right": "Rechts gezichtsveld",
+          "group": "Cover Entiteiten",
+          "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
+          "sunset_position": "Zonsondergang Posistie",
+          "sunset_offset": "Afwijking Zonsondergang",
+          "climate_mode": "Klimaatmodus"
+        },
+        "data_description": {
+          "double_roller": "Stel de initiële waarde van de schakelaar in om de verticale positie aan te passen",
+          "set_azimuth": "Stel Azimuth in",
+          "window_height": "Specificeer raamhoogte in meters",
+          "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",
+          "default_percentage": "Standaard bekledingspositie als percentage",
+          "max_position": "Maximale verstelbare bekledingspositie als percentage",
+          "fov_left": "Gezichtshoek naar links van het raamcentrum",
+          "fov_right": "Gezichtshoek naar rechts van het raamcentrum",
+          "group": "Selecteer entiteiten om te besturen via integratie",
+          "sunset_position": "Positie om naar over te schakelen na zonsondergang",
+          "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
+          "climate_mode": "Configureer variabelen voor klimaatmodus"
+        },
+        "description": "Configuratie van duo-rolgordijnen die kantel- en positieaanpassingen ondersteunt",
+        "title": "Duo Rolgordijn"
+      },
       "vertical": {
         "data": {
           "set_azimuth": "Raam Azimuth",
@@ -326,7 +394,8 @@
       "options": {
         "cover_blind": "Verticaal scherm",
         "cover_awning": "Horizontaal scherm",
-        "cover_tilt": "Kantelbaar scherm"
+        "cover_tilt": "Kantelbaar scherm",
+        "cover_double_roller": "Dou Rolgordijn"
       }
     },
     "tilt_mode": {
