@@ -163,8 +163,6 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
         )
 
-        cover_data = self.get_blind_data()
-
         self.manager.add_covers(self.entities)
 
         control_method = "intermediate"
@@ -185,15 +183,17 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             ]
             climate = ClimateCoverData(*climate_data_var)
             self.climate_state = round(
-                ClimateCoverState(cover_data, climate).get_state()
+                ClimateCoverState(self.get_blind_data(), climate).get_state()
             )
-            climate_data = ClimateCoverState(cover_data, climate).climate_data
+            climate_data = ClimateCoverState(
+                self.get_blind_data(), climate
+            ).climate_data
             if climate_data.is_summer and self.switch_mode:
                 control_method = "summer"
             if climate_data.is_winter and self.switch_mode:
                 control_method = "winter"
 
-        self.default_state = round(NormalCoverState(cover_data).get_state())
+        self.default_state = round(NormalCoverState(self.get_blind_data()).get_state())
 
         if self.cover_state_change:
             self.manager.handle_state_change(
@@ -215,13 +215,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             climate_mode_toggle=self.switch_mode,
             states={
                 "state": self.state,
-                "double_state": NormalCoverState(cover_data).cover.calc_sun_percentage()
+                "double_state": self.slat_state
                 if self._cover_type == "cover_double_roller"
                 else None,
-                "start": NormalCoverState(cover_data).cover.solar_times()[0],
-                "end": NormalCoverState(cover_data).cover.solar_times()[1],
+                "start": NormalCoverState(self.get_blind_data()).cover.solar_times()[0],
+                "end": NormalCoverState(self.get_blind_data()).cover.solar_times()[1],
                 "control": control_method,
-                "sun_motion": NormalCoverState(cover_data).cover.valid,
+                "sun_motion": NormalCoverState(self.get_blind_data()).cover.valid,
                 "manual_override": self.manager.binary_cover_manual,
                 "manual_list": self.manager.manual_controlled,
             },
@@ -250,18 +250,32 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         """Call service to set cover position."""
         service = SERVICE_SET_COVER_POSITION
         service_data = {}
+        service_data_double = {}
         service_data[ATTR_ENTITY_ID] = entity
+        service_data_double[ATTR_ENTITY_ID] = entity
 
         if self._cover_type == "cover_tilt":
             service = SERVICE_SET_COVER_TILT_POSITION
             service_data[ATTR_TILT_POSITION] = self.state
-        else:
+        if self._cover_type == "cover_double_roller":
+            service_1 = SERVICE_SET_COVER_TILT_POSITION
+            service_data_double[ATTR_TILT_POSITION] = self.slat_state
+        if self._cover_type != "cover_tilt":
             service_data[ATTR_POSITION] = self.state
 
         self.wait_for_target[entity] = True
         self.target_call[entity] = self.state
-        await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
-        _LOGGER.debug("Run %s with data %s", service, service_data)
+        if self._cover_type == "cover_double_roller":
+            await self.hass.services.async_call(
+                COVER_DOMAIN, service_1, service_data_double
+            )
+            _LOGGER.debug("Run %s with data %s", service_1, service_data_double)
+            if self._double_toggle:
+                await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
+                _LOGGER.debug("Run %s with data %s", service, service_data)
+        else:
+            await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
+            _LOGGER.debug("Run %s with data %s", service, service_data)
 
     def get_blind_data(self):
         """Assign correct class for type of blind."""
@@ -378,6 +392,20 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self._inverse_state:
             state = 100 - state
         return state
+
+    @property
+    def slat_state(self):
+        """Return the current sun percentage of the double roller."""
+        if self._cover_type != "cover_double_roller":
+            return None
+
+        blind_data = self.get_blind_data()
+        sun_percentage = NormalCoverState(blind_data).cover.calc_sun_percentage()
+
+        if self._inverse_state:
+            sun_percentage = 100 - sun_percentage
+
+        return sun_percentage
 
     @property
     def switch_mode(self):
