@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from homeassistant.components.cover import DOMAIN as COVER_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_ENTITY_ID,
     SERVICE_SET_COVER_POSITION,
     SERVICE_SET_COVER_TILT_POSITION,
 )
@@ -140,15 +139,52 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         _LOGGER.debug("Processing state change event: %s", event)
         entity_id = event.entity_id
         if self.wait_for_target.get(entity_id):
-            position = event.new_state.attributes.get(
-                "current_position"
-                if self._cover_type != "cover_tilt"
-                else "current_tilt_position"
-            )
-            if position == self.target_call.get(entity_id):
-                self.wait_for_target[entity_id] = False
-                _LOGGER.debug("Position %s reached for %s", position, entity_id)
-        _LOGGER.debug("Wait for target: %s", self.wait_for_target)
+            current_position = event.new_state.attributes.get("current_position")
+            if self._cover_type in ["cover_tilt", "cover_double_roller"]:
+                current_tilt_position = event.new_state.attributes.get(
+                    "current_tilt_position"
+                )
+
+            if self._cover_type == "cover_double_roller":
+                cond_1 = current_tilt_position == self.target_call[entity_id].get(
+                    "tilt"
+                )
+                if self.double_toggle:
+                    cond_2 = current_position == self.target_call[entity_id].get(
+                        "normal"
+                    )
+                    if current_tilt_position == cond_1 and current_position == cond_2:
+                        self.wait_for_target[entity_id] = False
+                        _LOGGER.debug(
+                            "Positions tilt: %s and normal: %s  reached for %s",
+                            current_tilt_position,
+                            current_position,
+                            entity_id,
+                        )
+                if cond_1:
+                    self.wait_for_target[entity_id] = False
+                    _LOGGER.debug(
+                        "Position tilt: %s reached for %s",
+                        current_tilt_position,
+                        entity_id,
+                    )
+            if self._cover_type == "cover_tilt":
+                if current_tilt_position == self.target_call.get(entity_id).get("tilt"):
+                    self.wait_for_target[entity_id] = False
+                    _LOGGER.debug(
+                        "Position tilt: %s reached for %s",
+                        current_tilt_position,
+                        entity_id,
+                    )
+            else:
+                if current_position == self.target_call.get(entity_id).get("normal"):
+                    self.wait_for_target[entity_id] = False
+                    _LOGGER.debug(
+                        "Position normal: %s reached for %s",
+                        current_position,
+                        entity_id,
+                    )
+            _LOGGER.debug("Wait for target: %s", self.wait_for_target)
 
     async def _async_update_data(self) -> AdaptiveCoverData:
         self.entities = self.config_entry.options.get(CONF_ENTITIES, [])
@@ -202,6 +238,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self._cover_type,
                 self.manual_reset,
                 self.wait_for_target,
+                self._double_toggle,
+                self.slat_state,
             )
             self.cover_state_change = False  # reset state change
         await self.manager.reset_if_needed()
@@ -234,6 +272,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     self.config_entry.options.get(CONF_FOV_LEFT),
                     self.config_entry.options.get(CONF_FOV_RIGHT),
                 ],
+                "wait_for_target": self.wait_for_target,
+                "target_call": self.target_call,
+                "manual": self.manager.manual_control,
             },
         )
 
@@ -246,36 +287,49 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         ):
             await self.async_set_position(entity)
 
-    async def async_set_position(self, entity):
-        """Call service to set cover position."""
+    # This method calls the service to set the cover position.
+    # The service called depends on the type of cover.
+
+    async def async_set_position(self, entity: str) -> None:
+        """Call service to set cover position based on cover type."""
         service = SERVICE_SET_COVER_POSITION
-        service_data = {}
-        service_data_double = {}
-        service_data[ATTR_ENTITY_ID] = entity
-        service_data_double[ATTR_ENTITY_ID] = entity
+        service_tilt = SERVICE_SET_COVER_TILT_POSITION
+        service_data = {"entity_id": entity}
+        service_data_tilt = {"entity_id": entity}
+        self.target_call[entity] = {}
 
-        if self._cover_type == "cover_tilt":
-            service = SERVICE_SET_COVER_TILT_POSITION
-            service_data[ATTR_TILT_POSITION] = self.state
+        # Double roller cover.
         if self._cover_type == "cover_double_roller":
-            service_1 = SERVICE_SET_COVER_TILT_POSITION
-            service_data_double[ATTR_TILT_POSITION] = self.slat_state
-        if self._cover_type != "cover_tilt":
-            service_data[ATTR_POSITION] = self.state
-
-        self.wait_for_target[entity] = True
-        self.target_call[entity] = self.state
-        if self._cover_type == "cover_double_roller":
+            self.wait_for_target[entity] = True
+            self.target_call[entity]["tilt"] = self.slat_state
+            service_data_tilt[ATTR_TILT_POSITION] = self.slat_state
             await self.hass.services.async_call(
-                COVER_DOMAIN, service_1, service_data_double
+                COVER_DOMAIN, service_tilt, service_data_tilt
             )
-            _LOGGER.debug("Run %s with data %s", service_1, service_data_double)
-            if self._double_toggle:
+            _LOGGER.debug("Setting for %s slat to %s", entity, self.slat_state)
+            if self.double_toggle:
+                self.target_call[entity]["normal"] = self.state
+                service_data[ATTR_POSITION] = self.state
                 await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
-                _LOGGER.debug("Run %s with data %s", service, service_data)
+                _LOGGER.debug("Setting for %s cover to %s", entity, self.state)
+
+        # Tilt only cover.
+        elif self._cover_type == "cover_tilt":
+            self.wait_for_target[entity] = True
+            self.target_call[entity]["tilt"] = self.state
+            service_data_tilt[ATTR_TILT_POSITION] = self.state
+            await self.hass.services.async_call(
+                COVER_DOMAIN, service_tilt, service_data_tilt
+            )
+            _LOGGER.debug("Setting for %s tilt to %s", entity, self.state)
+
+        # Normal cover.
         else:
+            self.wait_for_target[entity] = True
+            self.target_call[entity]["normal"] = self.state
+            service_data[ATTR_POSITION] = self.state
             await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
-            _LOGGER.debug("Run %s with data %s", service, service_data)
+            _LOGGER.debug("Setting for %s cover to %s", entity, self.state)
 
     def get_blind_data(self):
         """Assign correct class for type of blind."""
@@ -469,7 +523,14 @@ class AdaptiveCoverManager:
         self.covers.update(entity)
 
     def handle_state_change(
-        self, states_data, our_state, blind_type, allow_reset, wait_target_call
+        self,
+        states_data,
+        our_state,
+        blind_type,
+        allow_reset,
+        wait_target_call,
+        double_toggle,
+        slat_state,
     ):
         """Process state change event."""
         event = states_data
@@ -483,12 +544,25 @@ class AdaptiveCoverManager:
 
         new_state = event.new_state
 
-        if blind_type == "cover_tilt":
+        new_position = new_state.attributes.get("current_position")
+        second_position = new_state.attributes.get("current_position")
+        if blind_type in ["cover_tilt", "cover_double_roller"]:
             new_position = new_state.attributes.get("current_tilt_position")
-        else:
-            new_position = new_state.attributes.get("current_position")
 
-        if new_position != our_state:
+        state = our_state if blind_type != "cover_double_roller" else slat_state
+        second_state = our_state if blind_type == "cover_double_roller" else 101
+        if new_position != state:
+            _LOGGER.debug(
+                "Set manual control for %s, for at least %s seconds, reset_allowed: %s",
+                entity_id,
+                self.reset_duration.total_seconds(),
+                allow_reset,
+            )
+            self.mark_manual_control(entity_id)
+            self.set_last_updated(entity_id, new_state, allow_reset)
+        if double_toggle and (
+            new_position == state and second_position != second_state
+        ):
             _LOGGER.debug(
                 "Set manual control for %s, for at least %s seconds, reset_allowed: %s",
                 entity_id,
