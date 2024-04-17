@@ -317,13 +317,22 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     def check_position(self, entity):
         """Check cover positions to reduce calls."""
-        if self._cover_type == "cover_tilt":
-            position = state_attr(self.hass, entity, "current_tilt_position")
-        else:
-            position = state_attr(self.hass, entity, "current_position")
-        if position is not None:
-            return abs(position - self.state) >= self.min_change
-        return True
+        current_position = state_attr(self.hass, entity, "current_position")
+        if self._cover_type in ["cover_tilt", "cover_double_roller"]:
+            current_position = state_attr(self.hass, entity, "current_tilt_position")
+
+        if current_position is not None:
+            condition = abs(current_position - self.state) >= self.min_change
+            if self._cover_type == "cover_double_roller" and self._double_toggle:
+                return (
+                    condition
+                    or abs(
+                        state_attr(self.hass, entity, "current_position")
+                        - self.slat_state
+                    )
+                    >= self.min_change
+                )
+            return condition
 
     def check_time_delta(self, entity):
         """Check if time delta is passed."""
