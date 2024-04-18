@@ -111,7 +111,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     async def async_config_entry_first_refresh(self):
         """Call the first update from config_entry."""
         await super().async_config_entry_first_refresh()
-        if self._control_toggle:
+        if self._control_toggle and self.after_start_time:
             for cover in self.entities:
                 await self.async_set_position(cover)
 
