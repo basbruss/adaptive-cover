@@ -112,13 +112,6 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.wait_for_target = {}
         self.target_call = {}
 
-    async def async_config_entry_first_refresh(self):
-        """Call the first update from config_entry."""
-        await super().async_config_entry_first_refresh()
-        if self._control_toggle:
-            for cover in self.entities:
-                await self.async_set_position(cover)
-
     async def async_check_entity_state_change(
         self, entity: str, old_state: State | None, new_state: State | None
     ) -> None:
