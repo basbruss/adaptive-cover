@@ -106,6 +106,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.manual_duration = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
         )
+        self.state_change = False
         self.cover_state_change = False
         self.state_change_data: StateChangedData | None = None
         self.manager = AdaptiveCoverManager(self.manual_duration)
@@ -116,7 +117,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self, entity: str, old_state: State | None, new_state: State | None
     ) -> None:
         """Fetch and process state change event."""
-        # self.state_change = True
+        self.state_change = True
         await self.async_refresh()
 
     async def async_check_cover_state_change(
@@ -164,6 +165,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         control_method = "intermediate"
         self.climate_state = None
 
+        if not self._manual_toggle:
+            for entity in self.manager.manual_controlled:
+                self.manager.reset(entity)
+
         if self._climate_mode:
             climate_data_var = [
                 self.hass,
@@ -198,14 +203,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.wait_for_target,
             )
             self.cover_state_change = False  # reset state change
-        if not self._manual_toggle:
-            for entity in self.manager.manual_controlled:
-                self.manager.reset(entity)
         await self.manager.reset_if_needed()
 
-        if self.control_toggle:
+        if self.control_toggle and self.state_change:
             for cover in self.entities:
                 await self.async_handle_call_service(cover)
+            self.state_change = False
 
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
@@ -431,7 +434,7 @@ class AdaptiveCoverManager:
         entity_id = event.entity_id
         if entity_id not in self.covers:
             return
-        if wait_target_call[entity_id]:
+        if wait_target_call.get(entity_id):
             return
 
         new_state = event.new_state

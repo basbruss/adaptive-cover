@@ -134,7 +134,7 @@ class AdaptiveCoverSwitch(
         self._attr_is_on = True
         setattr(self.coordinator, self._key, True)
         await self.coordinator.async_refresh()
-        if self._key == "control_toggle":
+        if self._key == "control_toggle" and kwargs.get("added") is not True:
             for entity in self.coordinator.entities:
                 if not self.coordinator.manager.is_cover_manual(entity):
                     await self.coordinator.async_set_position(entity)
@@ -154,6 +154,6 @@ class AdaptiveCoverSwitch(
         if (last_state is None and self._initial_state) or (
             last_state is not None and last_state.state == STATE_ON
         ):
-            await self.async_turn_on()
+            await self.async_turn_on(added=True)
         else:
             await self.async_turn_off()
