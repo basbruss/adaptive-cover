@@ -99,6 +99,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
         self._temp_toggle = False
         self._control_toggle = True
+        self._manual_toggle = True
+        self.manual_reset = self.config_entry.options.get(
+            CONF_MANUAL_OVERRIDE_RESET, False
+        )
         self.manual_duration = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
         )
@@ -192,7 +196,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         self.default_state = round(NormalCoverState(cover_data).get_state())
 
-        if self.cover_state_change:
+        if self.cover_state_change and self._manual_toggle:
             self.manager.handle_state_change(
                 self.state_change_data,
                 self.state,
@@ -201,6 +205,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.wait_for_target,
             )
             self.cover_state_change = False  # reset state change
+        if not self._manual_toggle:
+            for entity in self.manager.manual_controlled:
+                self.manager.reset(entity)
         await self.manager.reset_if_needed()
 
         if self.control_toggle:
@@ -395,6 +402,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     @control_toggle.setter
     def control_toggle(self, value):
         self._control_toggle = value
+
+    @property
+    def manual_toggle(self):
+        """Toggle automation."""
+        return self._manual_toggle
+
+    @manual_toggle.setter
+    def manual_toggle(self, value):
+        self._manual_toggle = value
 
 
 class AdaptiveCoverManager:
