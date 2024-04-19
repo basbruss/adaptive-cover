@@ -212,8 +212,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         if self.control_toggle:
             for cover in self.entities:
-                if not self.manager.is_cover_manual(cover):
-                    await self.async_handle_call_service(cover)
+                await self.async_handle_call_service(cover)
 
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
@@ -244,6 +243,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.check_position(entity)
             and self.check_time_delta(entity)
             and self.after_start_time
+            and not self.manager.is_cover_manual(entity)
         ):
             await self.async_set_position(entity)
 
