@@ -203,7 +203,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         self.default_state = round(NormalCoverState(cover_data).get_state())
 
-        if self.cover_state_change and self._manual_toggle:
+        if self.cover_state_change and self._manual_toggle and self.control_toggle:
             self.manager.handle_state_change(
                 self.state_change_data,
                 self.state,
