@@ -99,33 +99,40 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
         self._temp_toggle = False
         self._control_toggle = True
+        self._manual_toggle = True
+        self.manual_reset = self.config_entry.options.get(
+            CONF_MANUAL_OVERRIDE_RESET, False
+        )
         self.manual_duration = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
         )
+        self.state_change = False
         self.cover_state_change = False
+        self.first_refresh = False
         self.state_change_data: StateChangedData | None = None
         self.manager = AdaptiveCoverManager(self.manual_duration)
         self.wait_for_target = {}
         self.target_call = {}
 
-    async def async_config_entry_first_refresh(self):
-        """Call the first update from config_entry."""
+    async def async_config_entry_first_refresh(self) -> None:
+        """Config entry first refresh."""
+        self.first_refresh = True
         await super().async_config_entry_first_refresh()
-        if self._control_toggle:
-            for cover in self.entities:
-                await self.async_set_position(cover)
+        _LOGGER.debug("Config entry first refresh")
 
     async def async_check_entity_state_change(
         self, entity: str, old_state: State | None, new_state: State | None
     ) -> None:
         """Fetch and process state change event."""
-        # self.state_change = True
+        _LOGGER.debug("Entity state change")
+        self.state_change = True
         await self.async_refresh()
 
     async def async_check_cover_state_change(
         self, entity: str, old_state: State | None, new_state: State | None
     ) -> None:
         """Fetch and process state change event."""
+        _LOGGER.debug("Cover state change")
         self.state_change_data = StateChangedData(entity, old_state, new_state)
         self.cover_state_change = True
         self.process_entity_state_change()
@@ -167,6 +174,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         control_method = "intermediate"
         self.climate_state = None
 
+        if not self._manual_toggle:
+            for entity in self.manager.manual_controlled:
+                self.manager.reset(entity)
+
         if self._climate_mode:
             climate_data_var = [
                 self.hass,
@@ -192,7 +203,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         self.default_state = round(NormalCoverState(cover_data).get_state())
 
-        if self.cover_state_change:
+        if self.cover_state_change and self._manual_toggle and self.control_toggle:
             self.manager.handle_state_change(
                 self.state_change_data,
                 self.state,
@@ -201,12 +212,22 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.wait_for_target,
             )
             self.cover_state_change = False  # reset state change
-        await self.manager.reset_if_needed()
+            await self.manager.reset_if_needed()
 
-        if self.control_toggle:
+        if self.control_toggle and self.state_change:
             for cover in self.entities:
-                if not self.manager.is_cover_manual(cover):
-                    await self.async_handle_call_service(cover)
+                await self.async_handle_call_service(cover)
+            self.state_change = False
+
+        if self.first_refresh and self.control_toggle:
+            for cover in self.entities:
+                if (
+                    self.after_start_time
+                    and not self.manager.is_cover_manual(cover)
+                    and self.check_position(cover)
+                ):
+                    await self.async_set_position(cover)
+            self.first_refresh = False
 
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
@@ -237,6 +258,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.check_position(entity)
             and self.check_time_delta(entity)
             and self.after_start_time
+            and not self.manager.is_cover_manual(entity)
         ):
             await self.async_set_position(entity)
 
@@ -396,6 +418,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     def control_toggle(self, value):
         self._control_toggle = value
 
+    @property
+    def manual_toggle(self):
+        """Toggle automation."""
+        return self._manual_toggle
+
+    @manual_toggle.setter
+    def manual_toggle(self, value):
+        self._manual_toggle = value
+
 
 class AdaptiveCoverManager:
     """Track position changes."""
@@ -422,7 +453,7 @@ class AdaptiveCoverManager:
         entity_id = event.entity_id
         if entity_id not in self.covers:
             return
-        if wait_target_call[entity_id]:
+        if wait_target_call.get(entity_id):
             return
 
         new_state = event.new_state
