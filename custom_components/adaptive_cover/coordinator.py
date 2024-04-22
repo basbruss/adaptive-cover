@@ -108,15 +108,23 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         )
         self.state_change = False
         self.cover_state_change = False
+        self.first_refresh = False
         self.state_change_data: StateChangedData | None = None
         self.manager = AdaptiveCoverManager(self.manual_duration)
         self.wait_for_target = {}
         self.target_call = {}
 
+    async def async_config_entry_first_refresh(self) -> None:
+        """Config entry first refresh."""
+        self.first_refresh = True
+        await super().async_config_entry_first_refresh()
+        _LOGGER.debug("Config entry first refresh")
+
     async def async_check_entity_state_change(
         self, entity: str, old_state: State | None, new_state: State | None
     ) -> None:
         """Fetch and process state change event."""
+        _LOGGER.debug("Entity state change")
         self.state_change = True
         await self.async_refresh()
 
@@ -124,6 +132,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self, entity: str, old_state: State | None, new_state: State | None
     ) -> None:
         """Fetch and process state change event."""
+        _LOGGER.debug("Cover state change")
         self.state_change_data = StateChangedData(entity, old_state, new_state)
         self.cover_state_change = True
         self.process_entity_state_change()
@@ -203,12 +212,22 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.wait_for_target,
             )
             self.cover_state_change = False  # reset state change
-        await self.manager.reset_if_needed()
+            await self.manager.reset_if_needed()
 
         if self.control_toggle and self.state_change:
             for cover in self.entities:
                 await self.async_handle_call_service(cover)
             self.state_change = False
+
+        if self.first_refresh and self.control_toggle:
+            for cover in self.entities:
+                if (
+                    self.after_start_time
+                    and not self.manager.is_cover_manual(cover)
+                    and self.check_position(cover)
+                ):
+                    await self.async_set_position(cover)
+            self.first_refresh = False
 
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
