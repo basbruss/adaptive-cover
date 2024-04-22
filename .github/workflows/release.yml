@@ -14,7 +14,7 @@ jobs:
       id-token: write
     steps:
       - name: "Checkout the repository"
-        uses: "actions/checkout@v4.1.2"
+        uses: "actions/checkout@v4.1.3"
 
       - name: 🔢 Adjust version number
         shell: bash
