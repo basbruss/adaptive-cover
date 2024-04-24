@@ -146,6 +146,10 @@ class AdaptiveCoverSwitch(
         """Turn the switch on."""
         self._attr_is_on = True
         setattr(self.coordinator, self._key, True)
+        if self._key == "control_toggle" and kwargs.get("added") is not True:
+            for entity in self.coordinator.entities:
+                if not self.coordinator.manager.is_cover_manual(entity):
+                    await self.coordinator.async_set_position(entity)
         await self.coordinator.async_refresh()
         self.schedule_update_ha_state()
 
@@ -153,6 +157,9 @@ class AdaptiveCoverSwitch(
         """Turn the device off."""
         self._attr_is_on = False
         setattr(self.coordinator, self._key, False)
+        if self._key == "control_toggle" and kwargs.get("added") is not True:
+            for entity in self.coordinator.manager.manual_controlled:
+                self.coordinator.manager.reset(entity)
         await self.coordinator.async_refresh()
         self.schedule_update_ha_state()
 
@@ -163,6 +170,6 @@ class AdaptiveCoverSwitch(
         if (last_state is None and self._initial_state) or (
             last_state is not None and last_state.state == STATE_ON
         ):
-            await self.async_turn_on()
+            await self.async_turn_on(added=True)
         else:
-            await self.async_turn_off()
+            await self.async_turn_off(added=True)

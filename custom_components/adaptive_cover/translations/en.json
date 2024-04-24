@@ -201,7 +201,9 @@
       "init": {
         "menu_options": {
           "automation": "Modify Automation Configuration",
-          "blind": "Fine-tune Blind Settings"
+          "blind": "Fine-tune Blind Settings",
+          "climate": "Edit Climate Configuration",
+          "weather": "Edit Weather Configuration"
         }
       },
       "automation": {

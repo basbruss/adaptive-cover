@@ -200,7 +200,9 @@
       "init": {
         "menu_options": {
           "automation": "Wijzig Automatiseringsinstellingen",
-          "blind": "Pas parameters van de zonwering aan"
+          "blind": "Pas parameters van de zonwering aan",
+          "climate": "Bewerk Klimaatconfiguratie",
+          "weather": "Bewerk Weercondities"
         }
       },
       "automation": {

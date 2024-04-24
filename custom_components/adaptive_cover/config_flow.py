@@ -481,9 +481,12 @@ class OptionsFlowHandler(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Manage the options."""
-        return self.async_show_menu(
-            step_id="init", menu_options=["automation", "blind"]
-        )
+        options = ["automation", "blind"]
+        if self.options[CONF_CLIMATE_MODE]:
+            options.append("climate")
+        if self.options.get(CONF_WEATHER_ENTITY):
+            options.append("weather")
+        return self.async_show_menu(step_id="init", menu_options=options)
 
     async def async_step_automation(self, user_input: dict[str, Any] | None = None):
         """Manage automation options."""
