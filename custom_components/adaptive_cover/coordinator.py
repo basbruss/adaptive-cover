@@ -303,7 +303,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     def after_start_time(self):
         """Check if time is after start time."""
         if self.start_time_entity is not None:
-            time = get_datetime_from_state(get_safe_state(self.start_time_entity))
+            time = get_datetime_from_state(
+                get_safe_state(self.hass, self.start_time_entity)
+            )
             now = dt.datetime.now(dt.UTC)
             if now.date() == time.date():
                 return now >= time
