@@ -13,7 +13,7 @@ from homeassistant.const import (
     SERVICE_SET_COVER_POSITION,
     SERVICE_SET_COVER_TILT_POSITION,
 )
-from homeassistant.core import Event, EventStateChangedData, HomeAssistant, State
+from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.template import state_attr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -120,21 +120,20 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         await super().async_config_entry_first_refresh()
         _LOGGER.debug("Config entry first refresh")
 
-    async def async_check_entity_state_change(self) -> None:
+    async def async_check_entity_state_change(
+        self, entity: str, old_state: State | None, new_state: State | None
+    ) -> None:
         """Fetch and process state change event."""
         _LOGGER.debug("Entity state change")
         self.state_change = True
         await self.async_refresh()
 
     async def async_check_cover_state_change(
-        self, event: Event[EventStateChangedData]
+        self, entity: str, old_state: State | None, new_state: State | None
     ) -> None:
         """Fetch and process state change event."""
         _LOGGER.debug("Cover state change")
-        data = event.data
-        self.state_change_data = StateChangedData(
-            data["entity_id"], data["old_state"], data["new_state"]
-        )
+        self.state_change_data = StateChangedData(entity, old_state, new_state)
         self.cover_state_change = True
         self.process_entity_state_change()
         await self.async_refresh()
