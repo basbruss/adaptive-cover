@@ -6,7 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import (
-    async_track_state_change,
+    async_track_state_change_event,
 )
 
 from .const import (
@@ -48,7 +48,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _entities.append(entity)
 
     entry.async_on_unload(
-        async_track_state_change(
+        async_track_state_change_event(
             hass,
             _entities,
             coordinator.async_check_entity_state_change,
@@ -56,7 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     entry.async_on_unload(
-        async_track_state_change(
+        async_track_state_change_event(
             hass,
             _cover_entities,
             coordinator.async_check_cover_state_change,
