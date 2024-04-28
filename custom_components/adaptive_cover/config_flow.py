@@ -84,7 +84,7 @@ OPTIONS = vol.Schema(
         ),
         vol.Required(CONF_DEFAULT_HEIGHT, default=60): selector.NumberSelector(
             selector.NumberSelectorConfig(
-                min=1, max=100, step=1, mode="slider", unit_of_measurement="%"
+                min=0, max=100, step=1, mode="slider", unit_of_measurement="%"
             )
         ),
         vol.Optional(CONF_MAX_POSITION, default=100): selector.NumberSelector(
