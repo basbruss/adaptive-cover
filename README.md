@@ -54,6 +54,12 @@ Restart Home-Assistant and add the integration.
 Adaptive Cover supports (for now) three types of covers/blinds; `Vertical` and `Horizontal` and `Venetian (Tilted)` blinds.
 Each type has its own specific parameters to setup a sensor. To setup the sensor you first need to find out the azimuth of the window(s). This can be done by finding your location on [Open Street Map Compass](https://osmcompass.com/).
 
+## Cover Types
+|          | Vertical | Horizontal | Tilted  |
+|----------|----------|------------|---------|
+|          | ![alt text](images/image.png)   |      ![alt text](images/image-2.png)      | ![alt text](images/image-1.png)        |
+| Movement | Up/Down  | In/Out     | Tilting |
+
 ## Modes
 
 This component supports two strategy modes: A `basic` mode and a `climate comfort/energy saving` mode that works with presence and temperature detection.
