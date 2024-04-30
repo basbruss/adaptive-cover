@@ -58,7 +58,8 @@ Each type has its own specific parameters to setup a sensor. To setup the sensor
 |          | Vertical | Horizontal | Tilted  |
 |----------|----------|------------|---------|
 |          | ![alt text](images/image.png)   |      ![alt text](images/image-2.png)      | ![alt text](images/image-1.png)        |
-| Movement | Up/Down  | In/Out     | Tilting |
+| **Movement** | Up/Down  | In/Out     | Tilting |
+|  | [variables]()  | [variables]()    | [variables]()  |
 
 ## Modes
 
@@ -113,6 +114,66 @@ If the sun is above the horizon and the indoor temperature is below the minimal 
 The objective is to reduce glare while providing daylight to the room. All calculation is done by the basic model for Horizontal and Vertical blinds. <br> <br>
 If you added a weather entity than it will only use the above calculations if the weather state corresponds with the existence of direct sun rays. These states are `sunny`,`windy` and `partlycloudy`. If not equal to these states the position will default to the default value to allow more sunlight entering the room with minimizing the glare due to the weather condition. <br><br>
 Tilted blinds will only defect from the above approach if the inside temperature is above the maximum comfort temperature. Than the slats will be positioned at 45 degrees as this is [founded optimal](https://www.mdpi.com/1996-1073/13/7/1731).
+
+## Variables
+
+### Common
+
+|     Variables     | Default| Range | Description |
+|----------|----------|------------|---------|
+| Entities  |  [] |   |   |
+| Window Azimuth  | 180 | 0-359  |   |
+| Default Position | 60  |0-100   |   |
+| Maximum Position | 100 |1-100   |   |
+| Field of view Left  | 90 | 1-90  |   |
+| Field of view Right | 90  | 1-90  |   |
+| Default position after Sunset | 0 | 0-100  |   |
+| Offset Sunset time | 0  |   |   |
+| Offset Sunrise time  | 0 |   |   |
+| Inverse State | False |   |   |
+
+### Vertical
+|     Variables     | Default| Range | Description |
+|----------|----------|------------|---------|
+|  Window Height |  2.1 | 0.1-6  |   |
+|  Workarea Distance | 0.5 | 0.1-2 |   |
+
+### Horizontal
+|     Variables     | Default| Range | Description |
+|----------|----------|------------|---------|
+| Awning Height  |  2 |  0.1-6 |   |
+| Awning Length (horizontal)  |  2.1 |  0.3-6 |   |
+| Awning Angle  | 0  | 0-45  |   |
+| Window Height |  2.1 | 0.1-6  |   |
+| Workarea Distance | 0.5 | 0.1-2 |   |
+
+### Tilt
+|     Variables     | Default| Range | Description |
+|----------|----------|------------|---------|
+| Slat Depth  | 3  | 0.1-15  |   |
+| Slat Distance  | 2  | 0.1-15 |   |
+| Tilt Mode | Bi-directional  |   |   |
+
+### Automation
+|     Variables     | Default| Range | Description |
+|----------|----------|------------|---------|
+| Minimum Delta Position  | 1  | 90 |   |
+| Minimum Delta Time  | 2 |   |   |
+| Start Time  | `"00:00:00"` |   |   |
+| Start Time Entity  | None |   |   |
+| Manual Override Duration | `15 min` |   |   |
+| Manual Override reset Timer  | False |   |   |
+
+### Climate
+|     Variables     | Default| Range |Example| Description |
+|----------|----------|------------|---------|---------|
+| Indoor Temperature Entity  | `None`  |   |   |    |
+| Minimum Comfort Temperature  | 21 | 0-86 |   |    |
+| Maximum Comfort Temperature  | 25 | 0-86 |   |    |
+| Outdoor Temperature Entity  |  `None` |   |   |   |
+| Presence Entity  |  `None` |   |   |  |
+| Weather Entity  | `None`  |   |   |   |
+
 
 ## Entities
 
