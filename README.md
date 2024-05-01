@@ -9,51 +9,80 @@ This Custom-Integration provides sensors for vertical and horizontal blinds base
 
 This integration builds upon the template sensor from this forum post [Automatic Blinds](https://community.home-assistant.io/t/automatic-blinds-sunscreen-control-based-on-sun-platform/)
 
-## Features
+<!-- vscode-markdown-toc -->
+* 1. [Features](#Features)
+* 2. [Installation](#Installation)
+  * 2.1. [HACS (Recommended)](#HACSRecommended)
+  * 2.2. [Manual](#Manual)
+* 3. [Setup](#Setup)
+* 4. [Cover Types](#CoverTypes)
+* 5. [Modes](#Modes)
+  * 5.1. [Basic mode](#Basicmode)
+  * 5.2. [Climate mode](#Climatemode)
+    * 5.2.1. [Climate strategies](#Climatestrategies)
+* 6. [Variables](#Variables)
+  * 6.1. [Common](#Common)
+  * 6.2. [Vertical](#Vertical)
+  * 6.3. [Horizontal](#Horizontal)
+  * 6.4. [Tilt](#Tilt)
+  * 6.5. [Automation](#Automation)
+  * 6.6. [Climate](#Climate)
+* 7. [Entities](#Entities)
+* 8. [Features Planned](#FeaturesPlanned)
+  * 8.1. [Simulation](#Simulation)
+  * 8.2. [Blueprint (deprecated since v1.0.0)](#Blueprintdeprecatedsincev1.0.0)
 
-- Individual service devices for `vertical`, `horizontal` and `tilted` covers
-- Two mode approach with multiple strategies [Modes(`basic`,`climate`)](https://github.com/basbruss/adaptive-cover?tab=readme-ov-file#strategy)
-- Binary Sensor to track when the sun is in front of the window
-- Sensors for `start` and `end` time
-- Auto manual override detection
+<!-- vscode-markdown-toc-config
+	numbering=true
+	autoSave=true
+	/vscode-markdown-toc-config -->
+<!-- /vscode-markdown-toc -->
 
-- **Climate Mode**
+## 1. <a name='Features'></a>Features
 
-  - Weather condition based operation
-  - Presence based operation
-  - Switch to toggle climate mode
-  - Sensor for displaying the operation modus (`winter`,`intermediate`,`summer`)
+* Individual service devices for `vertical`, `horizontal` and `tilted` covers
+* Two mode approach with multiple strategies [Modes(`basic`,`climate`)](https://github.com/basbruss/adaptive-cover?tab=readme-ov-file#strategy)
+* Binary Sensor to track when the sun is in front of the window
+* Sensors for `start` and `end` time
+* Auto manual override detection
 
-- **Adaptive Control**
+* **Climate Mode**
 
-  - Turn control on/off
-  - Control multiple covers
-  - Set start time to prevent opening blinds while you are asleep
-  - Set minimum interval time between position changes
-  - set minimum percentage change
+  * Weather condition based operation
+  * Presence based operation
+  * Switch to toggle climate mode
+  * Sensor for displaying the operation modus (`winter`,`intermediate`,`summer`)
 
-## Installation
+* **Adaptive Control**
 
-### HACS (Recommended)
+  * Turn control on/off
+  * Control multiple covers
+  * Set start time to prevent opening blinds while you are asleep
+  * Set minimum interval time between position changes
+  * set minimum percentage change
+
+## 2. <a name='Installation'></a>Installation
+
+### 2.1. <a name='HACSRecommended'></a>HACS (Recommended)
 
 Add <https://github.com/basbruss/adaptive-cover> as custom repository to HACS.
 Search and download Adaptive Cover within HACS.
 
 Restart Home-Assistant and add the integration.
 
-### Manual
+### 2.2. <a name='Manual'></a>Manual
 
 Download the `adaptive_cover` folder from this github.
 Add the folder to `config/custom_components/`.
 
 Restart Home-Assistant and add the integration.
 
-## Setup
+## 3. <a name='Setup'></a>Setup
 
 Adaptive Cover supports (for now) three types of covers/blinds; `Vertical` and `Horizontal` and `Venetian (Tilted)` blinds.
 Each type has its own specific parameters to setup a sensor. To setup the sensor you first need to find out the azimuth of the window(s). This can be done by finding your location on [Open Street Map Compass](https://osmcompass.com/).
 
-## Cover Types
+## 4. <a name='CoverTypes'></a>Cover Types
 
 |          | Vertical | Horizontal | Tilted  |
 |----------|----------|------------|---------|
@@ -61,7 +90,7 @@ Each type has its own specific parameters to setup a sensor. To setup the sensor
 | **Movement** | Up/Down  | In/Out     | Tilting |
 |  | [variables]()  | [variables]()    | [variables]()  |
 
-## Modes
+## 5. <a name='Modes'></a>Modes
 
 This component supports two strategy modes: A `basic` mode and a `climate comfort/energy saving` mode that works with presence and temperature detection.
 
@@ -90,35 +119,35 @@ This component supports two strategy modes: A `basic` mode and a `climate comfor
         N --> D
 ```
 
-### Basic mode
+### 5.1. <a name='Basicmode'></a>Basic mode
 
 This mode uses the calculated position when the sun is within the specified azimuth range of the window. Else it defaults to the default value or after sunset value depending on the time of day.
 
-### Climate mode
+### 5.2. <a name='Climatemode'></a>Climate mode
 
 This mode calculates the position based on extra parameters for presence, indoor temperature, minimal comfort temperature, maximum comfort temperature and weather (optional).
 This mode is split up in two types of strategies; [Presence](https://github.com/basbruss/adaptive-cover?tab=readme-ov-file#presence) and [No Presence](https://github.com/basbruss/adaptive-cover?tab=readme-ov-file#no-presence).
 
-#### Climate strategies
+#### 5.2.1. <a name='Climatestrategies'></a>Climate strategies
 
-- **No Presence**:
+* **No Presence**:
 Providing daylight to the room is no objective if there is no presence.
 
-  - **Below minimal comfort temperature**:
+  * **Below minimal comfort temperature**:
 If the sun is above the horizon and the indoor temperature is below the minimal comfort temperature it opens the blind fully or tilt the slats to be parallel with the sun rays to allow for maximum solar radiation to heat up the room.
 
-  - **Above maximum comfort temperature**:
+  * **Above maximum comfort temperature**:
     The objective is to not heat up the room any further by blocking out all possible radiation. All blinds close fully to block out light. <br> <br>
     If the indoor temperature is between both thresholds the position defaults to the set default value based on the time of day.
 
-- **Presence**:
+* **Presence**:
 The objective is to reduce glare while providing daylight to the room. All calculation is done by the basic model for Horizontal and Vertical blinds. <br> <br>
 If you added a weather entity than it will only use the above calculations if the weather state corresponds with the existence of direct sun rays. These states are `sunny`,`windy` and `partlycloudy`. If not equal to these states the position will default to the default value to allow more sunlight entering the room with minimizing the glare due to the weather condition. <br><br>
 Tilted blinds will only defect from the above approach if the inside temperature is above the maximum comfort temperature. Than the slats will be positioned at 45 degrees as this is [founded optimal](https://www.mdpi.com/1996-1073/13/7/1731).
 
-## Variables
+## 6. <a name='Variables'></a>Variables
 
-### Common
+### 6.1. <a name='Common'></a>Common
 
 |     Variables     | Default| Range | Description |
 |----------|----------|------------|---------|
@@ -133,14 +162,14 @@ Tilted blinds will only defect from the above approach if the inside temperature
 | Offset Sunrise time  | 0 |   | Additional minutes before/after sunrise |
 | Inverse State | False |   | Calculates inverse state for covers fully closed at 100% |
 
-### Vertical
+### 6.2. <a name='Vertical'></a>Vertical
 
 |     Variables     | Default| Range | Description |
 |----------|----------|------------|---------|
 |  Window Height |  2.1 | 0.1-6  | Length of fully extended cover/window  |
 |  Workarea Distance | 0.5 | 0.1-2 | The distance to the workarea on equal height to the bottom of the cover when fully extended  |
 
-### Horizontal
+### 6.3. <a name='Horizontal'></a>Horizontal
 
 |     Variables     | Default| Range | Description |
 |----------|----------|------------|---------|
@@ -150,7 +179,7 @@ Tilted blinds will only defect from the above approach if the inside temperature
 | Window Height |  2.1 | 0.1-6  | Height of the window when fully extended  |
 | Workarea Distance | 0.5 | 0.1-2 | Distance to the work area  |
 
-### Tilt
+### 6.4. <a name='Tilt'></a>Tilt
 
 |     Variables     | Default| Range | Description |
 |----------|----------|------------|---------|
@@ -158,7 +187,7 @@ Tilted blinds will only defect from the above approach if the inside temperature
 | Slat Distance  | 2  | 0.1-15 | Vertical distance between two slats in horizontal position |
 | Tilt Mode | Bi-directional  |   |   |
 
-### Automation
+### 6.5. <a name='Automation'></a>Automation
 
 |     Variables     | Default| Range | Description |
 |----------|----------|------------|---------|
@@ -169,7 +198,7 @@ Tilted blinds will only defect from the above approach if the inside temperature
 | Manual Override Duration | `15 min` |   | Minimum duration for manual control status to remain active  |
 | Manual Override reset Timer  | False |   |  Resets duration timer each time the position changes while the manual control status is active  |
 
-### Climate
+### 6.6. <a name='Climate'></a>Climate
 
 |     Variables     | Default| Range |Example| Description |
 |----------|----------|------------|---------|---------|
@@ -180,7 +209,7 @@ Tilted blinds will only defect from the above approach if the inside temperature
 | Presence Entity  |  `None` |   |   |  |
 | Weather Entity  | `None`  |   |  `weather.home` | Can also serve as outdoor temperature sensor  |
 
-## Entities
+## 7. <a name='Entities'></a>Entities
 
 The integration adds dynamically based on the used features multiple entities.
 
@@ -206,20 +235,20 @@ When climate mode is setup you will also get these entities:
 
 ![entities](https://github.com/basbruss/adaptive-cover/blob/main/images/entities.png)
 
-## Features Planned
+## 8. <a name='FeaturesPlanned'></a>Features Planned
 
-- Manual override controls
-  - Time to revert back to adaptive control
-  - Reset button
-  - Wait until next manual/none adaptive change
+* Manual override controls
+  * Time to revert back to adaptive control
+  * Reset button
+  * Wait until next manual/none adaptive change
 
-- Algorithm to control radiation and/or illumination
+* Algorithm to control radiation and/or illumination
 
-### Simulation
+### 8.1. <a name='Simulation'></a>Simulation
 
 ![combined_simulation](custom_components/adaptive_cover/simulation/sim_plot.png)
 
-### Blueprint (deprecated since v1.0.0)
+### 8.2. <a name='Blueprintdeprecatedsincev1.0.0'></a>Blueprint (deprecated since v1.0.0)
 
 This integration provides the option to download a blueprint to control the covers automatically by the provide sensor.
 By selecting the option the blueprints will be added to your local blueprints folder.
