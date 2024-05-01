@@ -212,7 +212,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.wait_for_target,
             )
             self.cover_state_change = False  # reset state change
-            await self.manager.reset_if_needed()
+
+        await self.manager.reset_if_needed()
 
         if self.control_toggle and self.state_change:
             for cover in self.entities:
