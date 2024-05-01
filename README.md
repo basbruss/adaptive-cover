@@ -9,7 +9,6 @@ This Custom-Integration provides sensors for vertical and horizontal blinds base
 
 This integration builds upon the template sensor from this forum post [Automatic Blinds](https://community.home-assistant.io/t/automatic-blinds-sunscreen-control-based-on-sun-platform/)
 
-<!-- vscode-markdown-toc -->
 * 1. [Features](#Features)
 * 2. [Installation](#Installation)
   * 2.1. [HACS (Recommended)](#HACSRecommended)
@@ -31,12 +30,6 @@ This integration builds upon the template sensor from this forum post [Automatic
 * 8. [Features Planned](#FeaturesPlanned)
   * 8.1. [Simulation](#Simulation)
   * 8.2. [Blueprint (deprecated since v1.0.0)](#Blueprintdeprecatedsincev1.0.0)
-
-<!-- vscode-markdown-toc-config
-	numbering=true
-	autoSave=true
-	/vscode-markdown-toc-config -->
-<!-- /vscode-markdown-toc -->
 
 ## 1. <a name='Features'></a>Features
 
