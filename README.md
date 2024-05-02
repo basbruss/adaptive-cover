@@ -232,8 +232,8 @@ When climate mode is setup you will also get these entities:
 ## Features Planned
 
 - Manual override controls
-  - Time to revert back to adaptive control
-  - Reset button
+  - ~~Time to revert back to adaptive control~~
+  - ~~Reset button~~
   - Wait until next manual/none adaptive change
 
 - Algorithm to control radiation and/or illumination
