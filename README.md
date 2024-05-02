@@ -82,7 +82,7 @@ Each type has its own specific parameters to setup a sensor. To setup the sensor
 |----------|----------|------------|---------|
 |          | ![alt text](images/image.png)   |      ![alt text](images/image-2.png)      | ![alt text](images/image-1.png)        |
 | **Movement** | Up/Down  | In/Out     | Tilting |
-|  | [variables]()  | [variables]()    | [variables]()  |
+|  | [variables](#vertical)  | [variables](#horizontal)    | [variables](#tilt)  |
 
 ## Modes
 
