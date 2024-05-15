@@ -35,6 +35,8 @@ from .const import (
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
     CONF_DISTANCE,
+    CONF_END_ENTITY,
+    CONF_END_TIME,
     CONF_ENTITIES,
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
@@ -163,6 +165,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.time_threshold = self.config_entry.options.get(CONF_DELTA_TIME, 2)
         self.start_time = self.config_entry.options.get(CONF_START_TIME)
         self.start_time_entity = self.config_entry.options.get(CONF_START_ENTITY)
+        self.end_time = self.config_entry.options.get(CONF_END_TIME)
+        self.end_time_entity = self.config_entry.options.get(CONF_END_ENTITY)
         self.manual_reset = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_RESET, False
         )
@@ -226,7 +230,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self.first_refresh and self.control_toggle:
             for cover in self.entities:
                 if (
-                    self.after_start_time
+                    self.check_adaptive_time
                     and not self.manager.is_cover_manual(cover)
                     and self.check_position(cover)
                 ):
@@ -261,7 +265,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if (
             self.check_position(entity)
             and self.check_time_delta(entity)
-            and self.after_start_time
+            and self.check_adaptive_time
             and not self.manager.is_cover_manual(entity)
         ):
             await self.async_set_position(entity)
@@ -304,6 +308,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         return cover_data
 
     @property
+    def check_adaptive_time(self):
+        """Check if time is within start and end times."""
+        return self.before_end_time and self.after_start_time
+
+    @property
     def after_start_time(self):
         """Check if time is after start time."""
         if self.start_time_entity is not None:
@@ -317,6 +326,22 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             time = get_time(self.start_time).time()
             now = dt.datetime.now().time()
             return now >= time
+        return True
+
+    @property
+    def before_end_time(self):
+        """Check if time is after start time."""
+        if self.end_time_entity is not None:
+            time = get_datetime_from_state(
+                get_safe_state(self.hass, self.end_time_entity)
+            )
+            now = dt.datetime.now(dt.UTC)
+            if now.date() == time.date():
+                return now <= time
+        if self.end_time is not None:
+            time = get_time(self.end_time).time()
+            now = dt.datetime.now().time()
+            return now <= time
         return True
 
     def check_position(self, entity):

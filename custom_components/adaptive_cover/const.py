@@ -46,6 +46,8 @@ CONF_DELTA_POSITION = "delta_position"
 CONF_DELTA_TIME = "delta_time"
 CONF_START_TIME = "start_time"
 CONF_START_ENTITY = "start_entity"
+CONF_END_TIME = "end_time"
+CONF_END_ENTITY = "end_entity"
 CONF_MANUAL_OVERRIDE_DURATION = "manual_override_duration"
 CONF_MANUAL_OVERRIDE_RESET = "manual_override_reset"
 
