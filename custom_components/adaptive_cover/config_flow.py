@@ -452,9 +452,13 @@ class OptionsFlowHandler(OptionsFlow):
     async def async_step_automation(self, user_input: dict[str, Any] | None = None):
         """Manage automation options."""
         if user_input is not None:
+            entities = [
+                CONF_START_ENTITY
+            ]
+            self.optional_entities(entities, user_input)
             self.options.update(user_input)
             return await self._update_options()
-        return self.async_show_form(
+        return self.async_show_form( 
             step_id="automation",
             data_schema=self.add_suggested_values_to_schema(
                 AUTOMATION_CONFIG, user_input or self.options

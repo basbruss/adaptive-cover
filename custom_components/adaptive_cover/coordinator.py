@@ -64,7 +64,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .helpers import get_datetime_from_state, get_last_updated, get_safe_state, get_time
+from .helpers import get_datetime_from_str, get_last_updated, get_safe_state
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -99,9 +99,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._climate_mode = self.config_entry.options.get(CONF_CLIMATE_MODE, False)
         self._switch_mode = True if self._climate_mode else False
         self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
-        self._temp_toggle = False
-        self._control_toggle = True
-        self._manual_toggle = True
+        self._temp_toggle = None
+        self._control_toggle = None
+        self._manual_toggle = None
         self.manual_reset = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_RESET, False
         )
@@ -210,7 +210,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         self.default_state = round(NormalCoverState(cover_data).get_state())
 
-        if self.cover_state_change and self._manual_toggle and self.control_toggle:
+        if self.cover_state_change and self.manual_toggle and self.control_toggle:
             self.manager.handle_state_change(
                 self.state_change_data,
                 self.state,
@@ -316,14 +316,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     def after_start_time(self):
         """Check if time is after start time."""
         if self.start_time_entity is not None:
-            time = get_datetime_from_state(
+            time = get_datetime_from_str(
                 get_safe_state(self.hass, self.start_time_entity)
             )
-            now = dt.datetime.now(dt.UTC)
-            if now.date() == time.date():
-                return now >= time
+            now = dt.datetime.now()
+            return now >= time
         if self.start_time is not None:
-            time = get_time(self.start_time).time()
+            time = get_datetime_from_str(self.start_time).time()
             now = dt.datetime.now().time()
             return now >= time
         return True

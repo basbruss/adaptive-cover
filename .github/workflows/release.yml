@@ -14,7 +14,7 @@ jobs:
       id-token: write
     steps:
       - name: "Checkout the repository"
-        uses: "actions/checkout@v4.1.4"
+        uses: "actions/checkout@v4.1.5"
 
       - name: 🔢 Adjust version number
         shell: bash
@@ -33,6 +33,6 @@ jobs:
           zip adaptive_cover.zip -r ./
 
       - name: "Upload the ZIP file to the release"
-        uses: softprops/action-gh-release@v2.0.4
+        uses: softprops/action-gh-release@v2.0.5
         with:
           files: ${{ github.workspace }}/custom_components/adaptive_cover/adaptive_cover.zip
