@@ -97,9 +97,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._climate_mode = self.config_entry.options.get(CONF_CLIMATE_MODE, False)
         self._switch_mode = True if self._climate_mode else False
         self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
-        self._temp_toggle = False
-        self._control_toggle = True
-        self._manual_toggle = True
+        self._temp_toggle = None
+        self._control_toggle = None
+        self._manual_toggle = None
         self.manual_reset = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_RESET, False
         )
@@ -206,7 +206,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         self.default_state = round(NormalCoverState(cover_data).get_state())
 
-        if self.cover_state_change and self._manual_toggle and self.control_toggle:
+        if self.cover_state_change and self.manual_toggle and self.control_toggle:
             self.manager.handle_state_change(
                 self.state_change_data,
                 self.state,
