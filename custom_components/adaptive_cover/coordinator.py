@@ -62,7 +62,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .helpers import get_datetime_from_state, get_last_updated, get_safe_state, get_time
+from .helpers import get_datetime_from_str, get_last_updated, get_safe_state
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -307,14 +307,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     def after_start_time(self):
         """Check if time is after start time."""
         if self.start_time_entity is not None:
-            time = get_datetime_from_state(
+            time = get_datetime_from_str(
                 get_safe_state(self.hass, self.start_time_entity)
             )
-            now = dt.datetime.now(dt.UTC)
-            if now.date() == time.date():
-                return now >= time
+            now = dt.datetime.now()
+            return now >= time
         if self.start_time is not None:
-            time = get_time(self.start_time).time()
+            time = get_datetime_from_str(self.start_time).time()
             now = dt.datetime.now().time()
             return now >= time
         return True
