@@ -3,6 +3,7 @@
 import datetime as dt
 
 import pandas as pd
+from dateutil import parser
 from homeassistant.core import HomeAssistant, split_entity_id
 
 
@@ -21,22 +22,16 @@ def get_domain(entity: str):
         return domain
 
 
-def get_time(time: str):
-    """Convert string to datetime.time."""
-    if time is not None:
-        return dt.datetime.strptime(time, "%H:%M:%S")
-
-
 def get_timedelta_str(string: str):
     """Convert string to timedelta."""
     if string is not None:
         return pd.to_timedelta(string)
 
 
-def get_datetime_from_state(state: str):
+def get_datetime_from_str(string: str):
     """Convert datetime string to datetime."""
-    if state is not None:
-        return dt.datetime.strptime(state, "%Y-%m-%dT%H:%M:%S%z")
+    if string is not None:
+        return parser.parse(string, ignoretz=True)
 
 
 def get_last_updated(entity_id: str, hass: HomeAssistant):
