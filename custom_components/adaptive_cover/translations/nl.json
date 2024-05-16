@@ -18,7 +18,8 @@
           "manual_override_duration": "Duur van handmatige overschrijving",
           "manual_override_reset": "Reset handmatige overschrijvingsduur",
           "end_time": "Eindtijd",
-          "end_entity": "Entiteit die eindtijd aangeeft"
+          "end_entity": "Entiteit die eindtijd aangeeft",
+          "return_sunset": "Zorg ervoor dat de positie altijd wordt aangepast naar de standaard zonsonderganginstelling tegen het eindtijdstip. Dit is vooral handig wanneer het eindtijdstip voor de daadwerkelijke zonsondergang valt."
         },
         "data_description": {
           "delta_position": "Minimale verandering in positie vereist voordat de positie van de bekleding wordt aangepast",
@@ -190,7 +191,10 @@
           "start_time": "Starttijd voor elke dag; voor deze tijd blijft de bekleding stationair",
           "start_entity": "Entiteit die de status van de starttijd vertegenwoordigt, die de hierboven ingestelde statische starttijd overschrijft. Handig voor het automatiseren van de starttijd met een entiteit",
           "manual_override_duration": "De duur van handmatige bediening voordat wordt teruggekeerd naar automatische bediening",
-          "manual_override_reset": "Optie om de duur van handmatige overschrijving na elke handmatige aanpassing te resetten; als dit is uitgeschakeld, geldt de duur alleen voor de eerste handmatige aanpassing"
+          "manual_override_reset": "Optie om de duur van handmatige overschrijving na elke handmatige aanpassing te resetten; als dit is uitgeschakeld, geldt de duur alleen voor de eerste handmatige aanpassing",
+          "end_time": "Eindtijd",
+          "end_entity": "Entiteit die eindtijd aangeeft",
+          "return_sunset": "Zorg ervoor dat de positie altijd wordt aangepast naar de standaard zonsonderganginstelling tegen het eindtijdstip. Dit is vooral handig wanneer het eindtijdstip voor de daadwerkelijke zonsondergang valt."
         }
       },
       "vertical": {
