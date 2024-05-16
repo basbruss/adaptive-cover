@@ -191,6 +191,8 @@ Tilted blinds will only defect from the above approach if the inside temperature
 | Start Time Entity  | None |   | The earliest moment a cover may be changed after midnight. *Overrides the `start_time` value*  |
 | Manual Override Duration | `15 min` |   | Minimum duration for manual control status to remain active  |
 | Manual Override reset Timer  | False |   |  Resets duration timer each time the position changes while the manual control status is active  |
+| End Time  | `"00:00:00"` |   | Latest time a cover can be adjusted each day   |
+| End Time Entity  | None |   | The latest moment a cover may be changed . *Overrides the `end_time` value*  |
 
 ### Climate
 
