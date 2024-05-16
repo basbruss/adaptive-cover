@@ -16,7 +16,9 @@
           "start_time": "Starting time",
           "start_entity": "Entity indicating starting time",
           "manual_override_duration": "Duration of manual override",
-          "manual_override_reset": "Reset Manual override duration"
+          "manual_override_reset": "Reset Manual override duration",
+          "end_time": "End time",
+          "end_entity": "Entity indicating ending time"
         },
         "data_description": {
           "delta_position": "Minimum change in position required before adjusting the cover's position",
@@ -24,7 +26,9 @@
           "start_time": "Starting time for each day; before this time, the cover will remain stationary",
           "start_entity": "Entity representing starting time state, overriding the fixed start time set above. Useful for automating the start time with an entity",
           "manual_override_duration": "The duration of manual control before resetting to automatic control",
-          "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment"
+          "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment",
+          "end_time": "Ending time for each day; after this time, the cover will remain stationary",
+          "end_entity": "Entity representing ending time state, overriding the fixed end time set above. Useful for automating the end time with an entity"
         }
       },
       "vertical": {
@@ -179,7 +183,9 @@
           "start_time": "Starting time",
           "start_entity": "Entity indicating starting time",
           "manual_override_duration": "Duration of manual override",
-          "manual_override_reset": "Reset Manual override duration"
+          "manual_override_reset": "Reset Manual override duration",
+          "end_time": "End time",
+          "end_entity": "Entity indicating ending time"
         },
         "data_description": {
           "delta_position": "Minimum change in position required before adjusting the cover's position",
@@ -187,7 +193,9 @@
           "start_time": "Starting time for each day; before this time, the cover will remain stationary",
           "start_entity": "Entity representing starting time state, overriding the fixed start time set above. Useful for automating the start time with an entity",
           "manual_override_duration": "The duration of manual control before resetting to automatic control",
-          "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment"
+          "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment",
+          "end_time": "Ending time for each day; after this time, the cover will remain stationary",
+          "end_entity": "Entity representing ending time state, overriding the fixed end time set above. Useful for automating the end time with an entity"
         }
       },
       "vertical": {
