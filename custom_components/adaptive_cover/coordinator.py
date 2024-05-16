@@ -111,6 +111,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.state_change = False
         self.cover_state_change = False
         self.first_refresh = False
+        self.timed_refresh = False
         self.state_change_data: StateChangedData | None = None
         self.manager = AdaptiveCoverManager(self.manual_duration)
         self.wait_for_target = {}
@@ -121,6 +122,21 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.first_refresh = True
         await super().async_config_entry_first_refresh()
         _LOGGER.debug("Config entry first refresh")
+
+    async def async_timed_refresh(self, event) -> None:
+        """Control state at end time."""
+
+        if self.end_time is not None:
+            time = self.end_time
+        if self.end_time_entity is not None:
+            time = get_safe_state(self.hass, self.end_time_entity)
+        time_check = dt.datetime.now() + dt.timedelta(hours=2) - get_datetime_from_str(time)
+        if time is not None and (time_check <= dt.timedelta(seconds=1)) :
+            self.timed_refresh = True
+            _LOGGER.debug("Timed refresh triggered")
+            await self.async_refresh()
+        else:
+            _LOGGER.debug("Time not equal to end time")
 
     async def async_check_entity_state_change(
         self, event: Event[EventStateChangedData]
@@ -222,7 +238,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         await self.manager.reset_if_needed()
 
-        if self.control_toggle and self.state_change:
+        if self.state_change and self.control_toggle:
             for cover in self.entities:
                 await self.async_handle_call_service(cover)
             self.state_change = False
@@ -236,6 +252,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 ):
                     await self.async_set_position(cover)
             self.first_refresh = False
+
+        if self.timed_refresh and self.control_toggle:
+            for cover in self.entities:
+                await self.async_set_manual_position(cover, self.config_entry.options.get(CONF_SUNSET_POS))
+            self.timed_refresh = False
+
 
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
@@ -272,18 +294,22 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def async_set_position(self, entity):
         """Call service to set cover position."""
+        await self.async_set_manual_position(entity, self.state)
+
+    async def async_set_manual_position(self, entity, position):
+        """Call service to set cover position."""
         service = SERVICE_SET_COVER_POSITION
         service_data = {}
         service_data[ATTR_ENTITY_ID] = entity
 
         if self._cover_type == "cover_tilt":
             service = SERVICE_SET_COVER_TILT_POSITION
-            service_data[ATTR_TILT_POSITION] = self.state
+            service_data[ATTR_TILT_POSITION] = position
         else:
-            service_data[ATTR_POSITION] = self.state
+            service_data[ATTR_POSITION] = position
 
         self.wait_for_target[entity] = True
-        self.target_call[entity] = self.state
+        self.target_call[entity] = position
         await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
         _LOGGER.debug("Run %s with data %s", service, service_data)
 
@@ -334,12 +360,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             time = get_datetime_from_str(
                 get_safe_state(self.hass, self.end_time_entity)
             )
-            now = dt.datetime.now(dt.UTC)
-            return now <= time
+            now = dt.datetime.now()
+            return now < time
         if self.end_time is not None:
             time = get_datetime_from_str(self.end_time).time()
             now = dt.datetime.now().time()
-            return now <= time
+            return now < time
         return True
 
     def check_position(self, entity):

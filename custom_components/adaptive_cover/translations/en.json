@@ -18,7 +18,8 @@
           "manual_override_duration": "Duration of manual override",
           "manual_override_reset": "Reset Manual override duration",
           "end_time": "End time",
-          "end_entity": "Entity indicating ending time"
+          "end_entity": "Entity indicating ending time",
+          "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
         },
         "data_description": {
           "delta_position": "Minimum change in position required before adjusting the cover's position",
@@ -185,7 +186,8 @@
           "manual_override_duration": "Duration of manual override",
           "manual_override_reset": "Reset Manual override duration",
           "end_time": "End time",
-          "end_entity": "Entity indicating ending time"
+          "end_entity": "Entity indicating ending time",
+          "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
         },
         "data_description": {
           "delta_position": "Minimum change in position required before adjusting the cover's position",
@@ -195,7 +197,7 @@
           "manual_override_duration": "The duration of manual control before resetting to automatic control",
           "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment",
           "end_time": "Ending time for each day; after this time, the cover will remain stationary",
-          "end_entity": "Entity representing ending time state, overriding the fixed end time set above. Useful for automating the end time with an entity"
+          "end_entity": "Ensure that the position is consistently adjusted to the default sunset setting by the end time. This is particularly beneficial when the end time precedes the actual sunset."
         }
       },
       "vertical": {
