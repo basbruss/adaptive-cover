@@ -281,7 +281,7 @@ AUTOMATION_CONFIG = vol.Schema(
             CONF_MANUAL_OVERRIDE_DURATION, default={"minutes": 15}
         ): selector.DurationSelector(),
         vol.Required(CONF_MANUAL_OVERRIDE_RESET, default=False): bool,
-        vol.Optional(CONF_END_TIME, default="00:00:00"): selector.TimeSelector(),
+        vol.Optional(CONF_END_TIME, default=None): selector.TimeSelector(),
         vol.Optional(CONF_END_ENTITY): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
         ),
@@ -455,12 +455,13 @@ class OptionsFlowHandler(OptionsFlow):
         """Manage automation options."""
         if user_input is not None:
             entities = [
-                CONF_START_ENTITY
+                CONF_START_ENTITY,
+                CONF_END_ENTITY
             ]
             self.optional_entities(entities, user_input)
             self.options.update(user_input)
             return await self._update_options()
-        return self.async_show_form( 
+        return self.async_show_form(
             step_id="automation",
             data_schema=self.add_suggested_values_to_schema(
                 AUTOMATION_CONFIG, user_input or self.options
