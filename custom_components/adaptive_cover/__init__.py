@@ -6,17 +6,22 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import (
+    async_track_point_in_time,
     async_track_state_change_event,
 )
 
 from .const import (
+    CONF_END_ENTITY,
+    CONF_END_TIME,
     CONF_ENTITIES,
     CONF_PRESENCE_ENTITY,
+    CONF_RETURN_SUNSET,
     CONF_TEMP_ENTITY,
     CONF_WEATHER_ENTITY,
     DOMAIN,
 )
 from .coordinator import AdaptiveDataUpdateCoordinator
+from .helpers import get_datetime_from_str
 
 PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.BINARY_SENSOR, Platform.BUTTON]
 CONF_SUN = ["sun.sun"]
@@ -37,7 +42,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     coordinator = AdaptiveDataUpdateCoordinator(hass)
-
+    end_time=None
     _temp_entity = entry.options.get(CONF_TEMP_ENTITY)
     _presence_entity = entry.options.get(CONF_PRESENCE_ENTITY)
     _weather_entity = entry.options.get(CONF_WEATHER_ENTITY)
@@ -46,6 +51,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     for entity in [_temp_entity, _presence_entity, _weather_entity]:
         if entity is not None:
             _entities.append(entity)
+    _track_end_time = entry.options.get(CONF_RETURN_SUNSET)
+    _end_time = entry.options.get(CONF_END_TIME)
+    _end_time_entity = entry.options.get(CONF_END_ENTITY)
+    if _end_time is not None:
+        end_time = get_datetime_from_str(_end_time)
+    if _end_time_entity is not None:
+        end_time = get_datetime_from_str(_end_time_entity)
 
     entry.async_on_unload(
         async_track_state_change_event(
@@ -62,6 +74,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             coordinator.async_check_cover_state_change,
         )
     )
+
+    if _track_end_time and end_time is not None:
+        entry.async_on_unload(
+            async_track_point_in_time(hass, coordinator.async_timed_refresh, end_time)
+        )
 
     await coordinator.async_config_entry_first_refresh()
     hass.data[DOMAIN][entry.entry_id] = coordinator

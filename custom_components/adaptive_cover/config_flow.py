@@ -37,6 +37,7 @@ from .const import (
     CONF_MODE,
     CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
+    CONF_RETURN_SUNSET,
     CONF_SENSOR_TYPE,
     CONF_START_ENTITY,
     CONF_START_TIME,
@@ -284,6 +285,7 @@ AUTOMATION_CONFIG = vol.Schema(
         vol.Optional(CONF_END_ENTITY): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
         ),
+        vol.Optional(CONF_RETURN_SUNSET, default=False): bool
     }
 )
 
