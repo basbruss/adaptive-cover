@@ -286,7 +286,7 @@ AUTOMATION_CONFIG = vol.Schema(
             CONF_MANUAL_OVERRIDE_DURATION, default={"minutes": 15}
         ): selector.DurationSelector(),
         vol.Required(CONF_MANUAL_OVERRIDE_RESET, default=False): bool,
-        vol.Optional(CONF_END_TIME, default=None): selector.TimeSelector(),
+        vol.Optional(CONF_END_TIME, default="00:00:00"): selector.TimeSelector(),
         vol.Optional(CONF_END_ENTITY): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
         ),
