@@ -17,11 +17,15 @@ from homeassistant.helpers import selector
 from .const import (
     CONF_AWNING_ANGLE,
     CONF_AZIMUTH,
+    CONF_BLIND_SPOT_ELEVATION,
+    CONF_BLIND_SPOT_LEFT,
+    CONF_BLIND_SPOT_RIGHT,
     CONF_CLIMATE_MODE,
     CONF_DEFAULT_HEIGHT,
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
     CONF_DISTANCE,
+    CONF_ENABLE_BLIND_SPOT,
     CONF_END_ENTITY,
     CONF_END_TIME,
     CONF_ENTITIES,
@@ -117,6 +121,7 @@ OPTIONS = vol.Schema(
             selector.NumberSelectorConfig(mode="box", unit_of_measurement="minutes")
         ),
         vol.Required(CONF_INVERSE_STATE, default=False): bool,
+        vol.Required(CONF_ENABLE_BLIND_SPOT, default=False): bool,
     }
 )
 
@@ -289,7 +294,6 @@ AUTOMATION_CONFIG = vol.Schema(
     }
 )
 
-
 class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle ConfigFlow."""
 
@@ -304,6 +308,10 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
         return OptionsFlowHandler(config_entry)
+
+    def _get_azimuth_edges(self, data) -> tuple[int,int]:
+        """Calculate azimuth edges."""
+        return data[CONF_FOV_LEFT] + data[CONF_FOV_RIGHT]
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None):
         """Handle the initial step."""
@@ -323,6 +331,8 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.type_blind = SensorType.BLIND
         if user_input is not None:
             self.config.update(user_input)
+            if self.config[CONF_ENABLE_BLIND_SPOT]:
+                return await self.async_step_blind_spot()
             return await self.async_step_automation()
         return self.async_show_form(
             step_id="vertical",
@@ -334,6 +344,8 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.type_blind = SensorType.AWNING
         if user_input is not None:
             self.config.update(user_input)
+            if self.config[CONF_ENABLE_BLIND_SPOT]:
+                return await self.async_step_blind_spot()
             return await self.async_step_automation()
         return self.async_show_form(
             step_id="horizontal",
@@ -345,10 +357,34 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.type_blind = SensorType.TILT
         if user_input is not None:
             self.config.update(user_input)
+            if self.config[CONF_ENABLE_BLIND_SPOT]:
+                return await self.async_step_blind_spot()
             return await self.async_step_automation()
         return self.async_show_form(
             step_id="tilt", data_schema=CLIMATE_MODE.extend(TILT_OPTIONS.schema)
         )
+
+    async def async_step_blind_spot(self, user_input: dict[str, Any] | None = None):
+        """Add blindspot to data."""
+        edges = self._get_azimuth_edges(self.config)
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_BLIND_SPOT_LEFT,default=0): selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=0, max=edges-1)),
+                vol.Required(CONF_BLIND_SPOT_RIGHT,default=1):selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=1, max=edges)),
+                vol.Optional(CONF_BLIND_SPOT_ELEVATION, default=90):selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=0, max=90))
+            }
+        )
+        if user_input is not None:
+            if user_input[CONF_BLIND_SPOT_RIGHT] <= user_input[CONF_BLIND_SPOT_LEFT]:
+                return self.async_show_form(
+                    step_id="blind_spot",
+                    data_schema=schema,
+                    errors={CONF_BLIND_SPOT_RIGHT: "Must be greater than 'Blind Spot Left Edge'"}
+                )
+            self.config.update(user_input)
+            return await self.async_step_automation()
+
+        return self.async_show_form(step_id="blind_spot", data_schema=schema)
 
     async def async_step_automation(self, user_input: dict[str, Any] | None = None):
         """Manage automation options."""
@@ -423,6 +459,9 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                     CONF_MANUAL_OVERRIDE_DURATION
                 ),
                 CONF_MANUAL_OVERRIDE_RESET: self.config.get(CONF_MANUAL_OVERRIDE_RESET),
+                CONF_BLIND_SPOT_RIGHT: self.config.get(CONF_BLIND_SPOT_RIGHT),
+                CONF_BLIND_SPOT_LEFT: self.config.get(CONF_BLIND_SPOT_LEFT),
+                CONF_BLIND_SPOT_ELEVATION: self.config.get(CONF_BLIND_SPOT_ELEVATION),
             },
         )
 
@@ -449,6 +488,8 @@ class OptionsFlowHandler(OptionsFlow):
             options.append("climate")
         if self.options.get(CONF_WEATHER_ENTITY):
             options.append("weather")
+        if self.options.get(CONF_ENABLE_BLIND_SPOT):
+            options.append("blind_spot")
         return self.async_show_menu(step_id="init", menu_options=options)
 
     async def async_step_automation(self, user_input: dict[str, Any] | None = None):
@@ -530,6 +571,27 @@ class OptionsFlowHandler(OptionsFlow):
                 schema, user_input or self.options
             ),
         )
+
+    async def async_step_blind_spot(self, user_input: dict[str, Any] | None = None):
+        """Add blindspot to data."""
+        edges = self._get_azimuth_edges(self.options)
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_BLIND_SPOT_LEFT,default=0): selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=0, max=edges-1)),
+                vol.Required(CONF_BLIND_SPOT_RIGHT,default=1):selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=1, max=edges)),
+                vol.Optional(CONF_BLIND_SPOT_ELEVATION, default=90):selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=0, max=90))
+            }
+        )
+        if user_input is not None:
+            if user_input[CONF_BLIND_SPOT_RIGHT] <= user_input[CONF_BLIND_SPOT_LEFT]:
+                return self.async_show_form(
+                    step_id="blind_spot",
+                    data_schema=schema,
+                    errors={CONF_BLIND_SPOT_RIGHT: "Must be greater than 'Blind Spot Left Edge'"}
+                )
+            self.options.update(user_input)
+            return await self.async_step_automation()
+        return self.async_show_form(step_id="blind_spot", data_schema=schema)
 
     async def async_step_climate(self, user_input: dict[str, Any] | None = None):
         """Manage climate options."""

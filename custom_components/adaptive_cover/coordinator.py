@@ -30,6 +30,9 @@ from .const import (
     ATTR_TILT_POSITION,
     CONF_AWNING_ANGLE,
     CONF_AZIMUTH,
+    CONF_BLIND_SPOT_ELEVATION,
+    CONF_BLIND_SPOT_LEFT,
+    CONF_BLIND_SPOT_RIGHT,
     CONF_CLIMATE_MODE,
     CONF_DEFAULT_HEIGHT,
     CONF_DELTA_POSITION,
@@ -409,6 +412,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.config_entry.options.get(CONF_AZIMUTH),
             self.config_entry.options.get(CONF_DEFAULT_HEIGHT),
             self.config_entry.options.get(CONF_MAX_POSITION, 100),
+            self.config_entry.options.get(CONF_BLIND_SPOT_LEFT),
+            self.config_entry.options.get(CONF_BLIND_SPOT_RIGHT),
+            self.config_entry.options.get(CONF_BLIND_SPOT_ELEVATION),
         ]
 
     @property
