@@ -197,7 +197,8 @@
           "automation": "Modify Automation Configuration",
           "blind": "Fine-tune Blind Settings",
           "climate": "Edit Climate Configuration",
-          "weather": "Edit Weather Configuration"
+          "weather": "Edit Weather Configuration",
+          "blind_spot": "Setup Blindspot"
         }
       },
       "automation": {

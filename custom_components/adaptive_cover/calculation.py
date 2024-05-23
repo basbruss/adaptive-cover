@@ -34,6 +34,7 @@ class AdaptiveGeneralCover(ABC):
     blind_spot_left: int
     blind_spot_right: int
     blind_spot_elevation: int
+    blind_spot_on: bool
     min_elevation: int
     max_elevation: int
     sun_data: SunData = field(init=False)
@@ -74,7 +75,7 @@ class AdaptiveGeneralCover(ABC):
     @property
     def is_sun_in_blind_spot(self) -> bool:
         """Check if sun is in blind spot."""
-        if self.blind_spot_left is not None and self.blind_spot_right is not None:
+        if self.blind_spot_left is not None and self.blind_spot_right is not None and self.blind_spot_on:
             left_edge = self.fov_left - self.blind_spot_left
             right_edge = self.fov_left - self.blind_spot_right
             blindspot = (self.gamma <= left_edge) & (self.gamma >= right_edge)

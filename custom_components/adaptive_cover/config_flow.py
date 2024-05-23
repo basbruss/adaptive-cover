@@ -100,6 +100,7 @@ OPTIONS = vol.Schema(
             selector.NumberSelectorConfig(
                 min=1, max=100, step=1, mode="slider", unit_of_measurement="%"
             )
+
         ),
         vol.Optional(CONF_MIN_ELEVATION): vol.All(vol.Coerce(int), vol.Range(min=0, max=90)),
         vol.Optional(CONF_MAX_ELEVATION): vol.All(vol.Coerce(int), vol.Range(min=0, max=90)),
@@ -316,8 +317,6 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
         return OptionsFlowHandler(config_entry)
-
-
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None):
         """Handle the initial step."""
