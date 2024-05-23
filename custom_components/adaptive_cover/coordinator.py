@@ -158,6 +158,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         """Fetch and process state change event."""
         _LOGGER.debug("Cover state change")
         data = event.data
+        if data["old_state"] is None:
+            _LOGGER.debug("Old state is None")
+            return
         self.state_change_data = StateChangedData(
             data["entity_id"], data["old_state"], data["new_state"]
         )
@@ -317,6 +320,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         self.wait_for_target[entity] = True
         self.target_call[entity] = position
+        _LOGGER.debug("Set wait for target %s and target call %s", self.wait_for_target, self.target_call)
         await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
         _LOGGER.debug("Run %s with data %s", service, service_data)
 
