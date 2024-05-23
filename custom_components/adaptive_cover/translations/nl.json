@@ -46,7 +46,9 @@
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
           "climate_mode": "Klimaatmodus",
-          "blind_spot": "Configureer schaduwzone"
+          "blind_spot": "Configureer schaduwzone",
+          "min_elevation": "Minimale zonhoogte",
+          "max_elevation": "Maximale zonhoogte"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -110,7 +112,9 @@
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
           "climate_mode": "Klimaat Modus",
-          "blind_spot": "Configureer schaduwzone"
+          "blind_spot": "Configureer schaduwzone",
+          "min_elevation": "Minimale zonhoogte",
+          "max_elevation": "Maximale zonhoogte"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -147,7 +151,9 @@
           "sunset_offset": "Afwijking Zonsondergang",
           "climate_mode": "Klimaat Modus",
           "tilt_mode": "Type beweging",
-          "blind_spot": "Configureer schaduwzone"
+          "blind_spot": "Configureer schaduwzone",
+          "min_elevation": "Minimale zonhoogte",
+          "max_elevation": "Maximale zonhoogte"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -230,7 +236,9 @@
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
           "climate_mode": "Klimaatmodus",
-          "blind_spot": "Configureer schaduwzone"
+          "blind_spot": "Configureer schaduwzone",
+          "min_elevation": "Minimale zonhoogte",
+          "max_elevation": "Maximale zonhoogte"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -294,7 +302,9 @@
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
           "climate_mode": "Klimaat Modus",
-          "blind_spot": "Configureer schaduwzone"
+          "blind_spot": "Configureer schaduwzone",
+          "min_elevation": "Minimale zonhoogte",
+          "max_elevation": "Maximale zonhoogte"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -331,7 +341,9 @@
           "sunset_offset": "Afwijking Zonsondergang",
           "climate_mode": "Klimaat Modus",
           "tilt_mode": "Type beweging",
-          "blind_spot": "Configureer schaduwzone"
+          "blind_spot": "Configureer schaduwzone",
+          "min_elevation": "Minimale zonhoogte",
+          "max_elevation": "Maximale zonhoogte"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
