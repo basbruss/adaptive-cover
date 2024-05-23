@@ -282,6 +282,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     self.config_entry.options.get(CONF_FOV_LEFT),
                     self.config_entry.options.get(CONF_FOV_RIGHT),
                 ],
+                "blind_spot": self.config_entry.options.get(CONF_BLIND_SPOT_ELEVATION),
             },
         )
 

@@ -98,6 +98,7 @@ OPTIONS = vol.Schema(
             selector.NumberSelectorConfig(
                 min=1, max=100, step=1, mode="slider", unit_of_measurement="%"
             )
+
         ),
         vol.Required(CONF_FOV_LEFT, default=90): selector.NumberSelector(
             selector.NumberSelectorConfig(
@@ -294,6 +295,10 @@ AUTOMATION_CONFIG = vol.Schema(
     }
 )
 
+def _get_azimuth_edges(data) -> tuple[int,int]:
+    """Calculate azimuth edges."""
+    return data[CONF_FOV_LEFT] + data[CONF_FOV_RIGHT]
+
 class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle ConfigFlow."""
 
@@ -309,9 +314,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         """Get the options flow for this handler."""
         return OptionsFlowHandler(config_entry)
 
-    def _get_azimuth_edges(self, data) -> tuple[int,int]:
-        """Calculate azimuth edges."""
-        return data[CONF_FOV_LEFT] + data[CONF_FOV_RIGHT]
+
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None):
         """Handle the initial step."""
@@ -366,12 +369,12 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
     async def async_step_blind_spot(self, user_input: dict[str, Any] | None = None):
         """Add blindspot to data."""
-        edges = self._get_azimuth_edges(self.config)
+        edges = _get_azimuth_edges(self.config)
         schema = vol.Schema(
             {
                 vol.Required(CONF_BLIND_SPOT_LEFT,default=0): selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=0, max=edges-1)),
                 vol.Required(CONF_BLIND_SPOT_RIGHT,default=1):selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=1, max=edges)),
-                vol.Optional(CONF_BLIND_SPOT_ELEVATION, default=90):selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=0, max=90))
+                vol.Optional(CONF_BLIND_SPOT_ELEVATION): vol.All(vol.Coerce(int), vol.Range(min=0, max=90))
             }
         )
         if user_input is not None:
@@ -462,6 +465,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_BLIND_SPOT_RIGHT: self.config.get(CONF_BLIND_SPOT_RIGHT),
                 CONF_BLIND_SPOT_LEFT: self.config.get(CONF_BLIND_SPOT_LEFT),
                 CONF_BLIND_SPOT_ELEVATION: self.config.get(CONF_BLIND_SPOT_ELEVATION),
+                CONF_ENABLE_BLIND_SPOT: self.config.get(CONF_ENABLE_BLIND_SPOT),
             },
         )
 
@@ -574,12 +578,12 @@ class OptionsFlowHandler(OptionsFlow):
 
     async def async_step_blind_spot(self, user_input: dict[str, Any] | None = None):
         """Add blindspot to data."""
-        edges = self._get_azimuth_edges(self.options)
+        edges = _get_azimuth_edges(self.options)
         schema = vol.Schema(
             {
                 vol.Required(CONF_BLIND_SPOT_LEFT,default=0): selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=0, max=edges-1)),
                 vol.Required(CONF_BLIND_SPOT_RIGHT,default=1):selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=1, max=edges)),
-                vol.Optional(CONF_BLIND_SPOT_ELEVATION, default=90):selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=0, max=90))
+                vol.Optional(CONF_BLIND_SPOT_ELEVATION):vol.All(vol.Coerce(int), vol.Range(min=0, max=90))
             }
         )
         if user_input is not None:
@@ -590,8 +594,8 @@ class OptionsFlowHandler(OptionsFlow):
                     errors={CONF_BLIND_SPOT_RIGHT: "Must be greater than 'Blind Spot Left Edge'"}
                 )
             self.options.update(user_input)
-            return await self.async_step_automation()
-        return self.async_show_form(step_id="blind_spot", data_schema=schema)
+            return await self._update_options()
+        return self.async_show_form(step_id="blind_spot", data_schema=self.add_suggested_values_to_schema(schema, user_input or self.options))
 
     async def async_step_climate(self, user_input: dict[str, Any] | None = None):
         """Manage climate options."""
