@@ -196,13 +196,13 @@ class ClimateCoverData:
     def outside_temperature(self):
         """Get outside temperature."""
         temp = None
-        if self.weather_entity:
-            temp = state_attr(self.hass, self.weather_entity, "temperature")
         if self.outside_entity:
             temp = get_safe_state(
                 self.hass,
                 self.outside_entity,
             )
+        if self.weather_entity:
+            temp = state_attr(self.hass, self.weather_entity, "temperature")
         return temp
 
     @property
