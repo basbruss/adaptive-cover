@@ -47,7 +47,9 @@
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
-          "blind_spot": "Setup Blindspot"
+          "blind_spot": "Setup Blindspot",
+          "min_elevation": "Minimum Elevation of the sun",
+          "max_elevation": "Maximum Elevation of the sun"
         },
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
@@ -110,7 +112,9 @@
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
-          "blind_spot": "Setup Blindspot"
+          "blind_spot": "Setup Blindspot",
+          "min_elevation": "Minimum Elevation of the sun",
+          "max_elevation": "Maximum Elevation of the sun"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
@@ -148,7 +152,9 @@
           "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
           "tilt_mode": "Type of movement",
-          "blind_spot": "Setup Blindspot"
+          "blind_spot": "Setup Blindspot",
+          "min_elevation": "Minimum Elevation of the sun",
+          "max_elevation": "Maximum Elevation of the sun"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
@@ -233,7 +239,9 @@
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
-          "blind_spot": "Setup Blindspot"
+          "blind_spot": "Setup Blindspot",
+          "min_elevation": "Minimum Elevation of the sun",
+          "max_elevation": "Maximum Elevation of the sun"
         },
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
@@ -296,7 +304,9 @@
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
-          "blind_spot": "Setup Blindspot"
+          "blind_spot": "Setup Blindspot",
+          "min_elevation": "Minimum Elevation of the sun",
+          "max_elevation": "Maximum Elevation of the sun"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
@@ -334,7 +344,9 @@
           "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
           "tilt_mode": "Type of movement",
-          "blind_spot": "Setup Blindspot"
+          "blind_spot": "Setup Blindspot",
+          "min_elevation": "Minimum Elevation of the sun",
+          "max_elevation": "Maximum Elevation of the sun"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",

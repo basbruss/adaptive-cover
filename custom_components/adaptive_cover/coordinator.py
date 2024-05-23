@@ -49,7 +49,9 @@ from .const import (
     CONF_LENGTH_AWNING,
     CONF_MANUAL_OVERRIDE_DURATION,
     CONF_MANUAL_OVERRIDE_RESET,
+    CONF_MAX_ELEVATION,
     CONF_MAX_POSITION,
+    CONF_MIN_ELEVATION,
     CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
     CONF_START_ENTITY,
@@ -418,6 +420,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.config_entry.options.get(CONF_BLIND_SPOT_RIGHT),
             self.config_entry.options.get(CONF_BLIND_SPOT_ELEVATION),
             self.config_entry.options.get(CONF_ENABLE_BLIND_SPOT, False),
+            self.config_entry.options.get(CONF_MIN_ELEVATION, None),
+            self.config_entry.options.get(CONF_MAX_ELEVATION, None),
         ]
 
     @property

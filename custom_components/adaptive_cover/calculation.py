@@ -35,6 +35,8 @@ class AdaptiveGeneralCover(ABC):
     blind_spot_right: int
     blind_spot_elevation: int
     blind_spot_on: bool
+    min_elevation: int
+    max_elevation: int
     sun_data: SunData = field(init=False)
 
     def __post_init__(self):
@@ -82,8 +84,6 @@ class AdaptiveGeneralCover(ABC):
             return blindspot
         return False
 
-
-
     @property
     def azi_min_abs(self) -> int:
         """Calculate min azimuth."""
@@ -104,6 +104,17 @@ class AdaptiveGeneralCover(ABC):
         return gamma
 
     @property
+    def valid_elevation(self) -> bool:
+        """Check if elevation is within range."""
+        if self.min_elevation is None and self.max_elevation is None:
+            return self.sol_elev >= 0
+        if self.min_elevation is None:
+            return self.sol_elev <= self.max_elevation
+        if self.max_elevation is None:
+            return self.sol_elev >= self.min_elevation
+        return self.min_elevation <= self.sol_elev <= self.max_elevation
+
+    @property
     def valid(self) -> bool:
         """Determine if sun is in front of window."""
         # clip azi_min and azi_max to 90
@@ -111,7 +122,7 @@ class AdaptiveGeneralCover(ABC):
         azi_max = min(self.fov_right, 90)
 
         # valid sun positions are those within the blind's azimuth range and above the horizon (FOV)
-        valid = (self.gamma < azi_min) & (self.gamma > -azi_max) & (self.sol_elev >= 0)
+        valid = (self.gamma < azi_min) & (self.gamma > -azi_max) & (self.valid_elevation)
         return valid
 
     @property
