@@ -65,6 +65,7 @@ from .const import (
     CONF_TILT_DEPTH,
     CONF_TILT_DISTANCE,
     CONF_TILT_MODE,
+    CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
     DOMAIN,
@@ -219,6 +220,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.config_entry.options.get(CONF_OUTSIDETEMP_ENTITY),
                 self._temp_toggle,
                 self._cover_type,
+                self.config_entry.options.get(CONF_TRANSPARENT_BLIND),
             ]
             climate = ClimateCoverData(*climate_data_var)
             self.climate_state = round(

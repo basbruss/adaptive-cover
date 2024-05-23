@@ -46,6 +46,7 @@ CONF_BLIND_SPOT_LEFT = "blind_spot_left"
 CONF_BLIND_SPOT_ELEVATION = "blind_spot_elevation"
 CONF_MIN_ELEVATION = "min_elevation"
 CONF_MAX_ELEVATION = "max_elevation"
+CONF_TRANSPARENT_BLIND = "transparent_blind"
 
 
 CONF_DELTA_POSITION = "delta_position"

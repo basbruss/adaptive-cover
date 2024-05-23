@@ -190,6 +190,7 @@ class ClimateCoverData:
     outside_entity: str
     temp_switch: bool
     blind_type: str
+    transparent_blind: bool
 
     @property
     def outside_temperature(self):
@@ -277,13 +278,18 @@ class ClimateCoverState(NormalCoverState):
     def normal_type_cover(self) -> int:
         """Determine state for horizontal and vertical covers."""
         # glare does not matter
+        if (self.climate_data.is_presence is False or self.climate_data.transparent_blind) and self.cover.sol_elev > 0:
+            if self.climate_data.transparent_blind and self.climate_data.is_summer:
+                if not self.cover.valid:
+                    return self.cover.default
+                return 0
+            if self.climate_data.is_summer:
+                return 0
         if self.climate_data.is_presence is False and self.cover.sol_elev > 0:
             # allow maximum solar radiation
             if self.climate_data.is_winter:
                 return 100
             # don't allow solar radiation
-            if self.climate_data.is_summer:
-                return 0
             return self.cover.default
 
         # prefer glare reduction over climate control
