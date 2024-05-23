@@ -336,6 +336,13 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         """Show basic config for vertical blinds."""
         self.type_blind = SensorType.BLIND
         if user_input is not None:
+            if user_input[CONF_MAX_ELEVATION] is not None and user_input[CONF_MIN_ELEVATION] is not None:
+                if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
+                    return self.async_show_form(
+                        step_id="vertical",
+                        data_schema=CLIMATE_MODE.extend(VERTICAL_OPTIONS.schema),
+                        errors={CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"}
+                    )
             self.config.update(user_input)
             if self.config[CONF_ENABLE_BLIND_SPOT]:
                 return await self.async_step_blind_spot()
@@ -349,6 +356,13 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         """Show basic config for horizontal blinds."""
         self.type_blind = SensorType.AWNING
         if user_input is not None:
+            if user_input[CONF_MAX_ELEVATION] is not None and user_input[CONF_MIN_ELEVATION] is not None:
+                if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
+                    return self.async_show_form(
+                        step_id="horizontal",
+                        data_schema=CLIMATE_MODE.extend(HORIZONTAL_OPTIONS.schema),
+                        errors={CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"}
+                    )
             self.config.update(user_input)
             if self.config[CONF_ENABLE_BLIND_SPOT]:
                 return await self.async_step_blind_spot()
@@ -362,6 +376,13 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         """Show basic config for tilted blinds."""
         self.type_blind = SensorType.TILT
         if user_input is not None:
+            if user_input[CONF_MAX_ELEVATION] is not None and user_input[CONF_MIN_ELEVATION] is not None:
+                if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
+                    return self.async_show_form(
+                        step_id="tilt",
+                        data_schema=CLIMATE_MODE.extend(TILT_OPTIONS.schema),
+                        errors={CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"}
+                    )
             self.config.update(user_input)
             if self.config[CONF_ENABLE_BLIND_SPOT]:
                 return await self.async_step_blind_spot()
@@ -539,6 +560,13 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_MAX_ELEVATION,
             ]
             self.optional_entities(keys, user_input)
+            if user_input[CONF_MAX_ELEVATION] is not None and user_input[CONF_MIN_ELEVATION] is not None:
+                if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
+                    return self.async_show_form(
+                        step_id="vertical",
+                        data_schema=CLIMATE_MODE.extend(VERTICAL_OPTIONS.schema),
+                        errors={CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"}
+                    )
             self.options.update(user_input)
             if self.options[CONF_CLIMATE_MODE]:
                 return await self.async_step_climate()
@@ -562,6 +590,13 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_MAX_ELEVATION,
             ]
             self.optional_entities(keys, user_input)
+            if user_input[CONF_MAX_ELEVATION] is not None and user_input[CONF_MIN_ELEVATION] is not None:
+                if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
+                    return self.async_show_form(
+                        step_id="horizontal",
+                        data_schema=CLIMATE_MODE.extend(HORIZONTAL_OPTIONS.schema),
+                        errors={CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"}
+                    )
             self.options.update(user_input)
             if self.options[CONF_CLIMATE_MODE]:
                 return await self.async_step_climate()
@@ -585,6 +620,13 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_MAX_ELEVATION,
             ]
             self.optional_entities(keys, user_input)
+            if user_input[CONF_MAX_ELEVATION] is not None and user_input[CONF_MIN_ELEVATION] is not None:
+                if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
+                    return self.async_show_form(
+                        step_id="tilt",
+                        data_schema=CLIMATE_MODE.extend(TILT_OPTIONS.schema),
+                        errors={CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"}
+                    )
             self.options.update(user_input)
             if self.options[CONF_CLIMATE_MODE]:
                 return await self.async_step_climate()
