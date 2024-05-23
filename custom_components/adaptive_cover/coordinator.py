@@ -30,11 +30,15 @@ from .const import (
     ATTR_TILT_POSITION,
     CONF_AWNING_ANGLE,
     CONF_AZIMUTH,
+    CONF_BLIND_SPOT_ELEVATION,
+    CONF_BLIND_SPOT_LEFT,
+    CONF_BLIND_SPOT_RIGHT,
     CONF_CLIMATE_MODE,
     CONF_DEFAULT_HEIGHT,
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
     CONF_DISTANCE,
+    CONF_ENABLE_BLIND_SPOT,
     CONF_END_ENTITY,
     CONF_END_TIME,
     CONF_ENTITIES,
@@ -279,6 +283,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     self.config_entry.options.get(CONF_FOV_LEFT),
                     self.config_entry.options.get(CONF_FOV_RIGHT),
                 ],
+                "blind_spot": self.config_entry.options.get(CONF_BLIND_SPOT_ELEVATION),
             },
         )
 
@@ -409,6 +414,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.config_entry.options.get(CONF_AZIMUTH),
             self.config_entry.options.get(CONF_DEFAULT_HEIGHT),
             self.config_entry.options.get(CONF_MAX_POSITION, 100),
+            self.config_entry.options.get(CONF_BLIND_SPOT_LEFT),
+            self.config_entry.options.get(CONF_BLIND_SPOT_RIGHT),
+            self.config_entry.options.get(CONF_BLIND_SPOT_ELEVATION),
+            self.config_entry.options.get(CONF_ENABLE_BLIND_SPOT, False),
         ]
 
     @property

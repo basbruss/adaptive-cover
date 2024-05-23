@@ -46,7 +46,8 @@
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
-          "climate_mode": "Climate Mode"
+          "climate_mode": "Climate Mode",
+          "blind_spot": "Setup Blindspot"
         },
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
@@ -108,7 +109,8 @@
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
-          "climate_mode": "Climate Mode"
+          "climate_mode": "Climate Mode",
+          "blind_spot": "Setup Blindspot"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
@@ -145,7 +147,8 @@
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
-          "tilt_mode": "Type of movement"
+          "tilt_mode": "Type of movement",
+          "blind_spot": "Setup Blindspot"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
@@ -164,6 +167,20 @@
         },
         "description": "Add configuration variables to the sensor",
         "title": "Tilted cover"
+      },
+      "blind_spot": {
+        "data": {
+          "blind_spot_left": "Start blindspot left",
+          "blind_spot_right": "End blindspot right",
+          "blind_spot_elevation": "Blindspot elevation"
+        },
+        "data_description": {
+          "blind_spot_left": "Left edge of the blindspot",
+          "blind_spot_right": "Right edge of the blindspot",
+          "blind_spot_elevation": "Any value equal or less is considered within the blindspot. Usefull if the sun can shine over the object in the blindspot"
+        },
+        "title": "Blindspot",
+        "description": "Setup blindspot for the cover. These values are relative degrees to the width of the field of view. Where 0 is the leftmost position taken from the field of view left parameter."
       }
     }
   },
@@ -214,7 +231,8 @@
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
-          "climate_mode": "Climate Mode"
+          "climate_mode": "Climate Mode",
+          "blind_spot": "Setup Blindspot"
         },
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
@@ -276,7 +294,8 @@
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
-          "climate_mode": "Climate Mode"
+          "climate_mode": "Climate Mode",
+          "blind_spot": "Setup Blindspot"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
@@ -313,7 +332,8 @@
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
-          "tilt_mode": "Type of movement"
+          "tilt_mode": "Type of movement",
+          "blind_spot": "Setup Blindspot"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
@@ -332,6 +352,20 @@
         },
         "description": "Add configuration variables to the sensor",
         "title": "Tilted cover"
+      },
+      "blind_spot": {
+        "data": {
+          "blind_spot_left": "Start blindspot left",
+          "blind_spot_right": "End blindspot right",
+          "blind_spot_elevation": "Blindspot elevation"
+        },
+        "data_description": {
+          "blind_spot_left": "Left edge of the blindspot",
+          "blind_spot_right": "Right edge of the blindspot",
+          "blind_spot_elevation": "Any value equal or less is considered within the blindspot. Usefull if the sun can shine over the object in the blindspot"
+        },
+        "title": "Blindspot",
+        "description": "Setup blindspot for the cover. These values are relative degrees to the width of the field of view. Where 0 is the leftmost position taken from the field of view left parameter."
       }
     }
   },

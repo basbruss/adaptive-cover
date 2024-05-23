@@ -31,6 +31,10 @@ class AdaptiveGeneralCover(ABC):
     win_azi: int
     h_def: int
     max_pos: int
+    blind_spot_left: int
+    blind_spot_right: int
+    blind_spot_elevation: int
+    blind_spot_on: bool
     sun_data: SunData = field(init=False)
 
     def __post_init__(self):
@@ -60,6 +64,25 @@ class AdaptiveGeneralCover(ABC):
                 solpos[frame].index[0].to_pydatetime(),
                 solpos[frame].index[-1].to_pydatetime(),
             )
+
+    @property
+    def _get_azimuth_edges(self) -> tuple[int,int]:
+        """Calculate azimuth edges."""
+        return self.fov_left + self.fov_right
+
+    @property
+    def is_sun_in_blind_spot(self) -> bool:
+        """Check if sun is in blind spot."""
+        if self.blind_spot_left is not None and self.blind_spot_right is not None and self.blind_spot_on:
+            left_edge = self.fov_left - self.blind_spot_left
+            right_edge = self.fov_left - self.blind_spot_right
+            blindspot = (self.gamma <= left_edge) & (self.gamma >= right_edge)
+            if self.blind_spot_elevation is not None:
+                blindspot = blindspot & (self.sol_elev <= self.blind_spot_elevation)
+            return blindspot
+        return False
+
+
 
     @property
     def azi_min_abs(self) -> int:
@@ -132,7 +155,7 @@ class NormalCoverState:
     def get_state(self) -> int:
         """Return state."""
         state = np.where(
-            (self.cover.valid) & (not self.cover.sunset_valid),
+            (self.cover.valid) & (not self.cover.sunset_valid) & (not self.cover.is_sun_in_blind_spot),
             self.cover.calculate_percentage(),
             self.cover.default,
         )
