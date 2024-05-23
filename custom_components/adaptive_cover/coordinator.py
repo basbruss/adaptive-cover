@@ -38,6 +38,7 @@ from .const import (
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
     CONF_DISTANCE,
+    CONF_ENABLE_BLIND_SPOT,
     CONF_END_ENTITY,
     CONF_END_TIME,
     CONF_ENTITIES,
@@ -416,6 +417,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.config_entry.options.get(CONF_BLIND_SPOT_LEFT),
             self.config_entry.options.get(CONF_BLIND_SPOT_RIGHT),
             self.config_entry.options.get(CONF_BLIND_SPOT_ELEVATION),
+            self.config_entry.options.get(CONF_ENABLE_BLIND_SPOT, False),
         ]
 
     @property
