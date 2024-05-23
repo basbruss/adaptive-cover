@@ -56,6 +56,7 @@ from .const import (
     CONF_TILT_DEPTH,
     CONF_TILT_DISTANCE,
     CONF_TILT_MODE,
+    CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
     DOMAIN,
@@ -231,6 +232,7 @@ CLIMATE_OPTIONS = vol.Schema(
                 domain=["device_tracker", "zone", "binary_sensor", "input_boolean"]
             )
         ),
+        vol.Optional(CONF_TRANSPARENT_BLIND, default=False): selector.BooleanSelector(),
         vol.Optional(
             CONF_WEATHER_ENTITY, default=vol.UNDEFINED
         ): selector.EntitySelector(
@@ -491,6 +493,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_ENABLE_BLIND_SPOT: self.config.get(CONF_ENABLE_BLIND_SPOT),
                 CONF_MIN_ELEVATION: self.config.get(CONF_MIN_ELEVATION, None),
                 CONF_MAX_ELEVATION: self.config.get(CONF_MAX_ELEVATION, None),
+                CONF_TRANSPARENT_BLIND: self.config.get(CONF_TRANSPARENT_BLIND, False),
             },
         )
 

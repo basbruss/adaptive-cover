@@ -75,14 +75,16 @@
           "weather_entity": "Weather entity (optional)",
           "outside_temp": "Outside temperature sensor (optional)",
           "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
+          "temp_high": "High temperature threshold",
+          "transparent_blind": "Transparent blind"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
           "weather_entity": "Monitors weather conditions, and outside temperature",
           "outside_temp": "Overrides outside temperature from weather entity if both are set",
           "temp_low": "Minimum comfortable temperature",
-          "temp_high": "Maximum comfortable temperature"
+          "temp_high": "Maximum comfortable temperature",
+          "transparent_blind": "The blind is transparent and should always close fully when summer mode is active"
         },
         "description": "Add additional climate configuration variables.",
         "title": "Climate settings"
@@ -267,14 +269,16 @@
           "weather_entity": "Weather entity (optional)",
           "outside_temp": "Outside temperature sensor (optional)",
           "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
+          "temp_high": "High temperature threshold",
+          "transparent_blind": "Transparent blind"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
           "weather_entity": "Monitors weather conditions, and outside temperature",
           "outside_temp": "Overrides outside temperature from weather entity if both are set",
           "temp_low": "Minimum comfortable temperature",
-          "temp_high": "Maximum comfortable temperature"
+          "temp_high": "Maximum comfortable temperature",
+          "transparent_blind": "The blind is transparent and should always close fully when summer mode is active"
         },
         "description": "Add additional climate configuration variables.",
         "title": "Climate settings"
