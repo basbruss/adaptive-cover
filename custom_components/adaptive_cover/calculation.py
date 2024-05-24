@@ -398,9 +398,11 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
         a_angle = 90 - self.sol_elev
         c_angle = 180 - awn_angle - a_angle
 
+        vertical_position = super().calculate_position()
         length = (
-            (self.h_win - super().calculate_position()) * sin(rad(a_angle))
+            (self.h_win - vertical_position) * sin(rad(a_angle))
         ) / sin(rad(c_angle))
+        # return np.clip(length, 0, self.awn_length)
         return length
 
     def calculate_percentage(self) -> float:
