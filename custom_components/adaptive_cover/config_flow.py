@@ -337,7 +337,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         """Show basic config for vertical blinds."""
         self.type_blind = SensorType.BLIND
         if user_input is not None:
-            if user_input[CONF_MAX_ELEVATION] is not None and user_input[CONF_MIN_ELEVATION] is not None:
+            if user_input.get(CONF_MAX_ELEVATION) is not None and user_input.get(CONF_MIN_ELEVATION) is not None:
                 if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
                     return self.async_show_form(
                         step_id="vertical",
@@ -357,7 +357,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         """Show basic config for horizontal blinds."""
         self.type_blind = SensorType.AWNING
         if user_input is not None:
-            if user_input[CONF_MAX_ELEVATION] is not None and user_input[CONF_MIN_ELEVATION] is not None:
+            if user_input.get(CONF_MAX_ELEVATION) is not None and user_input.get(CONF_MIN_ELEVATION) is not None:
                 if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
                     return self.async_show_form(
                         step_id="horizontal",
@@ -377,7 +377,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         """Show basic config for tilted blinds."""
         self.type_blind = SensorType.TILT
         if user_input is not None:
-            if user_input[CONF_MAX_ELEVATION] is not None and user_input[CONF_MIN_ELEVATION] is not None:
+            if user_input.get(CONF_MAX_ELEVATION) is not None and user_input.get(CONF_MIN_ELEVATION) is not None:
                 if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
                     return self.async_show_form(
                         step_id="tilt",
@@ -562,7 +562,7 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_MAX_ELEVATION,
             ]
             self.optional_entities(keys, user_input)
-            if user_input[CONF_MAX_ELEVATION] is not None and user_input[CONF_MIN_ELEVATION] is not None:
+            if user_input.get(CONF_MAX_ELEVATION) is not None and user_input.get(CONF_MIN_ELEVATION) is not None:
                 if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
                     return self.async_show_form(
                         step_id="vertical",
@@ -592,7 +592,7 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_MAX_ELEVATION,
             ]
             self.optional_entities(keys, user_input)
-            if user_input[CONF_MAX_ELEVATION] is not None and user_input[CONF_MIN_ELEVATION] is not None:
+            if user_input.get(CONF_MAX_ELEVATION) is not None and user_input.get(CONF_MIN_ELEVATION) is not None:
                 if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
                     return self.async_show_form(
                         step_id="horizontal",
@@ -622,7 +622,7 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_MAX_ELEVATION,
             ]
             self.optional_entities(keys, user_input)
-            if user_input[CONF_MAX_ELEVATION] is not None and user_input[CONF_MIN_ELEVATION] is not None:
+            if user_input.get(CONF_MAX_ELEVATION) is not None and user_input.get(CONF_MIN_ELEVATION) is not None:
                 if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
                     return self.async_show_form(
                         step_id="tilt",
