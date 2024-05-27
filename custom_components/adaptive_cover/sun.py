@@ -24,7 +24,7 @@ class SunData:
         end_date = start_date + timedelta(days=1)
 
         times = pd.date_range(
-            start=start_date, end=end_date, freq="5min", tz=self.timezone
+            start=start_date, end=end_date, freq="5min", tz=self.timezone, name="time"
         )
         return times
 
