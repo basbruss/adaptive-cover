@@ -134,7 +134,7 @@ If the sun is above the horizon and the indoor temperature is below the minimal 
     The objective is to not heat up the room any further by blocking out all possible radiation. All blinds close fully to block out light. <br> <br>
     If the indoor temperature is between both thresholds the position defaults to the set default value based on the time of day.
 
-- **Presence**:
+- **Presence** (or no Presence Entity set):
 The objective is to reduce glare while providing daylight to the room. All calculation is done by the basic model for Horizontal and Vertical blinds. <br> <br>
 If you added a weather entity than it will only use the above calculations if the weather state corresponds with the existence of direct sun rays. These states are `sunny`,`windy`, `partlycloudy`, and `cloudy` by default, but you can change the list of states in the weather options. If not equal to these states the position will default to the default value to allow more sunlight entering the room with minimizing the glare due to the weather condition. <br><br>
 Tilted blinds will only defect from the above approach if the inside temperature is above the maximum comfort temperature. Than the slats will be positioned at 45 degrees as this is [founded optimal](https://www.mdpi.com/1996-1073/13/7/1731).
