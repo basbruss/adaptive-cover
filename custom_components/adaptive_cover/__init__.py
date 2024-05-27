@@ -21,7 +21,7 @@ from .const import (
     DOMAIN,
 )
 from .coordinator import AdaptiveDataUpdateCoordinator
-from .helpers import get_datetime_from_str
+from .helpers import get_datetime_from_str, get_safe_state
 
 PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.BINARY_SENSOR, Platform.BUTTON]
 CONF_SUN = ["sun.sun"]
@@ -42,7 +42,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     coordinator = AdaptiveDataUpdateCoordinator(hass)
-    end_time=None
+    end_time = None
     _temp_entity = entry.options.get(CONF_TEMP_ENTITY)
     _presence_entity = entry.options.get(CONF_PRESENCE_ENTITY)
     _weather_entity = entry.options.get(CONF_WEATHER_ENTITY)
@@ -57,7 +57,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if _end_time is not None:
         end_time = get_datetime_from_str(_end_time)
     if _end_time_entity is not None:
-        end_time = get_datetime_from_str(_end_time_entity)
+        end_time = get_datetime_from_str(get_safe_state(hass, _end_time_entity))
 
     entry.async_on_unload(
         async_track_state_change_event(
