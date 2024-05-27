@@ -89,28 +89,34 @@ Each type has its own specific parameters to setup a sensor. To setup the sensor
 This component supports two strategy modes: A `basic` mode and a `climate comfort/energy saving` mode that works with presence and temperature detection.
 
 ```mermaid
-    flowchart LR
-        A[Sundata] --> B{Normal}
-        A --> C{Climate}
-
-        B --> |Sun not infront| D{Default}
-        B --> |Sun infront| E(Calculated Position)
-
-        D --> H(Default Position)
-        D --> |Between sunset and sunrise|I(Sunset Default Position)
-
-        C --> F[No Presence]
-        C --> G[Presence]
-        G --> B
-
-        F --> M(Check weather)
-        M --> N(Conditions False)
-        M --> O(Conditions True)
-
-        O --> |Below minimal comfort temperature|K(Fully Open)
-        O --> |Above maximal comfort temperature|L(Fully Closed)
-        O --> |Inbetween comfort temperature thresholds |D
-        N --> D
+  flowchart LR
+      A[Sundata] --> B{Normal}
+      A --> C{Climate}
+    
+      subgraph Sun_Position
+          B --> |Sun not in front| D{Default}
+          B --> |Sun in front| E(Calculated Position)
+    
+          D --> H[Default Position]
+          D --> |Between sunset and sunrise| I[Sunset Default Position]
+      end
+    
+      subgraph Climate_Conditions
+          C --> F[No Presence]
+          C --> G[Presence]
+    
+          F --> M{Check Weather}
+          M --> |Conditions False| D
+          M --> |Conditions True| P{Temperature Check}
+    
+          P --> |Below Minimal Comfort Temperature| K[Fully Open]
+          P --> |Above Maximal Comfort Temperature| L[Fully Closed]
+          P --> |In between\nComfort Temperature Thresholds| D
+    
+          G --> Q{Check Weather\nand Temperature}
+          Q --> |Weather Conditions True or Above Maximal Comfort Temperature|B
+          Q --> |Else|D
+      end
 ```
 
 ### Basic mode
