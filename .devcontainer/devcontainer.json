@@ -1,8 +1,4 @@
 {
-  "name": "Adaptive Cover Dev-env",
-  "image": "mcr.microsoft.com/devcontainers/python:3.12",
-  "postCreateCommand": "scripts/setup",
-  "forwardPorts": [8123],
   "customizations": {
     "vscode": {
       "extensions": [
@@ -12,22 +8,29 @@
         "visualstudioexptteam.vscodeintellicode",
         "redhat.vscode-yaml",
         "esbenp.prettier-vscode",
-        "GitHub.vscode-pull-request-github"
+        "GitHub.vscode-pull-request-github",
+        "ms-toolsai.jupyter",
+        "yzhang.markdown-all-in-one"
       ],
       "settings": {
-        "files.eol": "\n",
-        "editor.tabSize": 4,
-        "python.pythonPath": "/usr/local/bin/python",
-        "python.analysis.autoSearchPaths": false,
-        "editor.formatOnPaste": false,
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnPaste": true,
         "editor.formatOnSave": true,
         "editor.formatOnType": true,
-        "files.trimTrailingWhitespace": true
+        "editor.tabSize": 2,
+        "files.eol": "\n",
+        "files.trimTrailingWhitespace": true,
+        "python.analysis.autoSearchPaths": false,
+        "python.pythonPath": "/usr/local/bin/python"
       }
     }
   },
-  "remoteUser": "vscode",
   "features": {
     "ghcr.io/devcontainers/features/rust:1": {}
-  }
+  },
+  "forwardPorts": [8123],
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "name": "Adaptive Cover Dev-env",
+  "postCreateCommand": "scripts/setup",
+  "remoteUser": "vscode"
 }
