@@ -142,8 +142,8 @@ If the sun is above the horizon and the indoor temperature is below the minimal 
 
 - **Presence** (or no Presence Entity set):
 The objective is to reduce glare while providing daylight to the room. All calculation is done by the basic model for Horizontal and Vertical blinds. <br> <br>
-If you added a weather entity than it will only use the above calculations if the weather state corresponds with the existence of direct sun rays. These states are `sunny`,`windy`, `partlycloudy`, and `cloudy` by default, but you can change the list of states in the weather options. If not equal to these states the position will default to the default value to allow more sunlight entering the room with minimizing the glare due to the weather condition. <br><br>
-Tilted blinds will only defect from the above approach if the inside temperature is above the maximum comfort temperature. Than the slats will be positioned at 45 degrees as this is [founded optimal](https://www.mdpi.com/1996-1073/13/7/1731).
+If you added a weather entity, it will only use the above calculations if the weather state corresponds with the existence of direct sun rays. These states are `sunny`,`windy`, `partlycloudy`, and `cloudy` by default, but you can change the list of states in the weather options. If not equal to these states the position will default to the default value to allow more sunlight entering the room with minimizing the glare due to the weather condition. <br><br>
+Tilted blinds will only deviate from the above approach if the inside temperature is above the maximum comfort temperature. In that case, the slats will be positioned at 45 degrees as this is [found optimal](https://www.mdpi.com/1996-1073/13/7/1731).
 
 ## Variables
 
@@ -191,7 +191,7 @@ Tilted blinds will only defect from the above approach if the inside temperature
 
 |     Variables     | Default| Range | Description |
 |----------|----------|------------|---------|
-| Minimum Delta Position  | 1  | 90 | Minimum position change required before another change can occur  |
+| Minimum Delta Position  | 1  | 1-90 | Minimum position change required before another change can occur  |
 | Minimum Delta Time  | 2 |   |  Minimum time gap between position change |
 | Start Time  | `"00:00:00"` |   | Earliest time a cover can be adjusted after midnight   |
 | Start Time Entity  | None |   | The earliest moment a cover may be changed after midnight. *Overrides the `start_time` value*  |
@@ -214,14 +214,14 @@ Tilted blinds will only defect from the above approach if the inside temperature
 
 ## Entities
 
-The integration adds dynamically based on the used features multiple entities.
+The integration dynamically adds multiple entities based on the used features.
 
 These entities are always available:
 | Entities                                      | Default        | Description                                                                                                            |
 | --------------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `sensor.{type}_cover_position_{name}`         |                | Reflects the current state determined by predefined settings and factors such as sun position, weather, and temperature   |
 | `sensor.{type}_control_method_{name}`         | `intermediate` | Indicates the active control strategy based on weather conditions. Options include `winter`, `summer`, and `intermediate` |
-| `sensor.{type}_start_sun_{name}`              |                | Shows the starting time when the sun enters the window's view, with an interval of every 5 minutes..               |
+| `sensor.{type}_start_sun_{name}`              |                | Shows the starting time when the sun enters the window's view, with an interval of every 5 minutes.               |
 | `sensor.{type}_end_sun_{name}`                |                | Indicates the ending time when the sun exits the window's view, with an interval of every 5 minutes.         |
 | `binary_sensor.{type}_manual_override_{name}` | `off`          | Indicates if manual override is engaged for any blinds.                             |
 | `binary_sensor.{type}_sun_infront_{name}`     | `off`          | Indicates whether the sun is in front of the window within the designated field of view.              |
