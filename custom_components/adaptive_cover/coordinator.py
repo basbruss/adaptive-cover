@@ -137,8 +137,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             time = self.end_time
         if self.end_time_entity is not None:
             time = get_safe_state(self.hass, self.end_time_entity)
-        time_check = dt.datetime.now() + dt.timedelta(hours=2) - get_datetime_from_str(time)
-        if time is not None and (time_check <= dt.timedelta(seconds=1)) :
+        time_check = dt.datetime.now() - get_datetime_from_str(time)
+        if time is not None and (time_check <= dt.timedelta(seconds=1)):
             self.timed_refresh = True
             _LOGGER.debug("Timed refresh triggered")
             await self.async_refresh()
@@ -266,9 +266,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         if self.timed_refresh and self.control_toggle:
             for cover in self.entities:
-                await self.async_set_manual_position(cover, self.config_entry.options.get(CONF_SUNSET_POS))
+                await self.async_set_manual_position(
+                    cover, self.config_entry.options.get(CONF_SUNSET_POS)
+                )
             self.timed_refresh = False
-
 
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
@@ -322,7 +323,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         self.wait_for_target[entity] = True
         self.target_call[entity] = position
-        _LOGGER.debug("Set wait for target %s and target call %s", self.wait_for_target, self.target_call)
+        _LOGGER.debug(
+            "Set wait for target %s and target call %s",
+            self.wait_for_target,
+            self.target_call,
+        )
         await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
         _LOGGER.debug("Run %s with data %s", service, service_data)
 
