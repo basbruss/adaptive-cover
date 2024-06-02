@@ -89,28 +89,34 @@ Each type has its own specific parameters to setup a sensor. To setup the sensor
 This component supports two strategy modes: A `basic` mode and a `climate comfort/energy saving` mode that works with presence and temperature detection.
 
 ```mermaid
-    flowchart LR
-        A[Sundata] --> B{Normal}
-        A --> C{Climate}
-
-        B --> |Sun not infront| D{Default}
-        B --> |Sun infront| E(Calculated Position)
-
-        D --> H(Default Position)
-        D --> |Between sunset and sunrise|I(Sunset Default Position)
-
-        C --> F[No Presence]
-        C --> G[Presence]
-        G --> B
-
-        F --> M(Check weather)
-        M --> N(Conditions False)
-        M --> O(Conditions True)
-
-        O --> |Below minimal comfort temperature|K(Fully Open)
-        O --> |Above maximal comfort temperature|L(Fully Closed)
-        O --> |Inbetween comfort temperature thresholds |D
-        N --> D
+  flowchart LR
+      A[Sundata] --> B{Normal}
+      A --> C{Climate}
+    
+      subgraph Sun_Position
+          B --> |Sun not in front| D{Default}
+          B --> |Sun in front| E(Calculated Position)
+    
+          D --> H[Default Position]
+          D --> |Between sunset and sunrise| I[Sunset Default Position]
+      end
+    
+      subgraph Climate_Conditions
+          C --> F[No Presence]
+          C --> G[Presence]
+    
+          F --> M{Check Weather}
+          M --> |Conditions False| D
+          M --> |Conditions True| P{Temperature Check}
+    
+          P --> |Below Minimal Comfort Temperature| K[Fully Open]
+          P --> |Above Maximal Comfort Temperature| L[Fully Closed]
+          P --> |In between\nComfort Temperature Thresholds| D
+    
+          G --> Q{Check Weather\nand Temperature}
+          Q --> |Weather Conditions True or Above Maximal Comfort Temperature|B
+          Q --> |Else|D
+      end
 ```
 
 ### Basic mode
@@ -134,10 +140,10 @@ If the sun is above the horizon and the indoor temperature is below the minimal 
     The objective is to not heat up the room any further by blocking out all possible radiation. All blinds close fully to block out light. <br> <br>
     If the indoor temperature is between both thresholds the position defaults to the set default value based on the time of day.
 
-- **Presence**:
+- **Presence** (or no Presence Entity set):
 The objective is to reduce glare while providing daylight to the room. All calculation is done by the basic model for Horizontal and Vertical blinds. <br> <br>
-If you added a weather entity than it will only use the above calculations if the weather state corresponds with the existence of direct sun rays. These states are `sunny`,`windy` and `partlycloudy`. If not equal to these states the position will default to the default value to allow more sunlight entering the room with minimizing the glare due to the weather condition. <br><br>
-Tilted blinds will only defect from the above approach if the inside temperature is above the maximum comfort temperature. Than the slats will be positioned at 45 degrees as this is [founded optimal](https://www.mdpi.com/1996-1073/13/7/1731).
+If you added a weather entity, it will only use the above calculations if the weather state corresponds with the existence of direct sun rays. These states are `sunny`,`windy`, `partlycloudy`, and `cloudy` by default, but you can change the list of states in the weather options. If not equal to these states the position will default to the default value to allow more sunlight entering the room with minimizing the glare due to the weather condition. <br><br>
+Tilted blinds will only deviate from the above approach if the inside temperature is above the maximum comfort temperature. In that case, the slats will be positioned at 45 degrees as this is [found optimal](https://www.mdpi.com/1996-1073/13/7/1731).
 
 ## Variables
 
@@ -185,7 +191,7 @@ Tilted blinds will only defect from the above approach if the inside temperature
 
 |     Variables     | Default| Range | Description |
 |----------|----------|------------|---------|
-| Minimum Delta Position  | 1  | 90 | Minimum position change required before another change can occur  |
+| Minimum Delta Position  | 1  | 1-90 | Minimum position change required before another change can occur  |
 | Minimum Delta Time  | 2 |   |  Minimum time gap between position change |
 | Start Time  | `"00:00:00"` |   | Earliest time a cover can be adjusted after midnight   |
 | Start Time Entity  | None |   | The earliest moment a cover may be changed after midnight. *Overrides the `start_time` value*  |
@@ -208,14 +214,14 @@ Tilted blinds will only defect from the above approach if the inside temperature
 
 ## Entities
 
-The integration adds dynamically based on the used features multiple entities.
+The integration dynamically adds multiple entities based on the used features.
 
 These entities are always available:
 | Entities                                      | Default        | Description                                                                                                            |
 | --------------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `sensor.{type}_cover_position_{name}`         |                | Reflects the current state determined by predefined settings and factors such as sun position, weather, and temperature   |
 | `sensor.{type}_control_method_{name}`         | `intermediate` | Indicates the active control strategy based on weather conditions. Options include `winter`, `summer`, and `intermediate` |
-| `sensor.{type}_start_sun_{name}`              |                | Shows the starting time when the sun enters the window's view, with an interval of every 5 minutes..               |
+| `sensor.{type}_start_sun_{name}`              |                | Shows the starting time when the sun enters the window's view, with an interval of every 5 minutes.               |
 | `sensor.{type}_end_sun_{name}`                |                | Indicates the ending time when the sun exits the window's view, with an interval of every 5 minutes.         |
 | `binary_sensor.{type}_manual_override_{name}` | `off`          | Indicates if manual override is engaged for any blinds.                             |
 | `binary_sensor.{type}_sun_infront_{name}`     | `off`          | Indicates whether the sun is in front of the window within the designated field of view.              |
