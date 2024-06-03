@@ -47,6 +47,7 @@ from .const import (
     CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
     CONF_LENGTH_AWNING,
+    CONF_MANUAL_IGNORE_INTERMEDIATE,
     CONF_MANUAL_OVERRIDE_DURATION,
     CONF_MANUAL_OVERRIDE_RESET,
     CONF_MANUAL_THRESHOLD,
@@ -124,6 +125,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.manager = AdaptiveCoverManager(self.manual_duration)
         self.wait_for_target = {}
         self.target_call = {}
+        self.ignore_intermediate_states = self.config_entry.options.get(
+            CONF_MANUAL_IGNORE_INTERMEDIATE, False
+        )
 
     async def async_config_entry_first_refresh(self) -> None:
         """Config entry first refresh."""
@@ -175,6 +179,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         event = self.state_change_data
         _LOGGER.debug("Processing state change event: %s", event)
         entity_id = event.entity_id
+        if self.ignore_intermediate_states and event.new_state.state in [
+            "opening",
+            "closing",
+        ]:
+            _LOGGER.debug("Ignoring intermediate state change for %s", entity_id)
+            return
         if self.wait_for_target.get(entity_id):
             position = event.new_state.attributes.get(
                 "current_position"
