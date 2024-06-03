@@ -49,6 +49,7 @@ from .const import (
     CONF_LENGTH_AWNING,
     CONF_MANUAL_OVERRIDE_DURATION,
     CONF_MANUAL_OVERRIDE_RESET,
+    CONF_MANUAL_THRESHOLD,
     CONF_MAX_ELEVATION,
     CONF_MAX_POSITION,
     CONF_MIN_ELEVATION,
@@ -199,6 +200,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.manual_duration = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
         )
+        self.manual_threshold = self.config_entry.options.get(CONF_MANUAL_THRESHOLD)
 
         cover_data = self.get_blind_data()
 
@@ -244,6 +246,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self._cover_type,
                 self.manual_reset,
                 self.wait_for_target,
+                self.manual_threshold,
             )
             self.cover_state_change = False  # reset state change
 
@@ -523,7 +526,13 @@ class AdaptiveCoverManager:
         self.covers.update(entity)
 
     def handle_state_change(
-        self, states_data, our_state, blind_type, allow_reset, wait_target_call
+        self,
+        states_data,
+        our_state,
+        blind_type,
+        allow_reset,
+        wait_target_call,
+        manual_threshold,
     ):
         """Process state change event."""
         event = states_data
@@ -543,6 +552,16 @@ class AdaptiveCoverManager:
             new_position = new_state.attributes.get("current_position")
 
         if new_position != our_state:
+            if (
+                manual_threshold is not None
+                and abs(our_state - new_position) < manual_threshold
+            ):
+                _LOGGER.debug(
+                    "Position change is less than threshold %s for %s",
+                    manual_threshold,
+                    entity_id,
+                )
+                return
             _LOGGER.debug(
                 "Set manual control for %s, for at least %s seconds, reset_allowed: %s",
                 entity_id,
