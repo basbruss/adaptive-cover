@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import datetime as dt
 from dataclasses import dataclass
 
@@ -229,12 +230,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             await self.async_handle_timed_refresh(options)
 
         normal_cover = normal_cover_state.cover
+        # Run the solar_times method in a separate thread
+        loop = asyncio.get_event_loop()
+        start, end = await loop.run_in_executor(None, normal_cover.solar_times)
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
             states={
                 "state": state,
-                "start": normal_cover.solar_times()[0],
-                "end": normal_cover.solar_times()[1],
+                "start": start,
+                "end": end,
                 "control": self.control_method,
                 "sun_motion": normal_cover.valid,
                 "manual_override": self.manager.binary_cover_manual,
