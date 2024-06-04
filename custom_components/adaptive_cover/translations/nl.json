@@ -100,9 +100,8 @@
       "horizontal": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-          "height_awning": "Zonneschermhoogte",
           "length_awning": "Zonneschermspanlengte",
-          "window_height": "Raamhoogte",
+          "window_height": "Zonneschermhoogte",
           "angle": "Zonneschermhoek",
           "distance_shaded_area": "Beschaduwde gebied",
           "default_percentage": "Standaard positie",
@@ -120,8 +119,7 @@
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
-          "height_awning": "Pas de hoogte van het zonnescherm aan vanaf de grond",
-          "window_height": "Specificeer de hoogte van het raam(raam(en)) in meters",
+          "window_height": "Pas de hoogte van het zonnescherm aan vanaf de hoogte van het werkgebied",
           "length_awning": "Totale spanwijdte van het zonnescherm in meters",
           "angle": "Hoek van het bevestigde zonnescherm gemeten loodrecht vanaf de muur naar de grond",
           "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",
@@ -293,9 +291,8 @@
       "horizontal": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-          "height_awning": "Zonneschermhoogte",
           "length_awning": "Zonneschermspanlengte",
-          "window_height": "Raamhoogte",
+          "window_height": "Zonneschermhoogte",
           "angle": "Zonneschermhoek",
           "distance_shaded_area": "Beschaduwde gebied",
           "default_percentage": "Standaard positie",
@@ -313,8 +310,7 @@
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
-          "height_awning": "Pas de hoogte van het zonnescherm aan vanaf de grond",
-          "window_height": "Specificeer de hoogte van het raam(raam(en)) in meters",
+          "window_height": "Pas de hoogte van het zonnescherm aan vanaf de hoogte van het werkgebied",
           "length_awning": "Totale spanwijdte van het zonnescherm in meters",
           "angle": "Hoek van het bevestigde zonnescherm gemeten loodrecht vanaf de muur naar de grond",
           "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",
