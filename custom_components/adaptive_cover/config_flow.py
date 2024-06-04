@@ -35,8 +35,10 @@ from .const import (
     CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
     CONF_LENGTH_AWNING,
+    CONF_MANUAL_IGNORE_INTERMEDIATE,
     CONF_MANUAL_OVERRIDE_DURATION,
     CONF_MANUAL_OVERRIDE_RESET,
+    CONF_MANUAL_THRESHOLD,
     CONF_MAX_ELEVATION,
     CONF_MAX_POSITION,
     CONF_MIN_ELEVATION,
@@ -101,10 +103,13 @@ OPTIONS = vol.Schema(
             selector.NumberSelectorConfig(
                 min=1, max=100, step=1, mode="slider", unit_of_measurement="%"
             )
-
         ),
-        vol.Optional(CONF_MIN_ELEVATION): vol.All(vol.Coerce(int), vol.Range(min=0, max=90)),
-        vol.Optional(CONF_MAX_ELEVATION): vol.All(vol.Coerce(int), vol.Range(min=0, max=90)),
+        vol.Optional(CONF_MIN_ELEVATION): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=90)
+        ),
+        vol.Optional(CONF_MAX_ELEVATION): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=90)
+        ),
         vol.Required(CONF_FOV_LEFT, default=90): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=1, max=90, step=1, mode="slider", unit_of_measurement="°"
@@ -293,17 +298,23 @@ AUTOMATION_CONFIG = vol.Schema(
             CONF_MANUAL_OVERRIDE_DURATION, default={"minutes": 15}
         ): selector.DurationSelector(),
         vol.Required(CONF_MANUAL_OVERRIDE_RESET, default=False): bool,
+        vol.Optional(CONF_MANUAL_THRESHOLD): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=99)
+        ),
+        vol.Optional(CONF_MANUAL_IGNORE_INTERMEDIATE, default=False): bool,
         vol.Optional(CONF_END_TIME, default="00:00:00"): selector.TimeSelector(),
         vol.Optional(CONF_END_ENTITY): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
         ),
-        vol.Optional(CONF_RETURN_SUNSET, default=False): bool
+        vol.Optional(CONF_RETURN_SUNSET, default=False): bool,
     }
 )
 
-def _get_azimuth_edges(data) -> tuple[int,int]:
+
+def _get_azimuth_edges(data) -> tuple[int, int]:
     """Calculate azimuth edges."""
     return data[CONF_FOV_LEFT] + data[CONF_FOV_RIGHT]
+
 
 class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle ConfigFlow."""
@@ -337,12 +348,17 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         """Show basic config for vertical blinds."""
         self.type_blind = SensorType.BLIND
         if user_input is not None:
-            if user_input.get(CONF_MAX_ELEVATION) is not None and user_input.get(CONF_MIN_ELEVATION) is not None:
+            if (
+                user_input.get(CONF_MAX_ELEVATION) is not None
+                and user_input.get(CONF_MIN_ELEVATION) is not None
+            ):
                 if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
                     return self.async_show_form(
                         step_id="vertical",
                         data_schema=CLIMATE_MODE.extend(VERTICAL_OPTIONS.schema),
-                        errors={CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"}
+                        errors={
+                            CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"
+                        },
                     )
             self.config.update(user_input)
             if self.config[CONF_ENABLE_BLIND_SPOT]:
@@ -357,12 +373,17 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         """Show basic config for horizontal blinds."""
         self.type_blind = SensorType.AWNING
         if user_input is not None:
-            if user_input.get(CONF_MAX_ELEVATION) is not None and user_input.get(CONF_MIN_ELEVATION) is not None:
+            if (
+                user_input.get(CONF_MAX_ELEVATION) is not None
+                and user_input.get(CONF_MIN_ELEVATION) is not None
+            ):
                 if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
                     return self.async_show_form(
                         step_id="horizontal",
                         data_schema=CLIMATE_MODE.extend(HORIZONTAL_OPTIONS.schema),
-                        errors={CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"}
+                        errors={
+                            CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"
+                        },
                     )
             self.config.update(user_input)
             if self.config[CONF_ENABLE_BLIND_SPOT]:
@@ -377,12 +398,17 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         """Show basic config for tilted blinds."""
         self.type_blind = SensorType.TILT
         if user_input is not None:
-            if user_input.get(CONF_MAX_ELEVATION) is not None and user_input.get(CONF_MIN_ELEVATION) is not None:
+            if (
+                user_input.get(CONF_MAX_ELEVATION) is not None
+                and user_input.get(CONF_MIN_ELEVATION) is not None
+            ):
                 if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
                     return self.async_show_form(
                         step_id="tilt",
                         data_schema=CLIMATE_MODE.extend(TILT_OPTIONS.schema),
-                        errors={CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"}
+                        errors={
+                            CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"
+                        },
                     )
             self.config.update(user_input)
             if self.config[CONF_ENABLE_BLIND_SPOT]:
@@ -397,9 +423,19 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         edges = _get_azimuth_edges(self.config)
         schema = vol.Schema(
             {
-                vol.Required(CONF_BLIND_SPOT_LEFT,default=0): selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=0, max=edges-1)),
-                vol.Required(CONF_BLIND_SPOT_RIGHT,default=1):selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=1, max=edges)),
-                vol.Optional(CONF_BLIND_SPOT_ELEVATION): vol.All(vol.Coerce(int), vol.Range(min=0, max=90))
+                vol.Required(CONF_BLIND_SPOT_LEFT, default=0): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        mode="slider", unit_of_measurement="°", min=0, max=edges - 1
+                    )
+                ),
+                vol.Required(CONF_BLIND_SPOT_RIGHT, default=1): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        mode="slider", unit_of_measurement="°", min=1, max=edges
+                    )
+                ),
+                vol.Optional(CONF_BLIND_SPOT_ELEVATION): vol.All(
+                    vol.Coerce(int), vol.Range(min=0, max=90)
+                ),
             }
         )
         if user_input is not None:
@@ -407,7 +443,9 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 return self.async_show_form(
                     step_id="blind_spot",
                     data_schema=schema,
-                    errors={CONF_BLIND_SPOT_RIGHT: "Must be greater than 'Blind Spot Left Edge'"}
+                    errors={
+                        CONF_BLIND_SPOT_RIGHT: "Must be greater than 'Blind Spot Left Edge'"
+                    },
                 )
             self.config.update(user_input)
             return await self.async_step_automation()
@@ -487,9 +525,15 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                     CONF_MANUAL_OVERRIDE_DURATION
                 ),
                 CONF_MANUAL_OVERRIDE_RESET: self.config.get(CONF_MANUAL_OVERRIDE_RESET),
+                CONF_MANUAL_THRESHOLD: self.config.get(CONF_MANUAL_THRESHOLD),
+                CONF_MANUAL_IGNORE_INTERMEDIATE: self.config.get(
+                    CONF_MANUAL_IGNORE_INTERMEDIATE
+                ),
                 CONF_BLIND_SPOT_RIGHT: self.config.get(CONF_BLIND_SPOT_RIGHT, None),
                 CONF_BLIND_SPOT_LEFT: self.config.get(CONF_BLIND_SPOT_LEFT, None),
-                CONF_BLIND_SPOT_ELEVATION: self.config.get(CONF_BLIND_SPOT_ELEVATION, None),
+                CONF_BLIND_SPOT_ELEVATION: self.config.get(
+                    CONF_BLIND_SPOT_ELEVATION, None
+                ),
                 CONF_ENABLE_BLIND_SPOT: self.config.get(CONF_ENABLE_BLIND_SPOT),
                 CONF_MIN_ELEVATION: self.config.get(CONF_MIN_ELEVATION, None),
                 CONF_MAX_ELEVATION: self.config.get(CONF_MAX_ELEVATION, None),
@@ -527,10 +571,7 @@ class OptionsFlowHandler(OptionsFlow):
     async def async_step_automation(self, user_input: dict[str, Any] | None = None):
         """Manage automation options."""
         if user_input is not None:
-            entities = [
-                CONF_START_ENTITY,
-                CONF_END_ENTITY
-            ]
+            entities = [CONF_START_ENTITY, CONF_END_ENTITY, CONF_MANUAL_THRESHOLD]
             self.optional_entities(entities, user_input)
             self.options.update(user_input)
             return await self._update_options()
@@ -562,12 +603,17 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_MAX_ELEVATION,
             ]
             self.optional_entities(keys, user_input)
-            if user_input.get(CONF_MAX_ELEVATION) is not None and user_input.get(CONF_MIN_ELEVATION) is not None:
+            if (
+                user_input.get(CONF_MAX_ELEVATION) is not None
+                and user_input.get(CONF_MIN_ELEVATION) is not None
+            ):
                 if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
                     return self.async_show_form(
                         step_id="vertical",
                         data_schema=CLIMATE_MODE.extend(VERTICAL_OPTIONS.schema),
-                        errors={CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"}
+                        errors={
+                            CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"
+                        },
                     )
             self.options.update(user_input)
             if self.options[CONF_CLIMATE_MODE]:
@@ -592,12 +638,17 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_MAX_ELEVATION,
             ]
             self.optional_entities(keys, user_input)
-            if user_input.get(CONF_MAX_ELEVATION) is not None and user_input.get(CONF_MIN_ELEVATION) is not None:
+            if (
+                user_input.get(CONF_MAX_ELEVATION) is not None
+                and user_input.get(CONF_MIN_ELEVATION) is not None
+            ):
                 if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
                     return self.async_show_form(
                         step_id="horizontal",
                         data_schema=CLIMATE_MODE.extend(HORIZONTAL_OPTIONS.schema),
-                        errors={CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"}
+                        errors={
+                            CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"
+                        },
                     )
             self.options.update(user_input)
             if self.options[CONF_CLIMATE_MODE]:
@@ -622,12 +673,17 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_MAX_ELEVATION,
             ]
             self.optional_entities(keys, user_input)
-            if user_input.get(CONF_MAX_ELEVATION) is not None and user_input.get(CONF_MIN_ELEVATION) is not None:
+            if (
+                user_input.get(CONF_MAX_ELEVATION) is not None
+                and user_input.get(CONF_MIN_ELEVATION) is not None
+            ):
                 if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
                     return self.async_show_form(
                         step_id="tilt",
                         data_schema=CLIMATE_MODE.extend(TILT_OPTIONS.schema),
-                        errors={CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"}
+                        errors={
+                            CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"
+                        },
                     )
             self.options.update(user_input)
             if self.options[CONF_CLIMATE_MODE]:
@@ -645,9 +701,19 @@ class OptionsFlowHandler(OptionsFlow):
         edges = _get_azimuth_edges(self.options)
         schema = vol.Schema(
             {
-                vol.Required(CONF_BLIND_SPOT_LEFT,default=0): selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=0, max=edges-1)),
-                vol.Required(CONF_BLIND_SPOT_RIGHT,default=1):selector.NumberSelector(selector.NumberSelectorConfig(mode="slider", unit_of_measurement="°", min=1, max=edges)),
-                vol.Optional(CONF_BLIND_SPOT_ELEVATION):vol.All(vol.Coerce(int), vol.Range(min=0, max=90))
+                vol.Required(CONF_BLIND_SPOT_LEFT, default=0): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        mode="slider", unit_of_measurement="°", min=0, max=edges - 1
+                    )
+                ),
+                vol.Required(CONF_BLIND_SPOT_RIGHT, default=1): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        mode="slider", unit_of_measurement="°", min=1, max=edges
+                    )
+                ),
+                vol.Optional(CONF_BLIND_SPOT_ELEVATION): vol.All(
+                    vol.Coerce(int), vol.Range(min=0, max=90)
+                ),
             }
         )
         if user_input is not None:
@@ -655,11 +721,18 @@ class OptionsFlowHandler(OptionsFlow):
                 return self.async_show_form(
                     step_id="blind_spot",
                     data_schema=schema,
-                    errors={CONF_BLIND_SPOT_RIGHT: "Must be greater than 'Blind Spot Left Edge'"}
+                    errors={
+                        CONF_BLIND_SPOT_RIGHT: "Must be greater than 'Blind Spot Left Edge'"
+                    },
                 )
             self.options.update(user_input)
             return await self._update_options()
-        return self.async_show_form(step_id="blind_spot", data_schema=self.add_suggested_values_to_schema(schema, user_input or self.options))
+        return self.async_show_form(
+            step_id="blind_spot",
+            data_schema=self.add_suggested_values_to_schema(
+                schema, user_input or self.options
+            ),
+        )
 
     async def async_step_climate(self, user_input: dict[str, Any] | None = None):
         """Manage climate options."""

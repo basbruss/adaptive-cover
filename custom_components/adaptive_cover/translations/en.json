@@ -19,6 +19,8 @@
           "manual_override_reset": "Reset Manual override duration",
           "end_time": "End time",
           "end_entity": "Entity indicating ending time",
+          "manual_threshold": "Manual override threshold",
+          "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
           "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
         },
         "data_description": {
@@ -213,6 +215,8 @@
           "manual_override_reset": "Reset Manual override duration",
           "end_time": "End time",
           "end_entity": "Entity indicating ending time",
+          "manual_threshold": "Manual override threshold",
+          "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
           "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
         },
         "data_description": {
