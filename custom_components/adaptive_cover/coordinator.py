@@ -407,8 +407,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             )
             return now < time
         if self.end_time is not None:
-            time = get_datetime_from_str(self.end_time).time()
-            now = dt.datetime.now().time()
+            time = get_datetime_from_str(self.end_time)
+            if time.time() == dt.time(0, 0):
+                time = time + dt.timedelta(days=1)
+            now = dt.datetime.now()
             _LOGGER.debug(
                 "End time: %s, now: %s, now < time: %s", time, now, now < time
             )
