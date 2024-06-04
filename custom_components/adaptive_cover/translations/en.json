@@ -101,9 +101,8 @@
       "horizontal": {
         "data": {
           "set_azimuth": "Window Azimuth",
-          "height_awning": "Awning Height",
           "length_awning": "Awning Span Length",
-          "window_height": "Window Height",
+          "window_height": "Awning Height",
           "angle": "Awning Angle",
           "distance_shaded_area": "Shaded area",
           "default_percentage": "Default Position",
@@ -122,8 +121,7 @@
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
-          "height_awning": "Adjust the height of the awning from the ground",
-          "window_height": "Specify the height of the window(s) in meters",
+          "window_height": "Adjust the height of the awning from the level of the workarea",
           "length_awning": "Total span length in meters",
           "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
           "distance_shaded_area": "Distance from cover to shaded area in meters",
@@ -297,9 +295,8 @@
       "horizontal": {
         "data": {
           "set_azimuth": "Window Azimuth",
-          "height_awning": "Awning Height",
           "length_awning": "Awning Span Length",
-          "window_height": "Window Height",
+          "window_height": "Awning Height",
           "angle": "Awning Angle",
           "distance_shaded_area": "Shaded area",
           "default_percentage": "Default Position",
@@ -318,8 +315,7 @@
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
-          "height_awning": "Adjust the height of the awning from the ground",
-          "window_height": "Specify the height of the window(s) in meters",
+          "window_height": "Adjust the height of the awning from the level of the workarea",
           "length_awning": "Total span length in meters",
           "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
           "distance_shaded_area": "Distance from cover to shaded area in meters",

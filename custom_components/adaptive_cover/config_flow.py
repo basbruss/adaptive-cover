@@ -31,7 +31,6 @@ from .const import (
     CONF_ENTITIES,
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
-    CONF_HEIGHT_AWNING,
     CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
     CONF_LENGTH_AWNING,
@@ -163,11 +162,6 @@ VERTICAL_OPTIONS = vol.Schema(
 
 HORIZONTAL_OPTIONS = vol.Schema(
     {
-        vol.Required(CONF_HEIGHT_AWNING, default=2.1): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=0.1, max=6, step=0.01, mode="slider", unit_of_measurement="m"
-            )
-        ),
         vol.Required(CONF_LENGTH_AWNING, default=2.1): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.3, max=6, step=0.01, mode="slider", unit_of_measurement="m"
