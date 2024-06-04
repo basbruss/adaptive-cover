@@ -19,6 +19,8 @@
           "manual_override_reset": "Reset Manual override duration",
           "end_time": "End time",
           "end_entity": "Entity indicating ending time",
+          "manual_threshold": "Manual override threshold",
+          "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
           "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
         },
         "data_description": {
@@ -75,14 +77,16 @@
           "weather_entity": "Weather entity (optional)",
           "outside_temp": "Outside temperature sensor (optional)",
           "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
+          "temp_high": "High temperature threshold",
+          "transparent_blind": "Transparent blind"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
           "weather_entity": "Monitors weather conditions, and outside temperature",
           "outside_temp": "Overrides outside temperature from weather entity if both are set",
           "temp_low": "Minimum comfortable temperature",
-          "temp_high": "Maximum comfortable temperature"
+          "temp_high": "Maximum comfortable temperature",
+          "transparent_blind": "The blind is transparent and should always close fully when summer mode is active"
         },
         "description": "Add additional climate configuration variables.",
         "title": "Climate settings"
@@ -197,7 +201,8 @@
           "automation": "Modify Automation Configuration",
           "blind": "Fine-tune Blind Settings",
           "climate": "Edit Climate Configuration",
-          "weather": "Edit Weather Configuration"
+          "weather": "Edit Weather Configuration",
+          "blind_spot": "Setup Blindspot"
         }
       },
       "automation": {
@@ -210,6 +215,8 @@
           "manual_override_reset": "Reset Manual override duration",
           "end_time": "End time",
           "end_entity": "Entity indicating ending time",
+          "manual_threshold": "Manual override threshold",
+          "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
           "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
         },
         "data_description": {
@@ -266,14 +273,16 @@
           "weather_entity": "Weather entity (optional)",
           "outside_temp": "Outside temperature sensor (optional)",
           "temp_low": "Low temperature threshold",
-          "temp_high": "High temperature threshold"
+          "temp_high": "High temperature threshold",
+          "transparent_blind": "Transparent blind"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
           "weather_entity": "Monitors weather conditions, and outside temperature",
           "outside_temp": "Overrides outside temperature from weather entity if both are set",
           "temp_low": "Minimum comfortable temperature",
-          "temp_high": "Maximum comfortable temperature"
+          "temp_high": "Maximum comfortable temperature",
+          "transparent_blind": "The blind is transparent and should always close fully when summer mode is active"
         },
         "description": "Add additional climate configuration variables.",
         "title": "Climate settings"

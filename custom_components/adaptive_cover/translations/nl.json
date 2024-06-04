@@ -19,6 +19,8 @@
           "manual_override_reset": "Reset handmatige overschrijvingsduur",
           "end_time": "Eindtijd",
           "end_entity": "Entiteit die eindtijd aangeeft",
+          "manual_threshold": "Minimale handmatige overschrijfdrempel",
+          "manual_ignore_intermediate": "Negeer tussenliggende posities tijdens handmatige overschrijving (openen en sluiten)",
           "return_sunset": "Zorg ervoor dat de positie altijd wordt aangepast naar de standaard zonsonderganginstelling tegen het eindtijdstip. Dit is vooral handig wanneer het eindtijdstip voor de daadwerkelijke zonsondergang valt."
         },
         "data_description": {
@@ -208,7 +210,10 @@
           "end_time": "Eindtijd",
           "end_entity": "Entiteit die eindtijd aangeeft",
           "manual_override_duration": "Duur van handmatige overschrijving",
-          "manual_override_reset": "Reset handmatige overschrijvingsduur"
+          "manual_override_reset": "Reset handmatige overschrijvingsduur",
+          "manual_threshold": "Minimale handmatige overschrijfdrempel",
+          "manual_ignore_intermediate": "Negeer tussenliggende posities tijdens handmatige overschrijving (openen en sluiten)",
+          "return_sunset": "Zorg ervoor dat de positie altijd wordt aangepast naar de standaard zonsonderganginstelling tegen het eindtijdstip. Dit is vooral handig wanneer het eindtijdstip voor de daadwerkelijke zonsondergang valt."
         },
         "data_description": {
           "delta_position": "Minimale verandering in positie vereist voordat de positie van de bekleding wordt aangepast",

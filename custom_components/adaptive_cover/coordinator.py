@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import datetime as dt
-import logging
 from dataclasses import dataclass
 
 from homeassistant.components.cover import DOMAIN as COVER_DOMAIN
@@ -26,6 +25,7 @@ from .calculation import (
     NormalCoverState,
 )
 from .const import (
+    _LOGGER,
     ATTR_POSITION,
     ATTR_TILT_POSITION,
     CONF_AWNING_ANGLE,
@@ -47,8 +47,10 @@ from .const import (
     CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
     CONF_LENGTH_AWNING,
+    CONF_MANUAL_IGNORE_INTERMEDIATE,
     CONF_MANUAL_OVERRIDE_DURATION,
     CONF_MANUAL_OVERRIDE_RESET,
+    CONF_MANUAL_THRESHOLD,
     CONF_MAX_ELEVATION,
     CONF_MAX_POSITION,
     CONF_MIN_ELEVATION,
@@ -72,8 +74,6 @@ from .const import (
     LOGGER,
 )
 from .helpers import get_datetime_from_str, get_last_updated, get_safe_state
-
-_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -123,6 +123,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.manager = AdaptiveCoverManager(self.manual_duration)
         self.wait_for_target = {}
         self.target_call = {}
+        self.ignore_intermediate_states = self.config_entry.options.get(
+            CONF_MANUAL_IGNORE_INTERMEDIATE, False
+        )
 
     async def async_config_entry_first_refresh(self) -> None:
         """Config entry first refresh."""
@@ -174,6 +177,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         event = self.state_change_data
         _LOGGER.debug("Processing state change event: %s", event)
         entity_id = event.entity_id
+        if self.ignore_intermediate_states and event.new_state.state in [
+            "opening",
+            "closing",
+        ]:
+            _LOGGER.debug("Ignoring intermediate state change for %s", entity_id)
+            return
         if self.wait_for_target.get(entity_id):
             position = event.new_state.attributes.get(
                 "current_position"
@@ -199,6 +208,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.manual_duration = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
         )
+        self.manual_threshold = self.config_entry.options.get(CONF_MANUAL_THRESHOLD)
 
         cover_data = self.get_blind_data()
 
@@ -244,15 +254,18 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self._cover_type,
                 self.manual_reset,
                 self.wait_for_target,
+                self.manual_threshold,
             )
             self.cover_state_change = False  # reset state change
 
         await self.manager.reset_if_needed()
 
         if self.state_change and self.control_toggle:
+            self.state_change = False
             for cover in self.entities:
                 await self.async_handle_call_service(cover)
-            self.state_change = False
+        elif self.state_change:
+            _LOGGER.debug("State change but control toggle is off")
 
         if self.first_refresh and self.control_toggle:
             for cover in self.entities:
@@ -263,6 +276,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 ):
                     await self.async_set_position(cover)
             self.first_refresh = False
+        elif self.first_refresh:
+            _LOGGER.debug("First refresh but control toggle is off")
 
         if self.timed_refresh and self.control_toggle:
             for cover in self.entities:
@@ -270,6 +285,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     cover, self.config_entry.options.get(CONF_SUNSET_POS)
                 )
             self.timed_refresh = False
+        elif self.timed_refresh:
+            _LOGGER.debug("Timed refresh but control toggle is off")
 
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
@@ -328,8 +345,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.wait_for_target,
             self.target_call,
         )
-        await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
         _LOGGER.debug("Run %s with data %s", service, service_data)
+        await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
 
     def get_blind_data(self):
         """Assign correct class for type of blind."""
@@ -364,27 +381,39 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 get_safe_state(self.hass, self.start_time_entity)
             )
             now = dt.datetime.now()
+            _LOGGER.debug(
+                "Start time: %s, now: %s, now >= time: %s ", time, now, now >= time
+            )
             return now >= time
         if self.start_time is not None:
             time = get_datetime_from_str(self.start_time).time()
             now = dt.datetime.now().time()
+            _LOGGER.debug(
+                "Start time: %s, now: %s, now >= time: %s", time, now, now >= time
+            )
             return now >= time
         return True
 
     @property
     def before_end_time(self):
-        """Check if time is after start time."""
+        """Check if time is before end time."""
         if self.end_time_entity is not None:
             time = get_datetime_from_str(
                 get_safe_state(self.hass, self.end_time_entity)
             )
             now = dt.datetime.now()
+            _LOGGER.debug(
+                "End time: %s, now: %s, now < time: %s", time, now, now < time
+            )
             return now < time
         if self.end_time is not None:
             time = get_datetime_from_str(self.end_time)
             if time.time() == dt.time(0, 0):
                 time = time + dt.timedelta(days=1)
             now = dt.datetime.now()
+            _LOGGER.debug(
+                "End time: %s, now: %s, now < time: %s", time, now, now < time
+            )
             return now < time
         return True
 
@@ -395,7 +424,17 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         else:
             position = state_attr(self.hass, entity, "current_position")
         if position is not None:
-            return abs(position - self.state) >= self.min_change
+            condition = abs(position - self.state) >= self.min_change
+            _LOGGER.debug(
+                "Entity: %s,  position: %s, state: %s, delta position: %s, min_change: %s, condition: %s",
+                entity,
+                position,
+                self.state,
+                abs(position - self.state),
+                self.min_change,
+                condition,
+            )
+            return condition
         return True
 
     def check_time_delta(self, entity):
@@ -403,7 +442,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         now = dt.datetime.now(dt.UTC)
         last_updated = get_last_updated(entity, self.hass)
         if last_updated is not None:
-            return now - last_updated >= dt.timedelta(minutes=self.time_threshold)
+            condition = now - last_updated >= dt.timedelta(minutes=self.time_threshold)
+            _LOGGER.debug(
+                "Entity: %s, time delta: %s, threshold: %s, condition: %s",
+                entity,
+                now - last_updated,
+                self.time_threshold,
+                condition,
+            )
+            return condition
         return True
 
     @property
@@ -470,6 +517,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             state = self.climate_state
         if self._inverse_state:
             state = 100 - state
+        _LOGGER.debug("Calculated position: %s", state)
         return state
 
     @property
@@ -525,7 +573,13 @@ class AdaptiveCoverManager:
         self.covers.update(entity)
 
     def handle_state_change(
-        self, states_data, our_state, blind_type, allow_reset, wait_target_call
+        self,
+        states_data,
+        our_state,
+        blind_type,
+        allow_reset,
+        wait_target_call,
+        manual_threshold,
     ):
         """Process state change event."""
         event = states_data
@@ -545,6 +599,16 @@ class AdaptiveCoverManager:
             new_position = new_state.attributes.get("current_position")
 
         if new_position != our_state:
+            if (
+                manual_threshold is not None
+                and abs(our_state - new_position) < manual_threshold
+            ):
+                _LOGGER.debug(
+                    "Position change is less than threshold %s for %s",
+                    manual_threshold,
+                    entity_id,
+                )
+                return
             _LOGGER.debug(
                 "Set manual control for %s, for at least %s seconds, reset_allowed: %s",
                 entity_id,
