@@ -68,14 +68,18 @@ class AdaptiveGeneralCover(ABC):
             )
 
     @property
-    def _get_azimuth_edges(self) -> tuple[int,int]:
+    def _get_azimuth_edges(self) -> tuple[int, int]:
         """Calculate azimuth edges."""
         return self.fov_left + self.fov_right
 
     @property
     def is_sun_in_blind_spot(self) -> bool:
         """Check if sun is in blind spot."""
-        if self.blind_spot_left is not None and self.blind_spot_right is not None and self.blind_spot_on:
+        if (
+            self.blind_spot_left is not None
+            and self.blind_spot_right is not None
+            and self.blind_spot_on
+        ):
             left_edge = self.fov_left - self.blind_spot_left
             right_edge = self.fov_left - self.blind_spot_right
             blindspot = (self.gamma <= left_edge) & (self.gamma >= right_edge)
@@ -122,7 +126,9 @@ class AdaptiveGeneralCover(ABC):
         azi_max = min(self.fov_right, 90)
 
         # valid sun positions are those within the blind's azimuth range and above the horizon (FOV)
-        valid = (self.gamma < azi_min) & (self.gamma > -azi_max) & (self.valid_elevation)
+        valid = (
+            (self.gamma < azi_min) & (self.gamma > -azi_max) & (self.valid_elevation)
+        )
         return valid
 
     @property
@@ -166,7 +172,9 @@ class NormalCoverState:
     def get_state(self) -> int:
         """Return state."""
         state = np.where(
-            (self.cover.valid) & (not self.cover.sunset_valid) & (not self.cover.is_sun_in_blind_spot),
+            (self.cover.valid)
+            & (not self.cover.sunset_valid)
+            & (not self.cover.is_sun_in_blind_spot),
             self.cover.calculate_percentage(),
             self.cover.default,
         )
@@ -278,7 +286,10 @@ class ClimateCoverState(NormalCoverState):
     def normal_type_cover(self) -> int:
         """Determine state for horizontal and vertical covers."""
         # glare does not matter
-        if (self.climate_data.is_presence is False or self.climate_data.transparent_blind) and self.cover.sol_elev > 0:
+        if (
+            self.climate_data.is_presence is False
+            or self.climate_data.transparent_blind
+        ) and self.cover.sol_elev > 0:
             if self.climate_data.transparent_blind and self.climate_data.is_summer:
                 if not self.cover.valid:
                     return self.cover.default
@@ -399,9 +410,9 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
         c_angle = 180 - awn_angle - a_angle
 
         vertical_position = super().calculate_position()
-        length = (
-            (self.h_win - vertical_position) * sin(rad(a_angle))
-        ) / sin(rad(c_angle))
+        length = ((self.h_win - vertical_position) * sin(rad(a_angle))) / sin(
+            rad(c_angle)
+        )
         # return np.clip(length, 0, self.awn_length)
         return length
 
