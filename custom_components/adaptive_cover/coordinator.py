@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass
 
+import numpy as np
 from homeassistant.components.cover import DOMAIN as COVER_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -515,10 +516,29 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         state = self.default_state
         if self._switch_mode:
             state = self.climate_state
+
+        if self.use_interpolation:
+            state = self.interpolate_states(state)
+
+        if self._inverse_state and self.use_interpolation:
+            _LOGGER.info(
+                "Inverse state is not supported with interpolation, you can inverse the state by arranging the list from high to low"
+            )
+
         if self._inverse_state:
             state = 100 - state
         _LOGGER.debug("Calculated position: %s", state)
         return state
+
+    def interpolate_states(self, state):
+        """Interpolate states."""
+        normal_range = [0, 100]
+        if self.start_value and self.end_value:
+            new_range = [self.start_value, self.end_value]
+        if self.normal_list and not self.new_list:
+            normal_range = self.normal_list
+            new_range = self.new_list
+        return np.interp(state, normal_range, new_range)
 
     @property
     def switch_mode(self):
