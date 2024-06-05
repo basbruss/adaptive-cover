@@ -119,6 +119,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.cover_state_change = False
         self.first_refresh = False
         self.timed_refresh = False
+        self.climate_state = None
+        self.control_method = "intermediate"
         self.state_change_data: StateChangedData | None = None
         self.manager = AdaptiveCoverManager(self.manual_duration)
         self.wait_for_target = {}
@@ -195,136 +197,122 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         _LOGGER.debug("Wait for target: %s", self.wait_for_target)
 
     async def _async_update_data(self) -> AdaptiveCoverData:
-        self.entities = self.config_entry.options.get(CONF_ENTITIES, [])
-        self.min_change = self.config_entry.options.get(CONF_DELTA_POSITION, 1)
-        self.time_threshold = self.config_entry.options.get(CONF_DELTA_TIME, 2)
-        self.start_time = self.config_entry.options.get(CONF_START_TIME)
-        self.start_time_entity = self.config_entry.options.get(CONF_START_ENTITY)
-        self.end_time = self.config_entry.options.get(CONF_END_TIME)
-        self.end_time_entity = self.config_entry.options.get(CONF_END_ENTITY)
-        self.manual_reset = self.config_entry.options.get(
-            CONF_MANUAL_OVERRIDE_RESET, False
-        )
-        self.manual_duration = self.config_entry.options.get(
-            CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
-        )
-        self.manual_threshold = self.config_entry.options.get(CONF_MANUAL_THRESHOLD)
+        options = self.config_entry.options
+        self._update_options(options)
 
-        cover_data = self.get_blind_data()
+        # Get data for the blind
+        cover_data = self.get_blind_data(options=options)
 
-        self.manager.add_covers(self.entities)
+        # Update manager with covers
+        self._update_manager_and_covers()
 
-        control_method = "intermediate"
-        self.climate_state = None
-
-        if not self._manual_toggle:
-            for entity in self.manager.manual_controlled:
-                self.manager.reset(entity)
-
+        # Access climate data if climate mode is enabled
         if self._climate_mode:
-            climate_data_var = [
-                self.hass,
-                self.config_entry.options.get(CONF_TEMP_ENTITY),
-                self.config_entry.options.get(CONF_TEMP_LOW),
-                self.config_entry.options.get(CONF_TEMP_HIGH),
-                self.config_entry.options.get(CONF_PRESENCE_ENTITY),
-                self.config_entry.options.get(CONF_WEATHER_ENTITY),
-                self.config_entry.options.get(CONF_WEATHER_STATE),
-                self.config_entry.options.get(CONF_OUTSIDETEMP_ENTITY),
-                self._temp_toggle,
-                self._cover_type,
-                self.config_entry.options.get(CONF_TRANSPARENT_BLIND),
-            ]
-            climate = ClimateCoverData(*climate_data_var)
-            self.climate_state = round(
-                ClimateCoverState(cover_data, climate).get_state()
-            )
-            climate_data = ClimateCoverState(cover_data, climate).climate_data
-            if climate_data.is_summer and self.switch_mode:
-                control_method = "summer"
-            if climate_data.is_winter and self.switch_mode:
-                control_method = "winter"
+            self.climate_mode_data(options, cover_data)
 
-        self.default_state = round(NormalCoverState(cover_data).get_state())
+        # calculate the state of the cover
+        normal_cover_state = NormalCoverState(cover_data)
 
-        if self.cover_state_change and self.manual_toggle and self.control_toggle:
+        self.default_state = round(normal_cover_state.get_state())
+        state = self.state
+
+        await self.manager.reset_if_needed()
+
+        # Handle types of changes
+        if self.state_change:
+            await self.async_handle_state_change(state)
+        if self.cover_state_change:
+            await self.async_handle_cover_state_change(state)
+        if self.first_refresh:
+            await self.async_handle_first_refresh(state)
+        if self.timed_refresh:
+            await self.async_handle_timed_refresh(options)
+
+        normal_cover = normal_cover_state.cover
+        return AdaptiveCoverData(
+            climate_mode_toggle=self.switch_mode,
+            states={
+                "state": state,
+                "start": normal_cover.solar_times()[0],
+                "end": normal_cover.solar_times()[1],
+                "control": self.control_method,
+                "sun_motion": normal_cover.valid,
+                "manual_override": self.manager.binary_cover_manual,
+                "manual_list": self.manager.manual_controlled,
+            },
+            attributes={
+                "default": options.get(CONF_DEFAULT_HEIGHT),
+                "sunset_default": options.get(CONF_SUNSET_POS),
+                "sunset_offset": options.get(CONF_SUNSET_OFFSET),
+                "azimuth_window": options.get(CONF_AZIMUTH),
+                "field_of_view": [
+                    options.get(CONF_FOV_LEFT),
+                    options.get(CONF_FOV_RIGHT),
+                ],
+                "blind_spot": options.get(CONF_BLIND_SPOT_ELEVATION),
+            },
+        )
+
+    async def async_handle_state_change(self, state: int):
+        """Handle state change from tracked entities."""
+        if self.control_toggle:
+            for cover in self.entities:
+                await self.async_handle_call_service(cover, state)
+        else:
+            _LOGGER.debug("State change but control toggle is off")
+        self.state_change = False
+
+    async def async_handle_cover_state_change(self, state: int):
+        """Handle state change from assigned covers."""
+        if self.manual_toggle and self.control_toggle:
             self.manager.handle_state_change(
                 self.state_change_data,
-                self.state,
+                state,
                 self._cover_type,
                 self.manual_reset,
                 self.wait_for_target,
                 self.manual_threshold,
             )
-            self.cover_state_change = False  # reset state change
+        self.cover_state_change = False
 
-        await self.manager.reset_if_needed()
-
-        if self.state_change and self.control_toggle:
-            self.state_change = False
-            for cover in self.entities:
-                await self.async_handle_call_service(cover)
-        elif self.state_change:
-            _LOGGER.debug("State change but control toggle is off")
-
-        if self.first_refresh and self.control_toggle:
+    async def async_handle_first_refresh(self, state: int):
+        """Handle first refresh."""
+        if self.control_toggle:
             for cover in self.entities:
                 if (
                     self.check_adaptive_time
                     and not self.manager.is_cover_manual(cover)
-                    and self.check_position(cover)
+                    and self.check_position(cover, state)
                 ):
-                    await self.async_set_position(cover)
-            self.first_refresh = False
-        elif self.first_refresh:
+                    await self.async_set_position(cover, state)
+        else:
             _LOGGER.debug("First refresh but control toggle is off")
+        self.first_refresh = False
 
-        if self.timed_refresh and self.control_toggle:
+    async def async_handle_timed_refresh(self, options):
+        """Handle timed refresh."""
+        if self.control_toggle:
             for cover in self.entities:
                 await self.async_set_manual_position(
-                    cover, self.config_entry.options.get(CONF_SUNSET_POS)
+                    cover, options.get(CONF_SUNSET_POS)
                 )
-            self.timed_refresh = False
-        elif self.timed_refresh:
+        else:
             _LOGGER.debug("Timed refresh but control toggle is off")
+        self.timed_refresh = False
 
-        return AdaptiveCoverData(
-            climate_mode_toggle=self.switch_mode,
-            states={
-                "state": self.state,
-                "start": NormalCoverState(cover_data).cover.solar_times()[0],
-                "end": NormalCoverState(cover_data).cover.solar_times()[1],
-                "control": control_method,
-                "sun_motion": NormalCoverState(cover_data).cover.valid,
-                "manual_override": self.manager.binary_cover_manual,
-                "manual_list": self.manager.manual_controlled,
-            },
-            attributes={
-                "default": self.config_entry.options.get(CONF_DEFAULT_HEIGHT),
-                "sunset_default": self.config_entry.options.get(CONF_SUNSET_POS),
-                "sunset_offset": self.config_entry.options.get(CONF_SUNSET_OFFSET),
-                "azimuth_window": self.config_entry.options.get(CONF_AZIMUTH),
-                "field_of_view": [
-                    self.config_entry.options.get(CONF_FOV_LEFT),
-                    self.config_entry.options.get(CONF_FOV_RIGHT),
-                ],
-                "blind_spot": self.config_entry.options.get(CONF_BLIND_SPOT_ELEVATION),
-            },
-        )
-
-    async def async_handle_call_service(self, entity):
+    async def async_handle_call_service(self, entity, state: int):
         """Handle call service."""
         if (
-            self.check_position(entity)
+            self.check_position(entity, state)
             and self.check_time_delta(entity)
             and self.check_adaptive_time
             and not self.manager.is_cover_manual(entity)
         ):
-            await self.async_set_position(entity)
+            await self.async_set_position(entity, state)
 
-    async def async_set_position(self, entity):
+    async def async_set_position(self, entity, state: int):
         """Call service to set cover position."""
-        await self.async_set_manual_position(entity, self.state)
+        await self.async_set_manual_position(entity, state)
 
     async def async_set_manual_position(self, entity, position):
         """Call service to set cover position."""
@@ -348,23 +336,50 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         _LOGGER.debug("Run %s with data %s", service, service_data)
         await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
 
-    def get_blind_data(self):
+    def _update_options(self, options):
+        """Update options."""
+        self.entities = options.get(CONF_ENTITIES, [])
+        self.min_change = options.get(CONF_DELTA_POSITION, 1)
+        self.time_threshold = options.get(CONF_DELTA_TIME, 2)
+        self.start_time = options.get(CONF_START_TIME)
+        self.start_time_entity = options.get(CONF_START_ENTITY)
+        self.end_time = options.get(CONF_END_TIME)
+        self.end_time_entity = options.get(CONF_END_ENTITY)
+        self.manual_reset = options.get(CONF_MANUAL_OVERRIDE_RESET, False)
+        self.manual_duration = options.get(
+            CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
+        )
+        self.manual_threshold = options.get(CONF_MANUAL_THRESHOLD)
+
+    def _update_manager_and_covers(self):
+        self.manager.add_covers(self.entities)
+        if not self._manual_toggle:
+            for entity in self.manager.manual_controlled:
+                self.manager.reset(entity)
+
+    def get_blind_data(self, options):
         """Assign correct class for type of blind."""
         if self._cover_type == "cover_blind":
             cover_data = AdaptiveVerticalCover(
-                self.hass, *self.pos_sun, *self.common_data, *self.vertical_data
+                self.hass,
+                *self.pos_sun,
+                *self.common_data(options),
+                *self.vertical_data(options),
             )
         if self._cover_type == "cover_awning":
             cover_data = AdaptiveHorizontalCover(
                 self.hass,
                 *self.pos_sun,
-                *self.common_data,
-                *self.vertical_data,
-                *self.horizontal_data,
+                *self.common_data(options),
+                *self.vertical_data(options),
+                *self.horizontal_data(options),
             )
         if self._cover_type == "cover_tilt":
             cover_data = AdaptiveTiltCover(
-                self.hass, *self.pos_sun, *self.common_data, *self.tilt_data
+                self.hass,
+                *self.pos_sun,
+                *self.common_data(options),
+                *self.tilt_data(options),
             )
         return cover_data
 
@@ -376,18 +391,18 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     @property
     def after_start_time(self):
         """Check if time is after start time."""
+        now = dt.datetime.now().time()
         if self.start_time_entity is not None:
             time = get_datetime_from_str(
                 get_safe_state(self.hass, self.start_time_entity)
             )
-            now = dt.datetime.now()
             _LOGGER.debug(
                 "Start time: %s, now: %s, now >= time: %s ", time, now, now >= time
             )
             return now >= time
         if self.start_time is not None:
             time = get_datetime_from_str(self.start_time).time()
-            now = dt.datetime.now().time()
+
             _LOGGER.debug(
                 "Start time: %s, now: %s, now >= time: %s", time, now, now >= time
             )
@@ -397,11 +412,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     @property
     def before_end_time(self):
         """Check if time is before end time."""
+        now = dt.datetime.now()
         if self.end_time_entity is not None:
             time = get_datetime_from_str(
                 get_safe_state(self.hass, self.end_time_entity)
             )
-            now = dt.datetime.now()
             _LOGGER.debug(
                 "End time: %s, now: %s, now < time: %s", time, now, now < time
             )
@@ -417,20 +432,20 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             return now < time
         return True
 
-    def check_position(self, entity):
+    def check_position(self, entity, state: int):
         """Check cover positions to reduce calls."""
         if self._cover_type == "cover_tilt":
             position = state_attr(self.hass, entity, "current_tilt_position")
         else:
             position = state_attr(self.hass, entity, "current_position")
         if position is not None:
-            condition = abs(position - self.state) >= self.min_change
+            condition = abs(position - state) >= self.min_change
             _LOGGER.debug(
                 "Entity: %s,  position: %s, state: %s, delta position: %s, min_change: %s, condition: %s",
                 entity,
                 position,
-                self.state,
-                abs(position - self.state),
+                state,
+                abs(position - state),
                 self.min_change,
                 condition,
             )
@@ -461,56 +476,76 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             state_attr(self.hass, "sun.sun", "elevation"),
         ]
 
-    @property
-    def common_data(self):
+    def common_data(self, options):
         """Update shared parameters."""
         return [
-            self.config_entry.options.get(CONF_SUNSET_POS),
-            self.config_entry.options.get(CONF_SUNSET_OFFSET),
-            self.config_entry.options.get(
-                CONF_SUNRISE_OFFSET, self.config_entry.options.get(CONF_SUNSET_OFFSET)
-            ),
+            options.get(CONF_SUNSET_POS),
+            options.get(CONF_SUNSET_OFFSET),
+            options.get(CONF_SUNRISE_OFFSET, options.get(CONF_SUNSET_OFFSET)),
             self.hass.config.time_zone,
-            self.config_entry.options.get(CONF_FOV_LEFT),
-            self.config_entry.options.get(CONF_FOV_RIGHT),
-            self.config_entry.options.get(CONF_AZIMUTH),
-            self.config_entry.options.get(CONF_DEFAULT_HEIGHT),
-            self.config_entry.options.get(CONF_MAX_POSITION, 100),
-            self.config_entry.options.get(CONF_BLIND_SPOT_LEFT),
-            self.config_entry.options.get(CONF_BLIND_SPOT_RIGHT),
-            self.config_entry.options.get(CONF_BLIND_SPOT_ELEVATION),
-            self.config_entry.options.get(CONF_ENABLE_BLIND_SPOT, False),
-            self.config_entry.options.get(CONF_MIN_ELEVATION, None),
-            self.config_entry.options.get(CONF_MAX_ELEVATION, None),
+            options.get(CONF_FOV_LEFT),
+            options.get(CONF_FOV_RIGHT),
+            options.get(CONF_AZIMUTH),
+            options.get(CONF_DEFAULT_HEIGHT),
+            options.get(CONF_MAX_POSITION, 100),
+            options.get(CONF_BLIND_SPOT_LEFT),
+            options.get(CONF_BLIND_SPOT_RIGHT),
+            options.get(CONF_BLIND_SPOT_ELEVATION),
+            options.get(CONF_ENABLE_BLIND_SPOT, False),
+            options.get(CONF_MIN_ELEVATION, None),
+            options.get(CONF_MAX_ELEVATION, None),
         ]
 
-    @property
-    def vertical_data(self):
+    def get_climate_data(self, options):
+        """Update climate data."""
+        return [
+            self.hass,
+            options.get(CONF_TEMP_ENTITY),
+            options.get(CONF_TEMP_LOW),
+            options.get(CONF_TEMP_HIGH),
+            options.get(CONF_PRESENCE_ENTITY),
+            options.get(CONF_WEATHER_ENTITY),
+            options.get(CONF_WEATHER_STATE),
+            options.get(CONF_OUTSIDETEMP_ENTITY),
+            self._temp_toggle,
+            self._cover_type,
+            options.get(CONF_TRANSPARENT_BLIND),
+        ]
+
+    def climate_mode_data(self, options, cover_data):
+        """Update climate mode data and control method."""
+        climate = ClimateCoverData(*self.get_climate_data(options))
+        self.climate_state = round(ClimateCoverState(cover_data, climate).get_state())
+        climate_data = ClimateCoverState(cover_data, climate).climate_data
+        if climate_data.is_summer and self.switch_mode:
+            self.control_method = "summer"
+        if climate_data.is_winter and self.switch_mode:
+            self.control_method = "winter"
+
+    def vertical_data(self, options):
         """Update data for vertical blinds."""
         return [
-            self.config_entry.options.get(CONF_DISTANCE),
-            self.config_entry.options.get(CONF_HEIGHT_WIN),
+            options.get(CONF_DISTANCE),
+            options.get(CONF_HEIGHT_WIN),
         ]
 
-    @property
-    def horizontal_data(self):
+    def horizontal_data(self, options):
         """Update data for horizontal blinds."""
         return [
-            self.config_entry.options.get(CONF_LENGTH_AWNING),
-            self.config_entry.options.get(CONF_AWNING_ANGLE),
+            options.get(CONF_LENGTH_AWNING),
+            options.get(CONF_AWNING_ANGLE),
         ]
 
-    @property
-    def tilt_data(self):
+    def tilt_data(self, options):
         """Update data for tilted blinds."""
         return [
-            self.config_entry.options.get(CONF_TILT_DISTANCE),
-            self.config_entry.options.get(CONF_TILT_DEPTH),
-            self.config_entry.options.get(CONF_TILT_MODE),
+            options.get(CONF_TILT_DISTANCE),
+            options.get(CONF_TILT_DEPTH),
+            options.get(CONF_TILT_MODE),
         ]
 
     @property
-    def state(self):
+    def state(self) -> int:
         """Handle the output of the state based on mode."""
         state = self.default_state
         if self._switch_mode:
