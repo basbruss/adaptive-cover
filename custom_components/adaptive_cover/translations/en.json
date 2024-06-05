@@ -51,7 +51,8 @@
           "climate_mode": "Climate Mode",
           "blind_spot": "Setup Blindspot",
           "min_elevation": "Minimum Elevation of the sun",
-          "max_elevation": "Maximum Elevation of the sun"
+          "max_elevation": "Maximum Elevation of the sun",
+          "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
         },
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
@@ -117,7 +118,8 @@
           "climate_mode": "Climate Mode",
           "blind_spot": "Setup Blindspot",
           "min_elevation": "Minimum Elevation of the sun",
-          "max_elevation": "Maximum Elevation of the sun"
+          "max_elevation": "Maximum Elevation of the sun",
+          "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
@@ -156,7 +158,8 @@
           "tilt_mode": "Type of movement",
           "blind_spot": "Setup Blindspot",
           "min_elevation": "Minimum Elevation of the sun",
-          "max_elevation": "Maximum Elevation of the sun"
+          "max_elevation": "Maximum Elevation of the sun",
+          "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
@@ -189,6 +192,20 @@
         },
         "title": "Blindspot",
         "description": "Setup blindspot for the cover. These values are relative degrees to the width of the field of view. Where 0 is the leftmost position taken from the field of view left parameter."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Value where opening starts",
+          "interp_end": "Value where closing starts",
+          "interp_list": "List of interpolation",
+          "interp_list_new": "Custom interpolation list"
+        },
+        "data_description": {
+          "interp_list": "List of interpolation values, where 0 is fully closed and 100 is fully open",
+          "interp_list_new": "Custom range of interpolation values, where the beginning should represent closed and the end open"
+        },
+        "title": "Range Adjustment",
+        "description": "Adjust the values at which your Cover effectively opens or closes. Ideal for Covers that don't fully open at 0% or close at 100%. \n The first two sliders are for a 2 point adjustment, the list options are for a multiple point adjustment"
       }
     }
   },
@@ -245,7 +262,8 @@
           "climate_mode": "Climate Mode",
           "blind_spot": "Setup Blindspot",
           "min_elevation": "Minimum Elevation of the sun",
-          "max_elevation": "Maximum Elevation of the sun"
+          "max_elevation": "Maximum Elevation of the sun",
+          "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
         },
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
@@ -311,7 +329,8 @@
           "climate_mode": "Climate Mode",
           "blind_spot": "Setup Blindspot",
           "min_elevation": "Minimum Elevation of the sun",
-          "max_elevation": "Maximum Elevation of the sun"
+          "max_elevation": "Maximum Elevation of the sun",
+          "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
@@ -350,7 +369,8 @@
           "tilt_mode": "Type of movement",
           "blind_spot": "Setup Blindspot",
           "min_elevation": "Minimum Elevation of the sun",
-          "max_elevation": "Maximum Elevation of the sun"
+          "max_elevation": "Maximum Elevation of the sun",
+          "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
@@ -383,6 +403,20 @@
         },
         "title": "Blindspot",
         "description": "Setup blindspot for the cover. These values are relative degrees to the width of the field of view. Where 0 is the leftmost position taken from the field of view left parameter."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Value where opening starts",
+          "interp_end": "Value where closing starts",
+          "interp_list": "List of interpolation",
+          "interp_list_new": "Custom interpolation list"
+        },
+        "data_description": {
+          "interp_list": "List of interpolation values, where 0 is fully closed and 100 is fully open",
+          "interp_list_new": "Custom range of interpolation values, where the beginning should represent closed and the end open"
+        },
+        "title": "Range Adjustment",
+        "description": "Adjust the values at which your Cover effectively opens or closes. Ideal for Covers that don't fully open at 0% or close at 100%. \n The first two sliders are for a 2 point adjustment, the list options are for a multiple point adjustment"
       }
     }
   },

@@ -578,6 +578,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_INTERP_END: self.config.get(CONF_INTERP_END, None),
                 CONF_INTERP_LIST: self.config.get(CONF_INTERP_LIST, []),
                 CONF_INTERP_LIST_NEW: self.config.get(CONF_INTERP_LIST_NEW, []),
+                CONF_INTERP: self.config.get(CONF_INTERP),
             },
         )
 
