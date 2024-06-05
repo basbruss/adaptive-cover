@@ -32,6 +32,11 @@ from .const import (
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
     CONF_HEIGHT_WIN,
+    CONF_INTERP,
+    CONF_INTERP_END,
+    CONF_INTERP_LIST,
+    CONF_INTERP_LIST_NEW,
+    CONF_INTERP_START,
     CONF_INVERSE_STATE,
     CONF_LENGTH_AWNING,
     CONF_MANUAL_IGNORE_INTERMEDIATE,
@@ -132,6 +137,7 @@ OPTIONS = vol.Schema(
         ),
         vol.Required(CONF_INVERSE_STATE, default=False): bool,
         vol.Required(CONF_ENABLE_BLIND_SPOT, default=False): bool,
+        vol.Required(CONF_INTERP, default=False): bool,
     }
 )
 
@@ -304,6 +310,27 @@ AUTOMATION_CONFIG = vol.Schema(
     }
 )
 
+INTERPOLATION_OPTIONS = vol.Schema(
+    {
+        vol.Optional(CONF_INTERP_START): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=100)
+        ),
+        vol.Optional(CONF_INTERP_END): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=100)
+        ),
+        vol.Optional(CONF_INTERP_LIST, default=[]): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                multiple=True, custom_value=True, options=["0", "50", "100"]
+            )
+        ),
+        vol.Optional(CONF_INTERP_LIST_NEW, default=[]): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                multiple=True, custom_value=True, options=["0", "50", "100"]
+            )
+        ),
+    }
+)
+
 
 def _get_azimuth_edges(data) -> tuple[int, int]:
     """Calculate azimuth edges."""
@@ -355,6 +382,8 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                         },
                     )
             self.config.update(user_input)
+            if self.config[CONF_INTERP]:
+                return await self.async_step_interp()
             if self.config[CONF_ENABLE_BLIND_SPOT]:
                 return await self.async_step_blind_spot()
             return await self.async_step_automation()
@@ -380,6 +409,8 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                         },
                     )
             self.config.update(user_input)
+            if self.config[CONF_INTERP]:
+                return await self.async_step_interp()
             if self.config[CONF_ENABLE_BLIND_SPOT]:
                 return await self.async_step_blind_spot()
             return await self.async_step_automation()
@@ -405,12 +436,23 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                         },
                     )
             self.config.update(user_input)
+            if self.config[CONF_INTERP]:
+                return await self.async_step_interp()
             if self.config[CONF_ENABLE_BLIND_SPOT]:
                 return await self.async_step_blind_spot()
             return await self.async_step_automation()
         return self.async_show_form(
             step_id="tilt", data_schema=CLIMATE_MODE.extend(TILT_OPTIONS.schema)
         )
+
+    async def async_step_interp(self, user_input: dict[str, Any] | None = None):
+        """Show interpolation options."""
+        if user_input is not None:
+            self.config.update(user_input)
+            if self.config[CONF_ENABLE_BLIND_SPOT]:
+                return await self.async_step_blind_spot()
+            return await self.async_step_automation()
+        return self.async_show_form(step_id="interp", data_schema=INTERPOLATION_OPTIONS)
 
     async def async_step_blind_spot(self, user_input: dict[str, Any] | None = None):
         """Add blindspot to data."""
@@ -532,6 +574,10 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_MIN_ELEVATION: self.config.get(CONF_MIN_ELEVATION, None),
                 CONF_MAX_ELEVATION: self.config.get(CONF_MAX_ELEVATION, None),
                 CONF_TRANSPARENT_BLIND: self.config.get(CONF_TRANSPARENT_BLIND, False),
+                CONF_INTERP_START: self.config.get(CONF_INTERP_START, None),
+                CONF_INTERP_END: self.config.get(CONF_INTERP_END, None),
+                CONF_INTERP_LIST: self.config.get(CONF_INTERP_LIST, []),
+                CONF_INTERP_LIST_NEW: self.config.get(CONF_INTERP_LIST_NEW, []),
             },
         )
 
@@ -560,6 +606,8 @@ class OptionsFlowHandler(OptionsFlow):
             options.append("weather")
         if self.options.get(CONF_ENABLE_BLIND_SPOT):
             options.append("blind_spot")
+        if self.options.get(CONF_INTERP):
+            options.append("interp")
         return self.async_show_menu(step_id="init", menu_options=options)
 
     async def async_step_automation(self, user_input: dict[str, Any] | None = None):
@@ -689,6 +737,13 @@ class OptionsFlowHandler(OptionsFlow):
                 schema, user_input or self.options
             ),
         )
+
+    async def async_step_interp(self, user_input: dict[str, Any] | None = None):
+        """Show interpolation options."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return await self._update_options()
+        return self.async_show_form(step_id="interp", data_schema=INTERPOLATION_OPTIONS)
 
     async def async_step_blind_spot(self, user_input: dict[str, Any] | None = None):
         """Add blindspot to data."""
