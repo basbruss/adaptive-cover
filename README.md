@@ -27,6 +27,7 @@ This integration builds upon the template sensor from this forum post [Automatic
     - [Tilt](#tilt)
     - [Automation](#automation)
     - [Climate](#climate)
+    - [Blindspot](#blindspot)
   - [Entities](#entities)
   - [Features Planned](#features-planned)
     - [Simulation](#simulation)
@@ -78,11 +79,11 @@ Each type has its own specific parameters to setup a sensor. To setup the sensor
 
 ## Cover Types
 
-|          | Vertical | Horizontal | Tilted  |
-|----------|----------|------------|---------|
-|          | ![alt text](images/image.png)   |      ![alt text](images/image-2.png)      | ![alt text](images/image-1.png)        |
-| **Movement** | Up/Down  | In/Out     | Tilting |
-|  | [variables](#vertical)  | [variables](#horizontal)    | [variables](#tilt)  |
+|              | Vertical                      | Horizontal                      | Tilted                          |
+| ------------ | ----------------------------- | ------------------------------- | ------------------------------- |
+|              | ![alt text](images/image.png) | ![alt text](images/image-2.png) | ![alt text](images/image-1.png) |
+| **Movement** | Up/Down                       | In/Out                          | Tilting                         |
+|              | [variables](#vertical)        | [variables](#horizontal)        | [variables](#tilt)              |
 
 ## Modes
 
@@ -92,27 +93,27 @@ This component supports two strategy modes: A `basic` mode and a `climate comfor
   flowchart LR
       A[Sundata] --> B{Normal}
       A --> C{Climate}
-    
+
       subgraph Sun_Position
           B --> |Sun not in front| D{Default}
           B --> |Sun in front| E(Calculated Position)
-    
+
           D --> H[Default Position]
           D --> |Between sunset and sunrise| I[Sunset Default Position]
       end
-    
+
       subgraph Climate_Conditions
           C --> F[No Presence]
           C --> G[Presence]
-    
+
           F --> M{Check Weather}
           M --> |Conditions False| D
           M --> |Conditions True| P{Temperature Check}
-    
+
           P --> |Below Minimal Comfort Temperature| K[Fully Open]
           P --> |Above Maximal Comfort Temperature| L[Fully Closed]
           P --> |In between\nComfort Temperature Thresholds| D
-    
+
           G --> Q{Check Weather\nand Temperature}
           Q --> |Weather Conditions True or Above Maximal Comfort Temperature|B
           Q --> |Else|D
@@ -131,116 +132,128 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 #### Climate strategies
 
 - **No Presence**:
-Providing daylight to the room is no objective if there is no presence.
+  Providing daylight to the room is no objective if there is no presence.
 
   - **Below minimal comfort temperature**:
-If the sun is above the horizon and the indoor temperature is below the minimal comfort temperature it opens the blind fully or tilt the slats to be parallel with the sun rays to allow for maximum solar radiation to heat up the room.
+    If the sun is above the horizon and the indoor temperature is below the minimal comfort temperature it opens the blind fully or tilt the slats to be parallel with the sun rays to allow for maximum solar radiation to heat up the room.
 
   - **Above maximum comfort temperature**:
     The objective is to not heat up the room any further by blocking out all possible radiation. All blinds close fully to block out light. <br> <br>
     If the indoor temperature is between both thresholds the position defaults to the set default value based on the time of day.
 
 - **Presence** (or no Presence Entity set):
-The objective is to reduce glare while providing daylight to the room. All calculation is done by the basic model for Horizontal and Vertical blinds. <br> <br>
-If you added a weather entity, it will only use the above calculations if the weather state corresponds with the existence of direct sun rays. These states are `sunny`,`windy`, `partlycloudy`, and `cloudy` by default, but you can change the list of states in the weather options. If not equal to these states the position will default to the default value to allow more sunlight entering the room with minimizing the glare due to the weather condition. <br><br>
-Tilted blinds will only deviate from the above approach if the inside temperature is above the maximum comfort temperature. In that case, the slats will be positioned at 45 degrees as this is [found optimal](https://www.mdpi.com/1996-1073/13/7/1731).
+  The objective is to reduce glare while providing daylight to the room. All calculation is done by the basic model for Horizontal and Vertical blinds. <br> <br>
+  If you added a weather entity, it will only use the above calculations if the weather state corresponds with the existence of direct sun rays. These states are `sunny`,`windy`, `partlycloudy`, and `cloudy` by default, but you can change the list of states in the weather options. If not equal to these states the position will default to the default value to allow more sunlight entering the room with minimizing the glare due to the weather condition. <br><br>
+  Tilted blinds will only deviate from the above approach if the inside temperature is above the maximum comfort temperature. In that case, the slats will be positioned at 45 degrees as this is [found optimal](https://www.mdpi.com/1996-1073/13/7/1731).
 
 ## Variables
 
 ### Common
 
-|     Variables     | Default| Range | Description |
-|----------|----------|------------|---------|
-| Entities  |  [] |   | Denotes entities controllable by the integration   |
-| Window Azimuth  | 180 | 0-359  | The compass direction of the window, discoverable via [Open Street Map Compass](https://osmcompass.com/) |
-| Default Position | 60  |0-100   | Initial position of the cover in the absence of sunlight glare detection  |
-| Maximum Position | 100 |1-100   | Maximum opening position for the cover, suitable for partially opening certain cover types  |
-| Field of view Left  | 90 | 1-90  | Unobstructed viewing angle from window center to the left, in degrees  |
-| Field of view Right | 90  | 1-90  | Unobstructed viewing angle from window center to the right, in degrees  |
-| Default position after Sunset | 0 | 0-100  | Cover's default position from sunset to sunrise  |
-| Offset Sunset time | 0  |   | Additional minutes before/after sunset |
-| Offset Sunrise time  | 0 |   | Additional minutes before/after sunrise |
-| Inverse State | False |   | Calculates inverse state for covers fully closed at 100% |
+| Variables                     | Default | Range | Description                                                                                              |
+| ----------------------------- | ------- | ----- | -------------------------------------------------------------------------------------------------------- |
+| Entities                      | []      |       | Denotes entities controllable by the integration                                                         |
+| Window Azimuth                | 180     | 0-359 | The compass direction of the window, discoverable via [Open Street Map Compass](https://osmcompass.com/) |
+| Default Position              | 60      | 0-100 | Initial position of the cover in the absence of sunlight glare detection                                 |
+| Maximum Position              | 100     | 1-100 | Maximum opening position for the cover, suitable for partially opening certain cover types               |
+| Field of view Left            | 90      | 1-90  | Unobstructed viewing angle from window center to the left, in degrees                                    |
+| Field of view Right           | 90      | 1-90  | Unobstructed viewing angle from window center to the right, in degrees                                   |
+| Minimal Elevation             | None    | 0-90  | Minimal elevation degree of the sun to be considered                                                     |
+| Maximum Elevation             | None    | 1-90  | Maximum elevation degree of the sun to be considered                                                     |
+| Default position after Sunset | 0       | 0-100 | Cover's default position from sunset to sunrise                                                          |
+| Offset Sunset time            | 0       |       | Additional minutes before/after sunset                                                                   |
+| Offset Sunrise time           | 0       |       | Additional minutes before/after sunrise                                                                  |
+| Inverse State                 | False   |       | Calculates inverse state for covers fully closed at 100%                                                 |
 
 ### Vertical
 
-|     Variables     | Default| Range | Description |
-|----------|----------|------------|---------|
-|  Window Height |  2.1 | 0.1-6  | Length of fully extended cover/window  |
-|  Workarea Distance | 0.5 | 0.1-2 | The distance to the workarea on equal height to the bottom of the cover when fully extended  |
+| Variables         | Default | Range | Description                                                                                 |
+| ----------------- | ------- | ----- | ------------------------------------------------------------------------------------------- |
+| Window Height     | 2.1     | 0.1-6 | Length of fully extended cover/window                                                       |
+| Workarea Distance | 0.5     | 0.1-2 | The distance to the workarea on equal height to the bottom of the cover when fully extended |
 
 ### Horizontal
 
-|     Variables     | Default| Range | Description |
-|----------|----------|------------|---------|
-| Awning Height  |  2 |  0.1-6 | Height from work area to awning mounting point |
-| Awning Length (horizontal)  |  2.1 |  0.3-6 | Length of the awning when fully extended  |
-| Awning Angle  | 0  | 0-45  |  Angle of the awning from the wall |
-| Window Height |  2.1 | 0.1-6  | Height of the window when fully extended  |
-| Workarea Distance | 0.5 | 0.1-2 | Distance to the work area  |
+| Variables                  | Default | Range | Description                                    |
+| -------------------------- | ------- | ----- | ---------------------------------------------- |
+| Awning Height              | 2       | 0.1-6 | Height from work area to awning mounting point |
+| Awning Length (horizontal) | 2.1     | 0.3-6 | Length of the awning when fully extended       |
+| Awning Angle               | 0       | 0-45  | Angle of the awning from the wall              |
+| Workarea Distance          | 0.5     | 0.1-2 | Distance to the work area                      |
 
 ### Tilt
 
-|     Variables     | Default| Range | Description |
-|----------|----------|------------|---------|
-| Slat Depth  | 3  | 0.1-15  |  Width of each slat |
-| Slat Distance  | 2  | 0.1-15 | Vertical distance between two slats in horizontal position |
-| Tilt Mode | Bi-directional  |   |   |
+| Variables     | Default        | Range  | Description                                                |
+| ------------- | -------------- | ------ | ---------------------------------------------------------- |
+| Slat Depth    | 3              | 0.1-15 | Width of each slat                                         |
+| Slat Distance | 2              | 0.1-15 | Vertical distance between two slats in horizontal position |
+| Tilt Mode     | Bi-directional |        |                                                            |
 
 ### Automation
 
-|     Variables     | Default| Range | Description |
-|----------|----------|------------|---------|
-| Minimum Delta Position  | 1  | 1-90 | Minimum position change required before another change can occur  |
-| Minimum Delta Time  | 2 |   |  Minimum time gap between position change |
-| Start Time  | `"00:00:00"` |   | Earliest time a cover can be adjusted after midnight   |
-| Start Time Entity  | None |   | The earliest moment a cover may be changed after midnight. *Overrides the `start_time` value*  |
-| Manual Override Duration | `15 min` |   | Minimum duration for manual control status to remain active  |
-| Manual Override reset Timer  | False |   |  Resets duration timer each time the position changes while the manual control status is active  |
-| End Time  | `"00:00:00"` |   | Latest time a cover can be adjusted each day   |
-| End Time Entity  | None |   | The latest moment a cover may be changed . *Overrides the `end_time` value*  |
-| Adjust at end time | `False` |   | Make sure to always update the position to the default setting at the end time.   |
+| Variables                                  | Default      | Range | Description                                                                                    |
+| ------------------------------------------ | ------------ | ----- | ---------------------------------------------------------------------------------------------- |
+| Minimum Delta Position                     | 1            | 1-90  | Minimum position change required before another change can occur                               |
+| Minimum Delta Time                         | 2            |       | Minimum time gap between position change                                                       |
+| Start Time                                 | `"00:00:00"` |       | Earliest time a cover can be adjusted after midnight                                           |
+| Start Time Entity                          | None         |       | The earliest moment a cover may be changed after midnight. _Overrides the `start_time` value_  |
+| Manual Override Duration                   | `15 min`     |       | Minimum duration for manual control status to remain active                                    |
+| Manual Override reset Timer                | False        |       | Resets duration timer each time the position changes while the manual control status is active |
+| Manual Override Threshold                  | None         | 1-99  | Minimal position change to be recognized as manual change                                      |
+| Manual Override ignore intermediate states | False        |       | Ignore StateChangedEvents that have state `opening` or `closing`                               |
+| End Time                                   | `"00:00:00"` |       | Latest time a cover can be adjusted each day                                                   |
+| End Time Entity                            | None         |       | The latest moment a cover may be changed . _Overrides the `end_time` value_                    |
+| Adjust at end time                         | `False`      |       | Make sure to always update the position to the default setting at the end time.                |
 
 ### Climate
 
-|     Variables     | Default| Range |Example| Description |
-|----------|----------|------------|---------|---------|
-| Indoor Temperature Entity  | `None`  |   | `climate.living_room` \| `sensor.indoor_temp`  |    |
-| Minimum Comfort Temperature  | 21 | 0-86 |   |    |
-| Maximum Comfort Temperature  | 25 | 0-86 |   |    |
-| Outdoor Temperature Entity  |  `None` |   | `sensor.outdoor_temp`  |   |
-| Presence Entity  |  `None` |   |   |  |
-| Weather Entity  | `None`  |   |  `weather.home` | Can also serve as outdoor temperature sensor  |
+| Variables                   | Default | Range | Example                                       | Description                                  |
+| --------------------------- | ------- | ----- | --------------------------------------------- | -------------------------------------------- |
+| Indoor Temperature Entity   | `None`  |       | `climate.living_room` \| `sensor.indoor_temp` |                                              |
+| Minimum Comfort Temperature | 21      | 0-86  |                                               |                                              |
+| Maximum Comfort Temperature | 25      | 0-86  |                                               |                                              |
+| Outdoor Temperature Entity  | `None`  |       | `sensor.outdoor_temp`                         |                                              |
+| Presence Entity             | `None`  |       |                                               |                                              |
+| Weather Entity              | `None`  |       | `weather.home`                                | Can also serve as outdoor temperature sensor |
+
+### Blindspot
+
+| Variables            | Default | Range                 | Example | Description                                                                                                          |
+| -------------------- | ------- | --------------------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
+| Blind Spot Left      | None    | 0-max(fov_right, 180) |         | Start point of the blind spot on the predefined field of view, where 0 is equal to the window azimuth - fov left.    |
+| Blind Spot Right     | None    | 1-max(fov_right, 180) |         | End point of the blind spot on the predefined field of view, where 1 is equal to the window azimuth - fov left + 1 . |
+| Blind Spot Elevation | None    | 0-90                  |         | Minimal elevation of the sun for the blindspot area.                                                                 |
 
 ## Entities
 
 The integration dynamically adds multiple entities based on the used features.
 
 These entities are always available:
-| Entities                                      | Default        | Description                                                                                                            |
+| Entities | Default | Description |
 | --------------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `sensor.{type}_cover_position_{name}`         |                | Reflects the current state determined by predefined settings and factors such as sun position, weather, and temperature   |
-| `sensor.{type}_control_method_{name}`         | `intermediate` | Indicates the active control strategy based on weather conditions. Options include `winter`, `summer`, and `intermediate` |
-| `sensor.{type}_start_sun_{name}`              |                | Shows the starting time when the sun enters the window's view, with an interval of every 5 minutes.               |
-| `sensor.{type}_end_sun_{name}`                |                | Indicates the ending time when the sun exits the window's view, with an interval of every 5 minutes.         |
-| `binary_sensor.{type}_manual_override_{name}` | `off`          | Indicates if manual override is engaged for any blinds.                             |
-| `binary_sensor.{type}_sun_infront_{name}`     | `off`          | Indicates whether the sun is in front of the window within the designated field of view.              |
-| `switch.{type}_toggle_control_{name}`     | `on`          | Activates the adaptive control feature. When enabled, blinds adjust based on calculated position, unless manually overridden.                         |
-| `switch.{type}_manual_override_{name}`     | `on`          | Enables detection of manual overrides. A cover is marked if its position differs from the calculated one, resetting to adaptive control after a set duration.                   |
-| `button.{type}_reset_manual_override_{name}`     | `on`          | Resets manual override tags for all covers; if `switch.{type}_toggle_control_{name}` is on, it also restores blinds to their correct positions.      |
+| `sensor.{type}_cover_position_{name}` | | Reflects the current state determined by predefined settings and factors such as sun position, weather, and temperature |
+| `sensor.{type}_control_method_{name}` | `intermediate` | Indicates the active control strategy based on weather conditions. Options include `winter`, `summer`, and `intermediate` |
+| `sensor.{type}_start_sun_{name}` | | Shows the starting time when the sun enters the window's view, with an interval of every 5 minutes. |
+| `sensor.{type}_end_sun_{name}` | | Indicates the ending time when the sun exits the window's view, with an interval of every 5 minutes. |
+| `binary_sensor.{type}_manual_override_{name}` | `off` | Indicates if manual override is engaged for any blinds. |
+| `binary_sensor.{type}_sun_infront_{name}` | `off` | Indicates whether the sun is in front of the window within the designated field of view. |
+| `switch.{type}_toggle_control_{name}` | `on` | Activates the adaptive control feature. When enabled, blinds adjust based on calculated position, unless manually overridden. |
+| `switch.{type}_manual_override_{name}` | `on` | Enables detection of manual overrides. A cover is marked if its position differs from the calculated one, resetting to adaptive control after a set duration. |
+| `button.{type}_reset_manual_override_{name}` | `on` | Resets manual override tags for all covers; if `switch.{type}_toggle_control_{name}` is on, it also restores blinds to their correct positions. |
 
 When climate mode is setup you will also get these entities:
 
-| Entities                                      | Default        | Description                                                                                                            |
-| --------------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `switch.{type}_climate_mode_{name}`         |        `on`      | Enables climate mode strategy; otherwise, defaults to the standard strategy.   |
-| `switch.{type}_outside_temperature_{name}`         |        `on`      | Switches between inside and outside temperatures as the basis for determining the climate control strategy.   |
+| Entities                                   | Default | Description                                                                                                 |
+| ------------------------------------------ | ------- | ----------------------------------------------------------------------------------------------------------- |
+| `switch.{type}_climate_mode_{name}`        | `on`    | Enables climate mode strategy; otherwise, defaults to the standard strategy.                                |
+| `switch.{type}_outside_temperature_{name}` | `on`    | Switches between inside and outside temperatures as the basis for determining the climate control strategy. |
 
 ![entities](https://github.com/basbruss/adaptive-cover/blob/main/images/entities.png)
 
 ## Features Planned
 
 - Manual override controls
+
   - ~~Time to revert back to adaptive control~~
   - ~~Reset button~~
   - Wait until next manual/none adaptive change
