@@ -448,6 +448,16 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     async def async_step_interp(self, user_input: dict[str, Any] | None = None):
         """Show interpolation options."""
         if user_input is not None:
+            if len(user_input[CONF_INTERP_LIST]) != len(
+                user_input[CONF_INTERP_LIST_NEW]
+            ):
+                return self.async_show_form(
+                    step_id="interp",
+                    data_schema=INTERPOLATION_OPTIONS,
+                    errors={
+                        CONF_INTERP_LIST_NEW: "Must have same length as 'Interpolation' list"
+                    },
+                )
             self.config.update(user_input)
             if self.config[CONF_ENABLE_BLIND_SPOT]:
                 return await self.async_step_blind_spot()
@@ -742,6 +752,16 @@ class OptionsFlowHandler(OptionsFlow):
     async def async_step_interp(self, user_input: dict[str, Any] | None = None):
         """Show interpolation options."""
         if user_input is not None:
+            if len(user_input[CONF_INTERP_LIST]) != len(
+                user_input[CONF_INTERP_LIST_NEW]
+            ):
+                return self.async_show_form(
+                    step_id="interp",
+                    data_schema=INTERPOLATION_OPTIONS,
+                    errors={
+                        CONF_INTERP_LIST_NEW: "Must have same length as 'Interpolation' list"
+                    },
+                )
             self.options.update(user_input)
             return await self._update_options()
         return self.async_show_form(step_id="interp", data_schema=INTERPOLATION_OPTIONS)
