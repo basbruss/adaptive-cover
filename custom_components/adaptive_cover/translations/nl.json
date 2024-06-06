@@ -213,7 +213,8 @@
           "automation": "Wijzig Automatiseringsinstellingen",
           "blind": "Pas parameters van de zonwering aan",
           "climate": "Bewerk Klimaatconfiguratie",
-          "weather": "Bewerk Weercondities"
+          "weather": "Bewerk Weercondities",
+          "interp": "Pas bereik aan"
         }
       },
       "automation": {

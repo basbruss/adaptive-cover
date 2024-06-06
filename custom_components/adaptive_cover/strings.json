@@ -217,7 +217,8 @@
           "blind": "Fine-tune Blind Settings",
           "climate": "Edit Climate Configuration",
           "weather": "Edit Weather Configuration",
-          "blind_spot": "Setup Blindspot"
+          "blind_spot": "Setup Blindspot",
+          "interp": "Range Adjustment"
         }
       },
       "automation": {
