@@ -199,6 +199,10 @@ class ClimateCoverData:
     temp_switch: bool
     blind_type: str
     transparent_blind: bool
+    lux_entity: str
+    irradiance_entity: str
+    lux_threshold: int
+    irradiance_threshold: int
 
     @property
     def outside_temperature(self):
@@ -276,6 +280,22 @@ class ClimateCoverData:
             return weather_state in self.weather_condition
         return True
 
+    @property
+    def lux(self) -> bool:
+        """Get lux value and compare to threshold."""
+        if self.lux_entity is not None and self.lux_threshold is not None:
+            value = get_safe_state(self.hass, self.lux_entity)
+            return value <= self.lux_threshold
+        return False
+
+    @property
+    def irradiance(self) -> bool:
+        """Get irradiance value and compare to threshold."""
+        if self.irradiance_entity is not None and self.irradiance_threshold is not None:
+            value = get_safe_state(self.hass, self.irradiance_entity)
+            return value <= self.irradiance_threshold
+        return False
+
 
 @dataclass
 class ClimateCoverState(NormalCoverState):
@@ -285,29 +305,41 @@ class ClimateCoverState(NormalCoverState):
 
     def normal_type_cover(self) -> int:
         """Determine state for horizontal and vertical covers."""
-        # glare does not matter
-        if (
-            self.climate_data.is_presence is False
-            or self.climate_data.transparent_blind
-        ) and self.cover.sol_elev > 0:
-            if self.climate_data.transparent_blind and self.climate_data.is_summer:
-                if not self.cover.valid:
-                    return self.cover.default
-                return 0
-            if self.climate_data.is_summer:
-                return 0
-        if self.climate_data.is_presence is False and self.cover.sol_elev > 0:
-            # allow maximum solar radiation
-            if self.climate_data.is_winter:
+        if self.climate_data.is_presence:
+            return self.normal_with_presence()
+
+        return self.normal_without_presence()
+
+    def normal_with_presence(self) -> int:
+        """Determine state for horizontal and vertical covers with occupants."""
+
+        # Check if it's not summer and either lux, irradiance or sunny weather is present
+        if not self.climate_data.is_summer and (
+            self.climate_data.lux
+            or self.climate_data.irradiance
+            or self.climate_data.is_sunny
+        ):
+            # If it's winter and the cover is valid, return 100
+            if self.climate_data.is_winter and self.cover.valid:
                 return 100
-            # don't allow solar radiation
+            # Otherwise, return the default cover state
             return self.cover.default
 
-        # prefer glare reduction over climate control
-        # adjust according basic algorithm
-        if not self.climate_data.is_sunny and not self.climate_data.is_summer:
-            return self.cover.default
+        # If it's summer and there's a transparent blind, return 0
+        if self.climate_data.is_summer and self.climate_data.transparent_blind:
+            return 0
+
+        # If none of the above conditions are met, get the state from the parent class
         return super().get_state()
+
+    def normal_without_presence(self) -> int:
+        """Determine state for horizontal and vertical covers without occupants."""
+        if self.cover.valid:
+            if self.climate_data.is_summer:
+                return 0
+            if self.climate_data.is_winter:
+                return 100
+        return self.cover.default
 
     def control_method_tilt_single(self):
         """Single direction control schema."""
