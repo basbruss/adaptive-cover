@@ -276,9 +276,10 @@ class ClimateCoverData:
         weather_state = None
         if self.weather_entity is not None:
             weather_state = get_safe_state(self.hass, self.weather_entity)
+        else:
+            return True
         if self.weather_condition is not None:
             return weather_state in self.weather_condition
-        return True
 
     @property
     def lux(self) -> bool:
