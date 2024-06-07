@@ -90,34 +90,54 @@ Each type has its own specific parameters to setup a sensor. To setup the sensor
 This component supports two strategy modes: A `basic` mode and a `climate comfort/energy saving` mode that works with presence and temperature detection.
 
 ```mermaid
-  flowchart LR
-      A[Sundata] --> B{Normal}
-      A --> C{Climate}
+  graph TD
 
-      subgraph Sun_Position
-          B --> |Sun not in front| D{Default}
-          B --> |Sun in front| E(Calculated Position)
+  A[("fa:fa-sun Sundata")]
+  A --> B["Basic Mode"]
+  A --> C["Climate Mode"]
 
-          D --> H[Default Position]
-          D --> |Between sunset and sunrise| I[Sunset Default Position]
-      end
+  subgraph "Basic Mode"
+      B --> BA("Sun within field of view")
 
-      subgraph Climate_Conditions
-          C --> F[No Presence]
-          C --> G[Presence]
+      BA --> |No| BC{{Default}}
+      BC --> BE("Time between sunset and sunrise?")
+      BE --> |Yes| BF["Return default"]
+      BE --> |No| BG["Return Sunset default"]
 
-          F --> M{Check Weather}
-          M --> |Conditions False| D
-          M --> |Conditions True| P{Temperature Check}
+      BA --> |Yes| BD("Elevation above 0?")
+      BD --> |Yes| BH{{"Calculated Position"}}
+      BD --> |No| BC
+  end
 
-          P --> |Below Minimal Comfort Temperature| K[Fully Open]
-          P --> |Above Maximal Comfort Temperature| L[Fully Closed]
-          P --> |In between\nComfort Temperature Thresholds| D
+  subgraph "Climate Mode"
+      C --> CA("Check Presence")
+  end
 
-          G --> Q{Check Weather\nand Temperature}
-          Q --> |Weather Conditions True or Above Maximal Comfort Temperature|B
-          Q --> |Else|D
-      end
+  subgraph "Occupants"
+      CA --> |True| CB("Temperature above maximum comfort (summer)?")
+
+      CB --> |Yes| CD("Transparent blind?")
+      CB --> |No| CE("Lux/Irradiance below threshold or Weather is not sunny?")
+
+      CD --> |Yes| CF["Return fully closed (0%)"]
+      CD --> |No| B
+
+      CE --> |Yes| CG("Temperature below minimum comfort (winter) and sun infront of window and elevation > 0?")
+      CE --> |No| B
+
+      CG --> |Yes| CH["Return fully open (100%)"]
+      CG --> |No| BC
+  end
+
+  subgraph "No Occupants"
+      CA --> |False| CC("Sun infront of window and elevation > 0?")
+      CC --> |No| BC
+      CC --> |Yes| CI("Temperature above maximum comfort (summer)?")
+      CI --> |Yes| CH
+      CI --> |No| CJ("Temperature below minimum comfort (winter)")
+      CJ --> |Yes| CF
+      CJ --> |No| BC
+  end
 ```
 
 ### Basic mode
