@@ -46,7 +46,11 @@ from .const import (
     CONF_FOV_RIGHT,
     CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
+    CONF_IRRADIANCE_ENTITY,
+    CONF_IRRADIANCE_THRESHOLD,
     CONF_LENGTH_AWNING,
+    CONF_LUX_ENTITY,
+    CONF_LUX_THRESHOLD,
     CONF_MANUAL_IGNORE_INTERMEDIATE,
     CONF_MANUAL_OVERRIDE_DURATION,
     CONF_MANUAL_OVERRIDE_RESET,
@@ -510,6 +514,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self._temp_toggle,
             self._cover_type,
             options.get(CONF_TRANSPARENT_BLIND),
+            options.get(CONF_LUX_ENTITY),
+            options.get(CONF_IRRADIANCE_ENTITY),
+            options.get(CONF_LUX_THRESHOLD),
+            options.get(CONF_IRRADIANCE_THRESHOLD),
         ]
 
     def climate_mode_data(self, options, cover_data):

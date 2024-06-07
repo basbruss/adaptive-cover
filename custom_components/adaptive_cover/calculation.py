@@ -341,59 +341,40 @@ class ClimateCoverState(NormalCoverState):
                 return 100
         return self.cover.default
 
-    def control_method_tilt_single(self):
-        """Single direction control schema."""
-        if self.climate_data.is_presence:
-            if self.climate_data.is_winter and self.climate_data.is_sunny:
-                return super().get_state()
+    def tilt_with_presence(self, degrees: int) -> int:
+        """Determine state for tilted blinds with occupants."""
+        if self.cover.valid and (
+            self.climate_data.lux
+            or self.climate_data.irradiance
+            or self.climate_data.is_sunny
+        ):
             if self.climate_data.is_summer:
-                return 45 / 90 * 100
-            # 80 degrees is optimal by no need to shield or use solar contribution
-            if self.cover.valid and self.climate_data.is_sunny:
-                return super().get_state()
-            return 80 / 90 * 100
-        else:
-            if self.climate_data.is_winter:
-                return 100
-            if self.climate_data.is_summer:
-                return 0
-            # 80 degrees is optimal by no need to shield or use solar contribution
-            return 80 / 90 * 100
+                # If it's summer, return 45 degrees
+                return 45 / degrees * 100
+            return super().get_state()
+        return 80 / degrees * 100
 
-    def control_method_tilt_bi(self):
-        """bi-directional control schema."""
+    def tilt_without_presence(self, degrees: int) -> int:
+        """Determine state for tilted blinds without occupants."""
         beta = np.rad2deg(self.cover.beta)
-        if self.climate_data.is_presence:
-            if self.climate_data.is_winter and self.climate_data.is_sunny:
-                return super().get_state()
+        if self.cover.valid:
             if self.climate_data.is_summer:
-                return 45 / 180 * 100
-            # 80 degrees is optimal by no need to shield or use solar contribution
-            if self.cover.valid and self.climate_data.is_sunny:
-                return super().get_state()
-            return 80 / 180 * 100
-        else:
-            if self.climate_data.is_winter:
-                # parallel to sun beams
-                if self.cover.valid:
-                    return (beta + 90) / 180 * 100
-                return 110 / 180 * 100
-            if self.climate_data.is_summer:
+                # block out all light in summer
                 return 0
-            # 80 degrees is optimal by no need to shield or use solar contribution
-            return 80 / 180 * 100
+            if self.climate_data.is_winter and self.cover.mode == "mode2":
+                # parallel to sun beams, not possible with single direction
+                return (beta + 90) / degrees * 100
+            return 80 / degrees * 100
+        return super().get_state()
 
     def tilt_state(self):
         """Add tilt specific controls."""
-        if (
-            self.climate_data.get_current_temperature is not None
-            and self.cover.sol_elev > 0
-        ):
-            if self.cover.mode == "mode1":
-                self.control_method_tilt_single()
-            if self.cover.mode == "mode2":
-                return self.control_method_tilt_bi()
-        return super().get_state()
+        degrees = 90
+        if self.cover.mode == "mode2":
+            degrees = 180
+        if self.climate_data.is_presence:
+            return self.tilt_with_presence(degrees)
+        return self.tilt_without_presence(degrees)
 
     def get_state(self) -> int:
         """Return state."""
