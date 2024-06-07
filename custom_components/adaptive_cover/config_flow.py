@@ -33,7 +33,11 @@ from .const import (
     CONF_FOV_RIGHT,
     CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
+    CONF_IRRADIANCE_ENTITY,
+    CONF_IRRADIANCE_THRESHOLD,
     CONF_LENGTH_AWNING,
+    CONF_LUX_ENTITY,
+    CONF_LUX_THRESHOLD,
     CONF_MANUAL_IGNORE_INTERMEDIATE,
     CONF_MANUAL_OVERRIDE_DURATION,
     CONF_MANUAL_OVERRIDE_RESET,
@@ -231,6 +235,16 @@ CLIMATE_OPTIONS = vol.Schema(
                 domain=["device_tracker", "zone", "binary_sensor", "input_boolean"]
             )
         ),
+        vol.Optional(CONF_LUX_ENTITY, default=vol.UNDEFINED): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=["sensor"])
+        ),
+        vol.Optional(CONF_LUX_THRESHOLD, default=1000): selector.NumberSelector(),
+        vol.Optional(
+            CONF_IRRADIANCE_ENTITY, default=vol.UNDEFINED
+        ): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=["sensor"])
+        ),
+        vol.Optional(CONF_IRRADIANCE_THRESHOLD, default=300): selector.NumberSelector(),
         vol.Optional(CONF_TRANSPARENT_BLIND, default=False): selector.BooleanSelector(),
         vol.Optional(
             CONF_WEATHER_ENTITY, default=vol.UNDEFINED
@@ -532,6 +546,10 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_MIN_ELEVATION: self.config.get(CONF_MIN_ELEVATION, None),
                 CONF_MAX_ELEVATION: self.config.get(CONF_MAX_ELEVATION, None),
                 CONF_TRANSPARENT_BLIND: self.config.get(CONF_TRANSPARENT_BLIND, False),
+                CONF_LUX_ENTITY: self.config.get(CONF_LUX_ENTITY),
+                CONF_LUX_THRESHOLD: self.config.get(CONF_LUX_THRESHOLD),
+                CONF_IRRADIANCE_ENTITY: self.config.get(CONF_IRRADIANCE_ENTITY),
+                CONF_IRRADIANCE_THRESHOLD: self.config.get(CONF_IRRADIANCE_THRESHOLD),
             },
         )
 
@@ -735,6 +753,8 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_OUTSIDETEMP_ENTITY,
                 CONF_WEATHER_ENTITY,
                 CONF_PRESENCE_ENTITY,
+                CONF_LUX_ENTITY,
+                CONF_IRRADIANCE_ENTITY,
             ]
             self.optional_entities(entities, user_input)
             self.options.update(user_input)
