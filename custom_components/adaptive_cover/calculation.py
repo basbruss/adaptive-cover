@@ -318,7 +318,7 @@ class ClimateCoverState(NormalCoverState):
         if not self.climate_data.is_summer and (
             self.climate_data.lux
             or self.climate_data.irradiance
-            or self.climate_data.is_sunny
+            or not self.climate_data.is_sunny
         ):
             # If it's winter and the cover is valid, return 100
             if self.climate_data.is_winter and self.cover.valid:
@@ -347,7 +347,7 @@ class ClimateCoverState(NormalCoverState):
         if self.cover.valid and (
             self.climate_data.lux
             or self.climate_data.irradiance
-            or self.climate_data.is_sunny
+            or not self.climate_data.is_sunny
         ):
             if self.climate_data.is_summer:
                 # If it's summer, return 45 degrees
