@@ -236,15 +236,23 @@ CLIMATE_OPTIONS = vol.Schema(
             )
         ),
         vol.Optional(CONF_LUX_ENTITY, default=vol.UNDEFINED): selector.EntitySelector(
-            selector.EntityFilterSelectorConfig(domain=["sensor"])
+            selector.EntityFilterSelectorConfig(
+                domain=["sensor"], device_class="illuminance"
+            )
         ),
-        vol.Optional(CONF_LUX_THRESHOLD, default=1000): selector.NumberSelector(),
+        vol.Optional(CONF_LUX_THRESHOLD, default=1000): selector.NumberSelector(
+            selector.NumberSelectorConfig(mode="box", unit_of_measurement="lux")
+        ),
         vol.Optional(
             CONF_IRRADIANCE_ENTITY, default=vol.UNDEFINED
         ): selector.EntitySelector(
-            selector.EntityFilterSelectorConfig(domain=["sensor"])
+            selector.EntityFilterSelectorConfig(
+                domain=["sensor"], device_class="irradiance"
+            )
         ),
-        vol.Optional(CONF_IRRADIANCE_THRESHOLD, default=300): selector.NumberSelector(),
+        vol.Optional(CONF_IRRADIANCE_THRESHOLD, default=300): selector.NumberSelector(
+            selector.NumberSelectorConfig(mode="box", unit_of_measurement="W/m²")
+        ),
         vol.Optional(CONF_TRANSPARENT_BLIND, default=False): selector.BooleanSelector(),
         vol.Optional(
             CONF_WEATHER_ENTITY, default=vol.UNDEFINED
