@@ -55,3 +55,22 @@ input_number:
     min: 0
     max: 100
     step: 1
+
+input_boolean:
+  home_mode:
+    name: Home Mode
+    icon: mdi:home
+
+template:
+  - sensor:
+      - name: Lux outside
+        state: "{{1000}}"
+        device_class: illuminance
+        unit_of_measurement: "lx"
+      - name: Irradiance outside
+        state: "{{300}}"
+        device_class: irradiance
+        unit_of_measurement: "W/m²"
+      - name: Temperature inside
+        state: "{{21}}"
+        device_class: temperature
