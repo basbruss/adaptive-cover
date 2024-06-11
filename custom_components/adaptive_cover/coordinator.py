@@ -294,7 +294,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self.control_toggle:
             for cover in self.entities:
                 await self.async_set_manual_position(
-                    cover, options.get(CONF_SUNSET_POS)
+                    cover,
+                    inverse_state(options.get(CONF_SUNSET_POS))
+                    if self._inverse_state
+                    else options.get(CONF_SUNSET_POS),
                 )
         else:
             _LOGGER.debug("Timed refresh but control toggle is off")
@@ -551,7 +554,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self._switch_mode:
             state = self.climate_state
         if self._inverse_state:
-            state = 100 - state
+            state = inverse_state(state)
         _LOGGER.debug("Calculated position: %s", state)
         return state
 
@@ -706,3 +709,8 @@ class AdaptiveCoverManager:
     def manual_controlled(self):
         """Get the list of covers under manual control."""
         return [k for k, v in self.manual_control.items() if v]
+
+
+def inverse_state(state: int) -> int:
+    """Inverse state."""
+    return 100 - state
