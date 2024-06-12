@@ -764,7 +764,9 @@ class OptionsFlowHandler(OptionsFlow):
                 )
             self.options.update(user_input)
             return await self._update_options()
-        return self.async_show_form(step_id="interp", data_schema=INTERPOLATION_OPTIONS)
+        return self.add_suggested_values_to_schema(
+            INTERPOLATION_OPTIONS, user_input or self.options
+        )
 
     async def async_step_blind_spot(self, user_input: dict[str, Any] | None = None):
         """Add blindspot to data."""
