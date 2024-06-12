@@ -211,24 +211,24 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.climate_mode_data(options, cover_data)
 
         # calculate the state of the cover
-        normal_cover_state = NormalCoverState(cover_data)
+        self.normal_cover_state = NormalCoverState(cover_data)
 
-        self.default_state = round(normal_cover_state.get_state())
+        self.default_state = round(self.normal_cover_state.get_state())
         state = self.state
 
         await self.manager.reset_if_needed()
 
         # Handle types of changes
         if self.state_change:
-            await self.async_handle_state_change(state)
+            await self.async_handle_state_change(state, options)
         if self.cover_state_change:
             await self.async_handle_cover_state_change(state)
         if self.first_refresh:
-            await self.async_handle_first_refresh(state)
+            await self.async_handle_first_refresh(state, options)
         if self.timed_refresh:
             await self.async_handle_timed_refresh(options)
 
-        normal_cover = normal_cover_state.cover
+        normal_cover = self.normal_cover_state.cover
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
             states={
@@ -253,11 +253,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             },
         )
 
-    async def async_handle_state_change(self, state: int):
+    async def async_handle_state_change(self, state: int, options):
         """Handle state change from tracked entities."""
         if self.control_toggle:
             for cover in self.entities:
-                await self.async_handle_call_service(cover, state)
+                await self.async_handle_call_service(cover, state, options)
         else:
             _LOGGER.debug("State change but control toggle is off")
         self.state_change = False
@@ -275,14 +275,14 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             )
         self.cover_state_change = False
 
-    async def async_handle_first_refresh(self, state: int):
+    async def async_handle_first_refresh(self, state: int, options):
         """Handle first refresh."""
         if self.control_toggle:
             for cover in self.entities:
                 if (
                     self.check_adaptive_time
                     and not self.manager.is_cover_manual(cover)
-                    and self.check_position(cover, state)
+                    and self.check_position(cover, state, options)
                 ):
                     await self.async_set_position(cover, state)
         else:
@@ -300,10 +300,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             _LOGGER.debug("Timed refresh but control toggle is off")
         self.timed_refresh = False
 
-    async def async_handle_call_service(self, entity, state: int):
+    async def async_handle_call_service(self, entity, state: int, options):
         """Handle call service."""
         if (
-            self.check_position(entity, state)
+            self.check_position(entity, state, options)
             and self.check_time_delta(entity)
             and self.check_adaptive_time
             and not self.manager.is_cover_manual(entity)
@@ -432,7 +432,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             return now < time
         return True
 
-    def check_position(self, entity, state: int):
+    def check_position(self, entity, state: int, options):
         """Check cover positions to reduce calls."""
         if self._cover_type == "cover_tilt":
             position = state_attr(self.hass, entity, "current_tilt_position")
@@ -449,6 +449,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.min_change,
                 condition,
             )
+            if state in [
+                options.get(CONF_SUNSET_POS),
+                options.get(CONF_DEFAULT_HEIGHT),
+                0,
+                100,
+            ]:
+                condition = True
             return condition
         return True
 
