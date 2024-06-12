@@ -74,3 +74,4 @@ template:
       - name: Temperature inside
         state: "{{21}}"
         device_class: temperature
+        unit_of_measurement: "°C"

@@ -113,6 +113,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._temp_toggle = None
         self._control_toggle = None
         self._manual_toggle = None
+        self._lux_toggle = None
+        self._irradiance_toggle = None
         self.manual_reset = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_RESET, False
         )
@@ -518,6 +520,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options.get(CONF_IRRADIANCE_ENTITY),
             options.get(CONF_LUX_THRESHOLD),
             options.get(CONF_IRRADIANCE_THRESHOLD),
+            self._lux_toggle,
+            self._irradiance_toggle,
         ]
 
     def climate_mode_data(self, options, cover_data):
@@ -598,6 +602,24 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     @manual_toggle.setter
     def manual_toggle(self, value):
         self._manual_toggle = value
+
+    @property
+    def lux_toggle(self):
+        """Toggle automation."""
+        return self._lux_toggle
+
+    @lux_toggle.setter
+    def lux_toggle(self, value):
+        self._lux_toggle = value
+
+    @property
+    def irradiance_toggle(self):
+        """Toggle automation."""
+        return self._irradiance_toggle
+
+    @irradiance_toggle.setter
+    def irradiance_toggle(self, value):
+        self._irradiance_toggle = value
 
 
 class AdaptiveCoverManager:

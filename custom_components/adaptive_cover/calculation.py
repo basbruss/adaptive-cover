@@ -203,6 +203,8 @@ class ClimateCoverData:
     irradiance_entity: str
     lux_threshold: int
     irradiance_threshold: int
+    _use_lux: bool
+    _use_irradiance: bool
 
     @property
     def outside_temperature(self):
@@ -284,6 +286,8 @@ class ClimateCoverData:
     @property
     def lux(self) -> bool:
         """Get lux value and compare to threshold."""
+        if not self._use_lux:
+            return False
         if self.lux_entity is not None and self.lux_threshold is not None:
             value = get_safe_state(self.hass, self.lux_entity)
             return value <= self.lux_threshold
@@ -292,6 +296,8 @@ class ClimateCoverData:
     @property
     def irradiance(self) -> bool:
         """Get irradiance value and compare to threshold."""
+        if not self._use_irradiance:
+            return False
         if self.irradiance_entity is not None and self.irradiance_threshold is not None:
             value = get_safe_state(self.hass, self.irradiance_entity)
             return value <= self.irradiance_threshold
