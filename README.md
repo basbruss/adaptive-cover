@@ -227,14 +227,18 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 
 ### Climate
 
-| Variables                   | Default | Range | Example                                       | Description                                  |
-| --------------------------- | ------- | ----- | --------------------------------------------- | -------------------------------------------- |
-| Indoor Temperature Entity   | `None`  |       | `climate.living_room` \| `sensor.indoor_temp` |                                              |
-| Minimum Comfort Temperature | 21      | 0-86  |                                               |                                              |
-| Maximum Comfort Temperature | 25      | 0-86  |                                               |                                              |
-| Outdoor Temperature Entity  | `None`  |       | `sensor.outdoor_temp`                         |                                              |
-| Presence Entity             | `None`  |       |                                               |                                              |
-| Weather Entity              | `None`  |       | `weather.home`                                | Can also serve as outdoor temperature sensor |
+| Variables                   | Default | Range | Example                                       | Description                                                                                             |
+| --------------------------- | ------- | ----- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Indoor Temperature Entity   | `None`  |       | `climate.living_room` \| `sensor.indoor_temp` |                                                                                                         |
+| Minimum Comfort Temperature | 21      | 0-86  |                                               |                                                                                                         |
+| Maximum Comfort Temperature | 25      | 0-86  |                                               |                                                                                                         |
+| Outdoor Temperature Entity  | `None`  |       | `sensor.outdoor_temp`                         |                                                                                                         |
+| Presence Entity             | `None`  |       |                                               |                                                                                                         |
+| Weather Entity              | `None`  |       | `weather.home`                                | Can also serve as outdoor temperature sensor                                                            |
+| Lux Entity                  | `None`  |       | `sensor.lux`                                  | Returns measured lux                                                                                    |
+| Lux Threshold               | `1000`  |       |                                               | "In non-summer, above threshold, use optimal position. Otherwise, default or fully open in winter."mode |
+| Irradiance Entity           | `None`  |       | `sensor.irradiance`                           | Returns measured irradiance                                                                             |
+| Irradiance Threshold        | `300`   |       |                                               | "In non-summer, above threshold, use optimal position. Otherwise, default or fully open in winter."     |
 
 ### Blindspot
 
@@ -278,7 +282,7 @@ When climate mode is setup you will also get these entities:
   - ~~Reset button~~
   - Wait until next manual/none adaptive change
 
-- Algorithm to control radiation and/or illumination
+- ~~Algorithm to control radiation and/or illumination~~
 
 ### Simulation
 

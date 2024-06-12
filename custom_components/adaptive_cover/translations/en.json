@@ -78,7 +78,11 @@
           "outside_temp": "Outside temperature sensor (optional)",
           "temp_low": "Low temperature threshold",
           "temp_high": "High temperature threshold",
-          "transparent_blind": "Transparent blind"
+          "transparent_blind": "Transparent blind",
+          "lux_entity": "Lux sensor (optional)",
+          "lux_threshold": "Lux threshold",
+          "irradiance_entity": "Irradiance sensor (optional)",
+          "irradiance_threshold": "Irradiance threshold"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
@@ -86,7 +90,11 @@
           "outside_temp": "Overrides outside temperature from weather entity if both are set",
           "temp_low": "Minimum comfortable temperature",
           "temp_high": "Maximum comfortable temperature",
-          "transparent_blind": "The blind is transparent and should always close fully when summer mode is active"
+          "transparent_blind": "The blind is transparent and should always close fully when summer mode is active",
+          "lux_entity": "Use lux sensor to determine if cover should reduce glare in presence mode",
+          "lux_threshold": "Threshold for lux sensor, above this value glare should be reduced",
+          "irradiance_entity": "Use irradiance sensor to determine if cover should reduce glare in presence mode",
+          "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced"
         },
         "description": "Add additional climate configuration variables.",
         "title": "Climate settings"
@@ -272,7 +280,11 @@
           "outside_temp": "Outside temperature sensor (optional)",
           "temp_low": "Low temperature threshold",
           "temp_high": "High temperature threshold",
-          "transparent_blind": "Transparent blind"
+          "transparent_blind": "Transparent blind",
+          "lux_entity": "Lux sensor (optional)",
+          "lux_threshold": "Lux threshold",
+          "irradiance_entity": "Irradiance sensor (optional)",
+          "irradiance_threshold": "Irradiance threshold"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
@@ -280,7 +292,11 @@
           "outside_temp": "Overrides outside temperature from weather entity if both are set",
           "temp_low": "Minimum comfortable temperature",
           "temp_high": "Maximum comfortable temperature",
-          "transparent_blind": "The blind is transparent and should always close fully when summer mode is active"
+          "transparent_blind": "The blind is transparent and should always close fully when summer mode is active",
+          "lux_entity": "Use lux sensor to determine if cover should reduce glare in presence mode",
+          "lux_threshold": "Threshold for lux sensor, above this value glare should be reduced",
+          "irradiance_entity": "Use irradiance sensor to determine if cover should reduce glare in presence mode",
+          "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced"
         },
         "description": "Add additional climate configuration variables.",
         "title": "Climate settings"
