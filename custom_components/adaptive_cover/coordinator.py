@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import datetime as dt
 from dataclasses import dataclass
 
@@ -52,7 +53,11 @@ from .const import (
     CONF_INTERP_LIST_NEW,
     CONF_INTERP_START,
     CONF_INVERSE_STATE,
+    CONF_IRRADIANCE_ENTITY,
+    CONF_IRRADIANCE_THRESHOLD,
     CONF_LENGTH_AWNING,
+    CONF_LUX_ENTITY,
+    CONF_LUX_THRESHOLD,
     CONF_MANUAL_IGNORE_INTERMEDIATE,
     CONF_MANUAL_OVERRIDE_DURATION,
     CONF_MANUAL_OVERRIDE_RESET,
@@ -117,6 +122,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._temp_toggle = None
         self._control_toggle = None
         self._manual_toggle = None
+        self._lux_toggle = None
+        self._irradiance_toggle = None
         self.manual_reset = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_RESET, False
         )
@@ -236,13 +243,16 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self.timed_refresh:
             await self.async_handle_timed_refresh(options)
 
-        normal_cover = self.normal_cover_state.cover
+        normal_cover = normal_cover_state.cover
+        # Run the solar_times method in a separate thread
+        loop = asyncio.get_event_loop()
+        start, end = await loop.run_in_executor(None, normal_cover.solar_times)
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
             states={
                 "state": state,
-                "start": normal_cover.solar_times()[0],
-                "end": normal_cover.solar_times()[1],
+                "start": start,
+                "end": end,
                 "control": self.control_method,
                 "sun_motion": normal_cover.valid,
                 "manual_override": self.manager.binary_cover_manual,
@@ -532,6 +542,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self._temp_toggle,
             self._cover_type,
             options.get(CONF_TRANSPARENT_BLIND),
+            options.get(CONF_LUX_ENTITY),
+            options.get(CONF_IRRADIANCE_ENTITY),
+            options.get(CONF_LUX_THRESHOLD),
+            options.get(CONF_IRRADIANCE_THRESHOLD),
+            self._lux_toggle,
+            self._irradiance_toggle,
         ]
 
     def climate_mode_data(self, options, cover_data):
@@ -636,6 +652,24 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     @manual_toggle.setter
     def manual_toggle(self, value):
         self._manual_toggle = value
+
+    @property
+    def lux_toggle(self):
+        """Toggle automation."""
+        return self._lux_toggle
+
+    @lux_toggle.setter
+    def lux_toggle(self, value):
+        self._lux_toggle = value
+
+    @property
+    def irradiance_toggle(self):
+        """Toggle automation."""
+        return self._irradiance_toggle
+
+    @irradiance_toggle.setter
+    def irradiance_toggle(self, value):
+        self._irradiance_toggle = value
 
 
 class AdaptiveCoverManager:

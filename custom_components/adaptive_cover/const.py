@@ -52,6 +52,10 @@ CONF_INTERP_END = "interp_end"
 CONF_INTERP_LIST = "interp_list"
 CONF_INTERP_LIST_NEW = "interp_list_new"
 CONF_INTERP = "interp"
+CONF_LUX_ENTITY = "lux_entity"
+CONF_LUX_THRESHOLD = "lux_threshold"
+CONF_IRRADIANCE_ENTITY = "irradiance_entity"
+CONF_IRRADIANCE_THRESHOLD = "irradiance_threshold"
 
 
 CONF_DELTA_POSITION = "delta_position"
