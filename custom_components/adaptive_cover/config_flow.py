@@ -31,10 +31,13 @@ from .const import (
     CONF_ENTITIES,
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
-    CONF_HEIGHT_AWNING,
     CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
+    CONF_IRRADIANCE_ENTITY,
+    CONF_IRRADIANCE_THRESHOLD,
     CONF_LENGTH_AWNING,
+    CONF_LUX_ENTITY,
+    CONF_LUX_THRESHOLD,
     CONF_MANUAL_IGNORE_INTERMEDIATE,
     CONF_MANUAL_OVERRIDE_DURATION,
     CONF_MANUAL_OVERRIDE_RESET,
@@ -163,11 +166,6 @@ VERTICAL_OPTIONS = vol.Schema(
 
 HORIZONTAL_OPTIONS = vol.Schema(
     {
-        vol.Required(CONF_HEIGHT_AWNING, default=2.1): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=0.1, max=6, step=0.01, mode="slider", unit_of_measurement="m"
-            )
-        ),
         vol.Required(CONF_LENGTH_AWNING, default=2.1): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.3, max=6, step=0.01, mode="slider", unit_of_measurement="m"
@@ -236,6 +234,24 @@ CLIMATE_OPTIONS = vol.Schema(
             selector.EntityFilterSelectorConfig(
                 domain=["device_tracker", "zone", "binary_sensor", "input_boolean"]
             )
+        ),
+        vol.Optional(CONF_LUX_ENTITY, default=vol.UNDEFINED): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(
+                domain=["sensor"], device_class="illuminance"
+            )
+        ),
+        vol.Optional(CONF_LUX_THRESHOLD, default=1000): selector.NumberSelector(
+            selector.NumberSelectorConfig(mode="box", unit_of_measurement="lux")
+        ),
+        vol.Optional(
+            CONF_IRRADIANCE_ENTITY, default=vol.UNDEFINED
+        ): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(
+                domain=["sensor"], device_class="irradiance"
+            )
+        ),
+        vol.Optional(CONF_IRRADIANCE_THRESHOLD, default=300): selector.NumberSelector(
+            selector.NumberSelectorConfig(mode="box", unit_of_measurement="W/m²")
         ),
         vol.Optional(CONF_TRANSPARENT_BLIND, default=False): selector.BooleanSelector(),
         vol.Optional(
@@ -538,6 +554,10 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_MIN_ELEVATION: self.config.get(CONF_MIN_ELEVATION, None),
                 CONF_MAX_ELEVATION: self.config.get(CONF_MAX_ELEVATION, None),
                 CONF_TRANSPARENT_BLIND: self.config.get(CONF_TRANSPARENT_BLIND, False),
+                CONF_LUX_ENTITY: self.config.get(CONF_LUX_ENTITY),
+                CONF_LUX_THRESHOLD: self.config.get(CONF_LUX_THRESHOLD),
+                CONF_IRRADIANCE_ENTITY: self.config.get(CONF_IRRADIANCE_ENTITY),
+                CONF_IRRADIANCE_THRESHOLD: self.config.get(CONF_IRRADIANCE_THRESHOLD),
             },
         )
 
@@ -741,6 +761,8 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_OUTSIDETEMP_ENTITY,
                 CONF_WEATHER_ENTITY,
                 CONF_PRESENCE_ENTITY,
+                CONF_LUX_ENTITY,
+                CONF_IRRADIANCE_ENTITY,
             ]
             self.optional_entities(entities, user_input)
             self.options.update(user_input)

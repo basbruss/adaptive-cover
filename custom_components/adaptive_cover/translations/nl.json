@@ -76,14 +76,22 @@
           "weather_entity": "Weer entiteit (optioneel)",
           "outside_temp": "Buitentemperatuur sensor (optioneel)",
           "temp_low": "Minimale comfort temperatuur",
-          "temp_high": "Maximale comfort temperatuur"
+          "temp_high": "Maximale comfort temperatuur",
+          "lux_entity": "Lux sensor (optioneel)",
+          "lux_threshold": "Lux drempelwaarde",
+          "irradiance_entity": "Stralingsintensiteit sensor (optioneel)",
+          "irradiance_threshold": "Stralingsintensiteit drempelwaarde"
         },
         "data_description": {
           "presence_entity": "Entiteit die de aanwezigheidsstatus van de ruimte of het huis vertegenwoordigt",
           "weather_entity": "Controleert weersomstandigheden, en buitentemperatuur",
           "outside_temp": "Overschrijft de buitentemperatuur van de weerentiteit als beide zijn ingesteld",
           "temp_low": "Minimale comfortabele temperatuur",
-          "temp_high": "Maximale comfortabele temperatuur"
+          "temp_high": "Maximale comfortabele temperatuur",
+          "lux_entity": "Gebruik lux-sensor om te bepalen of de cover schittering moet verminderen in aanwezigheidsmodus",
+          "lux_threshold": "Drempelwaarde voor lux-sensor, boven deze waarde moet schittering worden verminderd",
+          "irradiance_entity": "Gebruik stralingsintensiteitssensor om te bepalen of de cover schittering moet verminderen in aanwezigheidsmodus",
+          "irradiance_threshold": "Drempelwaarde voor stralingsintensiteitssensor, boven deze waarde moet schittering worden verminderd"
         },
         "description": "Voeg additionele klimaat configuratie variabelen toe. Weer and Aanwezigheid entiteiten zijn optioneel",
         "title": "Klimaat instellingen"
@@ -100,9 +108,8 @@
       "horizontal": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-          "height_awning": "Zonneschermhoogte",
           "length_awning": "Zonneschermspanlengte",
-          "window_height": "Raamhoogte",
+          "window_height": "Zonneschermhoogte",
           "angle": "Zonneschermhoek",
           "distance_shaded_area": "Beschaduwde gebied",
           "default_percentage": "Standaard positie",
@@ -120,8 +127,7 @@
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
-          "height_awning": "Pas de hoogte van het zonnescherm aan vanaf de grond",
-          "window_height": "Specificeer de hoogte van het raam(raam(en)) in meters",
+          "window_height": "Pas de hoogte van het zonnescherm aan vanaf de hoogte van het werkgebied",
           "length_awning": "Totale spanwijdte van het zonnescherm in meters",
           "angle": "Hoek van het bevestigde zonnescherm gemeten loodrecht vanaf de muur naar de grond",
           "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",
@@ -293,9 +299,8 @@
       "horizontal": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-          "height_awning": "Zonneschermhoogte",
           "length_awning": "Zonneschermspanlengte",
-          "window_height": "Raamhoogte",
+          "window_height": "Zonneschermhoogte",
           "angle": "Zonneschermhoek",
           "distance_shaded_area": "Beschaduwde gebied",
           "default_percentage": "Standaard positie",
@@ -313,8 +318,7 @@
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
-          "height_awning": "Pas de hoogte van het zonnescherm aan vanaf de grond",
-          "window_height": "Specificeer de hoogte van het raam(raam(en)) in meters",
+          "window_height": "Pas de hoogte van het zonnescherm aan vanaf de hoogte van het werkgebied",
           "length_awning": "Totale spanwijdte van het zonnescherm in meters",
           "angle": "Hoek van het bevestigde zonnescherm gemeten loodrecht vanaf de muur naar de grond",
           "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",

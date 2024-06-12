@@ -23,7 +23,15 @@
         "files.eol": "\n",
         "files.trimTrailingWhitespace": true,
         "python.analysis.autoSearchPaths": false,
-        "python.pythonPath": "/usr/local/bin/python"
+        "python.pythonPath": "/usr/local/bin/python",
+        "yaml.customTags": [
+          "!input scalar",
+          "!secret scalar",
+          "!include_dir_named scalar",
+          "!include_dir_list scalar",
+          "!include_dir_merge_list scalar",
+          "!include_dir_merge_named scalar"
+        ]
       }
     }
   },

@@ -47,7 +47,11 @@ from .const import (
     CONF_FOV_RIGHT,
     CONF_HEIGHT_WIN,
     CONF_INVERSE_STATE,
+    CONF_IRRADIANCE_ENTITY,
+    CONF_IRRADIANCE_THRESHOLD,
     CONF_LENGTH_AWNING,
+    CONF_LUX_ENTITY,
+    CONF_LUX_THRESHOLD,
     CONF_MANUAL_IGNORE_INTERMEDIATE,
     CONF_MANUAL_OVERRIDE_DURATION,
     CONF_MANUAL_OVERRIDE_RESET,
@@ -110,6 +114,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._temp_toggle = None
         self._control_toggle = None
         self._manual_toggle = None
+        self._lux_toggle = None
+        self._irradiance_toggle = None
         self.manual_reset = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_RESET, False
         )
@@ -212,20 +218,20 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.climate_mode_data(options, cover_data)
 
         # calculate the state of the cover
-        normal_cover_state = NormalCoverState(cover_data)
+        self.normal_cover_state = NormalCoverState(cover_data)
 
-        self.default_state = round(normal_cover_state.get_state())
+        self.default_state = round(self.normal_cover_state.get_state())
         state = self.state
 
         await self.manager.reset_if_needed()
 
         # Handle types of changes
         if self.state_change:
-            await self.async_handle_state_change(state)
+            await self.async_handle_state_change(state, options)
         if self.cover_state_change:
             await self.async_handle_cover_state_change(state)
         if self.first_refresh:
-            await self.async_handle_first_refresh(state)
+            await self.async_handle_first_refresh(state, options)
         if self.timed_refresh:
             await self.async_handle_timed_refresh(options)
 
@@ -257,11 +263,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             },
         )
 
-    async def async_handle_state_change(self, state: int):
+    async def async_handle_state_change(self, state: int, options):
         """Handle state change from tracked entities."""
         if self.control_toggle:
             for cover in self.entities:
-                await self.async_handle_call_service(cover, state)
+                await self.async_handle_call_service(cover, state, options)
         else:
             _LOGGER.debug("State change but control toggle is off")
         self.state_change = False
@@ -279,14 +285,14 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             )
         self.cover_state_change = False
 
-    async def async_handle_first_refresh(self, state: int):
+    async def async_handle_first_refresh(self, state: int, options):
         """Handle first refresh."""
         if self.control_toggle:
             for cover in self.entities:
                 if (
                     self.check_adaptive_time
                     and not self.manager.is_cover_manual(cover)
-                    and self.check_position(cover, state)
+                    and self.check_position(cover, state, options)
                 ):
                     await self.async_set_position(cover, state)
         else:
@@ -298,16 +304,19 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self.control_toggle:
             for cover in self.entities:
                 await self.async_set_manual_position(
-                    cover, options.get(CONF_SUNSET_POS)
+                    cover,
+                    inverse_state(options.get(CONF_SUNSET_POS))
+                    if self._inverse_state
+                    else options.get(CONF_SUNSET_POS),
                 )
         else:
             _LOGGER.debug("Timed refresh but control toggle is off")
         self.timed_refresh = False
 
-    async def async_handle_call_service(self, entity, state: int):
+    async def async_handle_call_service(self, entity, state: int, options):
         """Handle call service."""
         if (
-            self.check_position(entity, state)
+            self.check_position(entity, state, options)
             and self.check_time_delta(entity)
             and self.check_adaptive_time
             and not self.manager.is_cover_manual(entity)
@@ -436,7 +445,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             return now < time
         return True
 
-    def check_position(self, entity, state: int):
+    def check_position(self, entity, state: int, options):
         """Check cover positions to reduce calls."""
         if self._cover_type == "cover_tilt":
             position = state_attr(self.hass, entity, "current_tilt_position")
@@ -453,6 +462,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.min_change,
                 condition,
             )
+            if state in [
+                options.get(CONF_SUNSET_POS),
+                options.get(CONF_DEFAULT_HEIGHT),
+                0,
+                100,
+            ]:
+                condition = True
             return condition
         return True
 
@@ -514,6 +530,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self._temp_toggle,
             self._cover_type,
             options.get(CONF_TRANSPARENT_BLIND),
+            options.get(CONF_LUX_ENTITY),
+            options.get(CONF_IRRADIANCE_ENTITY),
+            options.get(CONF_LUX_THRESHOLD),
+            options.get(CONF_IRRADIANCE_THRESHOLD),
+            self._lux_toggle,
+            self._irradiance_toggle,
         ]
 
     def climate_mode_data(self, options, cover_data):
@@ -555,7 +577,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self._switch_mode:
             state = self.climate_state
         if self._inverse_state:
-            state = 100 - state
+            state = inverse_state(state)
         _LOGGER.debug("Calculated position: %s", state)
         return state
 
@@ -594,6 +616,24 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     @manual_toggle.setter
     def manual_toggle(self, value):
         self._manual_toggle = value
+
+    @property
+    def lux_toggle(self):
+        """Toggle automation."""
+        return self._lux_toggle
+
+    @lux_toggle.setter
+    def lux_toggle(self, value):
+        self._lux_toggle = value
+
+    @property
+    def irradiance_toggle(self):
+        """Toggle automation."""
+        return self._irradiance_toggle
+
+    @irradiance_toggle.setter
+    def irradiance_toggle(self, value):
+        self._irradiance_toggle = value
 
 
 class AdaptiveCoverManager:
@@ -710,3 +750,8 @@ class AdaptiveCoverManager:
     def manual_controlled(self):
         """Get the list of covers under manual control."""
         return [k for k, v in self.manual_control.items() if v]
+
+
+def inverse_state(state: int) -> int:
+    """Inverse state."""
+    return 100 - state
