@@ -243,7 +243,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self.timed_refresh:
             await self.async_handle_timed_refresh(options)
 
-        normal_cover = normal_cover_state.cover
+        normal_cover = self.normal_cover_state.cover
         # Run the solar_times method in a separate thread
         loop = asyncio.get_event_loop()
         start, end = await loop.run_in_executor(None, normal_cover.solar_times)
@@ -597,8 +597,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 "Inverse state is not supported with interpolation, you can inverse the state by arranging the list from high to low"
             )
 
-        if self._inverse_state:
+        if self._inverse_state and not self._use_interpolation:
             state = inverse_state(state)
+
         _LOGGER.debug("Calculated position: %s", state)
         return state
 
