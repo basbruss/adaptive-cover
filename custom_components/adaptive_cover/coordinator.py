@@ -6,6 +6,7 @@ import asyncio
 import datetime as dt
 from dataclasses import dataclass
 
+import numpy as np
 from homeassistant.components.cover import DOMAIN as COVER_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -46,6 +47,11 @@ from .const import (
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
     CONF_HEIGHT_WIN,
+    CONF_INTERP,
+    CONF_INTERP_END,
+    CONF_INTERP_LIST,
+    CONF_INTERP_LIST_NEW,
+    CONF_INTERP_START,
     CONF_INVERSE_STATE,
     CONF_IRRADIANCE_ENTITY,
     CONF_IRRADIANCE_THRESHOLD,
@@ -110,7 +116,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._cover_type = self.config_entry.data.get("sensor_type")
         self._climate_mode = self.config_entry.options.get(CONF_CLIMATE_MODE, False)
         self._switch_mode = True if self._climate_mode else False
-        self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
+        self._inverse_state = self.config_entry.options.get
+        (CONF_INVERSE_STATE, False)
+        self._use_interpolation = self.config_entry.options.get(CONF_INTERP, False)
         self._temp_toggle = None
         self._control_toggle = None
         self._manual_toggle = None
@@ -235,7 +243,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self.timed_refresh:
             await self.async_handle_timed_refresh(options)
 
-        normal_cover = normal_cover_state.cover
+        normal_cover = self.normal_cover_state.cover
         # Run the solar_times method in a separate thread
         loop = asyncio.get_event_loop()
         start, end = await loop.run_in_executor(None, normal_cover.solar_times)
@@ -363,6 +371,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
         )
         self.manual_threshold = options.get(CONF_MANUAL_THRESHOLD)
+        self.start_value = options.get(CONF_INTERP_START)
+        self.end_value = options.get(CONF_INTERP_END)
+        self.normal_list = options.get(CONF_INTERP_LIST)
+        self.new_list = options.get(CONF_INTERP_LIST_NEW)
 
     def _update_manager_and_covers(self):
         self.manager.add_covers(self.entities)
@@ -576,9 +588,34 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         state = self.default_state
         if self._switch_mode:
             state = self.climate_state
-        if self._inverse_state:
+
+        if self._use_interpolation:
+            state = self.interpolate_states(state)
+
+        if self._inverse_state and self._use_interpolation:
+            _LOGGER.info(
+                "Inverse state is not supported with interpolation, you can inverse the state by arranging the list from high to low"
+            )
+
+        if self._inverse_state and not self._use_interpolation:
             state = inverse_state(state)
+
         _LOGGER.debug("Calculated position: %s", state)
+        return state
+
+    def interpolate_states(self, state):
+        """Interpolate states."""
+        normal_range = [0, 100]
+        if self.start_value and self.end_value:
+            new_range = [self.start_value, self.end_value]
+        if self.normal_list and self.new_list:
+            normal_range = list(map(int, self.normal_list))
+            new_range = list(map(int, self.new_list))
+        state = np.interp(state, normal_range, new_range)
+        if state == new_range[0]:
+            state = 0
+        if state == new_range[-1]:
+            state = 100
         return state
 
     @property

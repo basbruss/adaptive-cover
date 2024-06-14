@@ -50,7 +50,8 @@
           "climate_mode": "Klimaatmodus",
           "blind_spot": "Configureer schaduwzone",
           "min_elevation": "Minimale zonhoogte",
-          "max_elevation": "Maximale zonhoogte"
+          "max_elevation": "Maximale zonhoogte",
+          "interp": "Stel aangepaste open/sluit posities in voor jouw Cover, als deze niet volledig functioneert bij 0-100%"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -123,7 +124,8 @@
           "climate_mode": "Klimaat Modus",
           "blind_spot": "Configureer schaduwzone",
           "min_elevation": "Minimale zonhoogte",
-          "max_elevation": "Maximale zonhoogte"
+          "max_elevation": "Maximale zonhoogte",
+          "interp": "Stel aangepaste open/sluit posities in voor jouw Cover, als deze niet volledig functioneert bij 0-100%"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -161,7 +163,8 @@
           "tilt_mode": "Type beweging",
           "blind_spot": "Configureer schaduwzone",
           "min_elevation": "Minimale zonhoogte",
-          "max_elevation": "Maximale zonhoogte"
+          "max_elevation": "Maximale zonhoogte",
+          "interp": "Stel aangepaste open/sluit posities in voor jouw Cover, als deze niet volledig functioneert bij 0-100%"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -194,6 +197,20 @@
         },
         "title": "Schaduwzone",
         "description": "Stel de schaduwzone in voor de afdekking. Deze waarden zijn relatieve graden tot de breedte van het gezichtsveld. Waar 0 de meest linkse positie is, genomen van de linkse parameter van het gezichtsveld."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Waarde waar opening begint",
+          "interp_end": "Waarde waar sluiting begint",
+          "interp_list": "Lijst van interpolatie",
+          "interp_list_new": "Aangepaste interpolatielijst"
+        },
+        "data_description": {
+          "interp_list": "Lijst van interpolatiewaarden, waarbij 0 volledig gesloten is en 100 volledig open",
+          "interp_list_new": "Aangepast bereik van interpolatiewaarden, waarbij het begin gesloten moet vertegenwoordigen en het einde open"
+        },
+        "title": "Bereik Aanpassing",
+        "description": "Pas de waarden aan waarbij jouw Cover effectief opent of sluit. Ideaal voor Covers die niet volledig openen bij 0% of sluiten bij 100%."
       }
     }
   },
@@ -204,7 +221,8 @@
           "automation": "Wijzig Automatiseringsinstellingen",
           "blind": "Pas parameters van de zonwering aan",
           "climate": "Bewerk Klimaatconfiguratie",
-          "weather": "Bewerk Weercondities"
+          "weather": "Bewerk Weercondities",
+          "interp": "Pas bereik aan"
         }
       },
       "automation": {
@@ -249,7 +267,8 @@
           "climate_mode": "Klimaatmodus",
           "blind_spot": "Configureer schaduwzone",
           "min_elevation": "Minimale zonhoogte",
-          "max_elevation": "Maximale zonhoogte"
+          "max_elevation": "Maximale zonhoogte",
+          "interp": "Stel aangepaste open/sluit posities in voor jouw Cover, als deze niet volledig functioneert bij 0-100%"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -314,7 +333,8 @@
           "climate_mode": "Klimaat Modus",
           "blind_spot": "Configureer schaduwzone",
           "min_elevation": "Minimale zonhoogte",
-          "max_elevation": "Maximale zonhoogte"
+          "max_elevation": "Maximale zonhoogte",
+          "interp": "Stel aangepaste open/sluit posities in voor jouw Cover, als deze niet volledig functioneert bij 0-100%"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -352,7 +372,8 @@
           "tilt_mode": "Type beweging",
           "blind_spot": "Configureer schaduwzone",
           "min_elevation": "Minimale zonhoogte",
-          "max_elevation": "Maximale zonhoogte"
+          "max_elevation": "Maximale zonhoogte",
+          "interp": "Stel aangepaste open/sluit posities in voor jouw Cover, als deze niet volledig functioneert bij 0-100%"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -385,6 +406,20 @@
         },
         "title": "Schaduwzone",
         "description": "Stel de schaduwzone in voor de afdekking. Deze waarden zijn relatieve graden tot de breedte van het gezichtsveld. Waar 0 de meest linkse positie is, genomen van de linkse parameter van het gezichtsveld."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Waarde waar opening begint",
+          "interp_end": "Waarde waar sluiting begint",
+          "interp_list": "Lijst van interpolatie",
+          "interp_list_new": "Aangepaste interpolatielijst"
+        },
+        "data_description": {
+          "interp_list": "Lijst van interpolatiewaarden, waarbij 0 volledig gesloten is en 100 volledig open",
+          "interp_list_new": "Aangepast bereik van interpolatiewaarden, waarbij het begin gesloten moet vertegenwoordigen en het einde open"
+        },
+        "title": "Bereik Aanpassing",
+        "description": "Pas de waarden aan waarbij jouw Cover effectief opent of sluit. Ideaal voor Covers die niet volledig openen bij 0% of sluiten bij 100%."
       }
     }
   },
