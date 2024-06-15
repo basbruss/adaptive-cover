@@ -116,8 +116,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._cover_type = self.config_entry.data.get("sensor_type")
         self._climate_mode = self.config_entry.options.get(CONF_CLIMATE_MODE, False)
         self._switch_mode = True if self._climate_mode else False
-        self._inverse_state = self.config_entry.options.get
-        (CONF_INVERSE_STATE, False)
+        self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
         self._use_interpolation = self.config_entry.options.get(CONF_INTERP, False)
         self._temp_toggle = None
         self._control_toggle = None
