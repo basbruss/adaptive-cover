@@ -312,9 +312,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             for cover in self.entities:
                 await self.async_set_manual_position(
                     cover,
-                    inverse_state(options.get(CONF_SUNSET_POS))
-                    if self._inverse_state
-                    else options.get(CONF_SUNSET_POS),
+                    (
+                        inverse_state(options.get(CONF_SUNSET_POS))
+                        if self._inverse_state
+                        else options.get(CONF_SUNSET_POS)
+                    ),
                 )
         else:
             _LOGGER.debug("Timed refresh but control toggle is off")
@@ -415,7 +417,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     @property
     def after_start_time(self):
         """Check if time is after start time."""
-        now = dt.datetime.now().time()
+        now = dt.datetime.now()
         if self.start_time_entity is not None:
             time = get_datetime_from_str(
                 get_safe_state(self.hass, self.start_time_entity)
@@ -425,7 +427,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             )
             return now >= time
         if self.start_time is not None:
-            time = get_datetime_from_str(self.start_time).time()
+            time = get_datetime_from_str(self.start_time)
 
             _LOGGER.debug(
                 "Start time: %s, now: %s, now >= time: %s", time, now, now >= time
