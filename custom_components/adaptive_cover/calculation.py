@@ -290,7 +290,7 @@ class ClimateCoverData:
             return False
         if self.lux_entity is not None and self.lux_threshold is not None:
             value = get_safe_state(self.hass, self.lux_entity)
-            return value <= self.lux_threshold
+            return float(value) <= self.lux_threshold
         return False
 
     @property
@@ -300,7 +300,7 @@ class ClimateCoverData:
             return False
         if self.irradiance_entity is not None and self.irradiance_threshold is not None:
             value = get_safe_state(self.hass, self.irradiance_entity)
-            return value <= self.irradiance_threshold
+            return float(value) <= self.irradiance_threshold
         return False
 
 
