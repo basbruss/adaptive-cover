@@ -606,16 +606,15 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_MIN_ELEVATION: self.config.get(CONF_MIN_ELEVATION, None),
                 CONF_MAX_ELEVATION: self.config.get(CONF_MAX_ELEVATION, None),
                 CONF_TRANSPARENT_BLIND: self.config.get(CONF_TRANSPARENT_BLIND, False),
+                CONF_INTERP: self.config.get(CONF_INTERP),
                 CONF_INTERP_START: self.config.get(CONF_INTERP_START, None),
                 CONF_INTERP_END: self.config.get(CONF_INTERP_END, None),
                 CONF_INTERP_LIST: self.config.get(CONF_INTERP_LIST, []),
                 CONF_INTERP_LIST_NEW: self.config.get(CONF_INTERP_LIST_NEW, []),
-                CONF_INTERP: self.config.get(CONF_INTERP),
                 CONF_LUX_ENTITY: self.config.get(CONF_LUX_ENTITY),
                 CONF_LUX_THRESHOLD: self.config.get(CONF_LUX_THRESHOLD),
                 CONF_IRRADIANCE_ENTITY: self.config.get(CONF_IRRADIANCE_ENTITY),
                 CONF_IRRADIANCE_THRESHOLD: self.config.get(CONF_IRRADIANCE_THRESHOLD),
-
             },
         )
 
@@ -696,6 +695,10 @@ class OptionsFlowHandler(OptionsFlow):
                         },
                     )
             self.options.update(user_input)
+            if self.options.get(CONF_INTERP, False):
+                return await self.async_step_interp()
+            if self.options[CONF_ENABLE_BLIND_SPOT]:
+                return await self.async_step_blind_spot()
             if self.options[CONF_CLIMATE_MODE]:
                 return await self.async_step_climate()
             return await self._update_options()
@@ -791,8 +794,11 @@ class OptionsFlowHandler(OptionsFlow):
                 )
             self.options.update(user_input)
             return await self._update_options()
-        return self.add_suggested_values_to_schema(
-            INTERPOLATION_OPTIONS, user_input or self.options
+        return self.async_show_form(
+            step_id="interp",
+            data_schema=self.add_suggested_values_to_schema(
+                INTERPOLATION_OPTIONS, user_input or self.options
+            ),
         )
 
     async def async_step_blind_spot(self, user_input: dict[str, Any] | None = None):
