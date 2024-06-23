@@ -299,7 +299,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 if (
                     self.check_adaptive_time
                     and not self.manager.is_cover_manual(cover)
-                    and self.check_position(cover, state, options)
+                    and self.check_position_delta(cover, state, options)
                 ):
                     await self.async_set_position(cover, state)
         else:
@@ -325,7 +325,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     async def async_handle_call_service(self, entity, state: int, options):
         """Handle call service."""
         if (
-            self.check_position(entity, state, options)
+            self.check_position_delta(entity, state, options)
             and self.check_time_delta(entity)
             and self.check_adaptive_time
             and not self.manager.is_cover_manual(entity)
@@ -336,27 +336,28 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         """Call service to set cover position."""
         await self.async_set_manual_position(entity, state)
 
-    async def async_set_manual_position(self, entity, position):
+    async def async_set_manual_position(self, entity, state):
         """Call service to set cover position."""
-        service = SERVICE_SET_COVER_POSITION
-        service_data = {}
-        service_data[ATTR_ENTITY_ID] = entity
+        if self.check_position(entity, state):
+            service = SERVICE_SET_COVER_POSITION
+            service_data = {}
+            service_data[ATTR_ENTITY_ID] = entity
 
-        if self._cover_type == "cover_tilt":
-            service = SERVICE_SET_COVER_TILT_POSITION
-            service_data[ATTR_TILT_POSITION] = position
-        else:
-            service_data[ATTR_POSITION] = position
+            if self._cover_type == "cover_tilt":
+                service = SERVICE_SET_COVER_TILT_POSITION
+                service_data[ATTR_TILT_POSITION] = state
+            else:
+                service_data[ATTR_POSITION] = state
 
-        self.wait_for_target[entity] = True
-        self.target_call[entity] = position
-        _LOGGER.debug(
-            "Set wait for target %s and target call %s",
-            self.wait_for_target,
-            self.target_call,
-        )
-        _LOGGER.debug("Run %s with data %s", service, service_data)
-        await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
+            self.wait_for_target[entity] = True
+            self.target_call[entity] = state
+            _LOGGER.debug(
+                "Set wait for target %s and target call %s",
+                self.wait_for_target,
+                self.target_call,
+            )
+            _LOGGER.debug("Run %s with data %s", service, service_data)
+            await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
 
     def _update_options(self, options):
         """Update options."""
@@ -458,12 +459,23 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             return now < time
         return True
 
-    def check_position(self, entity, state: int, options):
-        """Check cover positions to reduce calls."""
+    def _get_current_position(self, entity) -> int | None:
+        """Get current position of cover."""
         if self._cover_type == "cover_tilt":
-            position = state_attr(self.hass, entity, "current_tilt_position")
-        else:
-            position = state_attr(self.hass, entity, "current_position")
+            return state_attr(self.hass, entity, "current_tilt_position")
+        return state_attr(self.hass, entity, "current_position")
+
+    def check_position(self, entity, state):
+        """Check if position is different as state."""
+        position = self._get_current_position(entity)
+        if position is not None:
+            return position != state
+        _LOGGER.debug("Cover is already at position %s", state)
+        return False
+
+    def check_position_delta(self, entity, state: int, options):
+        """Check cover positions to reduce calls."""
+        position = self._get_current_position(entity)
         if position is not None:
             condition = abs(position - state) >= self.min_change
             _LOGGER.debug(
