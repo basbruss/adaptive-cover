@@ -27,7 +27,7 @@ python = "^3.11"
 hass-nabucasa = "0.75.1"
 pre-commit = "3.7.1"
 pre-commit-hooks = "4.6.0"
-pylint = "3.2.3"
+pylint = "3.2.5"
 ruff = "0.4.9"
 
 [tool.poetry.urls]
