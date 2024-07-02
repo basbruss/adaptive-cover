@@ -236,9 +236,9 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 | Presence Entity             | `None`  |       |                                               |                                                                                                         |
 | Weather Entity              | `None`  |       | `weather.home`                                | Can also serve as outdoor temperature sensor                                                            |
 | Lux Entity                  | `None`  |       | `sensor.lux`                                  | Returns measured lux                                                                                    |
-| Lux Threshold               | `1000`  |       |                                               | "In non-summer, above threshold, use optimal position. Otherwise, default or fully open in winter."mode |
+| Lux Threshold               | `1000`  |       |                                               | "In non-summer, above threshold, use optimal position. Otherwise, default position or fully open in winter." |
 | Irradiance Entity           | `None`  |       | `sensor.irradiance`                           | Returns measured irradiance                                                                             |
-| Irradiance Threshold        | `300`   |       |                                               | "In non-summer, above threshold, use optimal position. Otherwise, default or fully open in winter."     |
+| Irradiance Threshold        | `300`   |       |                                               | "In non-summer, above threshold, use optimal position. Otherwise, default position or fully open in winter."     |
 
 ### Blindspot
 
