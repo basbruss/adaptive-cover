@@ -13,6 +13,7 @@ from homeassistant.config_entries import (
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
+from homeassistant import data_entry_flow
 
 from .const import (
     CONF_AWNING_ANGLE,
@@ -99,16 +100,53 @@ CLIMATE_MODE = vol.Schema(
     }
 )
 
-OPTIONS = vol.Schema(
+ELEVATION = vol.Schema(
     {
-        vol.Required(CONF_AZIMUTH, default=180): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=0, max=359, mode="slider", unit_of_measurement="°"
+        vol.Optional(CONF_MIN_ELEVATION): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=90)
+        ),
+        vol.Optional(CONF_MAX_ELEVATION): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=90)
+        ),
+    }
+)
+
+LUX = vol.Schema(
+    {
+        vol.Optional(CONF_LUX_ENTITY, default=vol.UNDEFINED): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(
+                domain=["sensor"], device_class="illuminance"
             )
         ),
-        vol.Required(CONF_DEFAULT_HEIGHT, default=60): selector.NumberSelector(
+        vol.Optional(CONF_LUX_THRESHOLD, default=1000): selector.NumberSelector(
+            selector.NumberSelectorConfig(mode="box", unit_of_measurement="lux")
+        ),
+    }
+)
+
+IRRADIANCE = vol.Schema(
+    {
+        vol.Optional(
+            CONF_IRRADIANCE_ENTITY, default=vol.UNDEFINED
+        ): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(
+                domain=["sensor"], device_class="irradiance"
+            )
+        ),
+        vol.Optional(CONF_IRRADIANCE_THRESHOLD, default=300): selector.NumberSelector(
+            selector.NumberSelectorConfig(mode="box", unit_of_measurement="W/m²")
+        ),
+    }
+)
+
+TEMPERATURE = vol.Schema(
+    {
+        vol.Required(CONF_TEMP_ENTITY): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=["climate", "sensor"])
+        ),
+        vol.Required(CONF_TEMP_LOW, default=21): selector.NumberSelector(
             selector.NumberSelectorConfig(
-                min=0, max=100, step=1, mode="slider", unit_of_measurement="%"
+                min=0, max=86, step=1, mode="slider", unit_of_measurement="°"
             )
         ),
         vol.Optional(CONF_MAX_POSITION): vol.All(
@@ -135,16 +173,112 @@ OPTIONS = vol.Schema(
                 min=1, max=90, step=1, mode="slider", unit_of_measurement="°"
             )
         ),
+    }
+)
+
+
+DEFAULT = vol.Schema(
+    {
+        vol.Required(CONF_DEFAULT_HEIGHT, default=60): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=100, step=1, mode="slider", unit_of_measurement="%"
+            )
+        ),
         vol.Required(CONF_SUNSET_POS, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0, max=100, step=1, mode="slider", unit_of_measurement="%"
             )
         ),
+    }
+)
+
+SUN_OFFSET = vol.Schema(
+    {
         vol.Required(CONF_SUNSET_OFFSET, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(mode="box", unit_of_measurement="minutes")
         ),
         vol.Required(CONF_SUNRISE_OFFSET, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(mode="box", unit_of_measurement="minutes")
+        ),
+    }
+)
+
+POSITION_LIMITS = vol.Schema(
+    {
+        vol.Optional(CONF_MAX_POSITION, default=100): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=1, max=100, step=1, mode="slider", unit_of_measurement="%"
+            )
+        ),
+    }
+)
+
+DELTA = vol.Schema(
+    {
+        vol.Required(CONF_DELTA_POSITION, default=1): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=1, max=90, step=1, mode="slider", unit_of_measurement="%"
+            )
+        ),
+        vol.Optional(CONF_DELTA_TIME, default=2): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=2, mode="box", unit_of_measurement="minutes"
+            )
+        ),
+    }
+)
+
+START = vol.Schema(
+    {
+        vol.Optional(CONF_START_TIME, default="00:00:00"): selector.TimeSelector(),
+        vol.Optional(CONF_START_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
+        ),
+    }
+)
+
+END = vol.Schema(
+    {
+        vol.Optional(CONF_END_TIME, default="00:00:00"): selector.TimeSelector(),
+        vol.Optional(CONF_END_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
+        ),
+        vol.Optional(CONF_RETURN_SUNSET, default=False): bool,
+    }
+)
+
+MANUAL = vol.Schema(
+    {
+        vol.Required(
+            CONF_MANUAL_OVERRIDE_DURATION, default={"minutes": 15}
+        ): selector.DurationSelector(),
+        vol.Required(CONF_MANUAL_OVERRIDE_RESET, default=False): bool,
+        vol.Optional(CONF_MANUAL_THRESHOLD): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=99)
+        ),
+        vol.Optional(CONF_MANUAL_IGNORE_INTERMEDIATE, default=False): bool,
+    }
+)
+
+OPTIONS = vol.Schema(
+    {
+        vol.Required(CONF_AZIMUTH, default=180): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=359, mode="slider", unit_of_measurement="°"
+            )
+        ),
+        vol.Required("section_fov"): data_entry_flow.section(FOV, {"collapsed": False}),
+        vol.Required("section_default"): data_entry_flow.section(
+            DEFAULT, {"collapsed": False}
+        ),
+        vol.Optional("section_sun_offset"): data_entry_flow.section(
+            SUN_OFFSET, {"collapsed": True}
+        ),
+        vol.Optional("section_elevation"): data_entry_flow.section(
+            ELEVATION, {"collapsed": True}
+        ),
+        vol.Optional("section_position_limits"): data_entry_flow.section(
+            POSITION_LIMITS, {"collapsed": True}
         ),
         vol.Required(CONF_INVERSE_STATE, default=False): bool,
         vol.Required(CONF_ENABLE_BLIND_SPOT, default=False): bool,
@@ -251,23 +385,9 @@ CLIMATE_OPTIONS = vol.Schema(
                 domain=["device_tracker", "zone", "binary_sensor", "input_boolean"]
             )
         ),
-        vol.Optional(CONF_LUX_ENTITY, default=vol.UNDEFINED): selector.EntitySelector(
-            selector.EntityFilterSelectorConfig(
-                domain=["sensor"], device_class="illuminance"
-            )
-        ),
-        vol.Optional(CONF_LUX_THRESHOLD, default=1000): selector.NumberSelector(
-            selector.NumberSelectorConfig(mode="box", unit_of_measurement="lux")
-        ),
-        vol.Optional(
-            CONF_IRRADIANCE_ENTITY, default=vol.UNDEFINED
-        ): selector.EntitySelector(
-            selector.EntityFilterSelectorConfig(
-                domain=["sensor"], device_class="irradiance"
-            )
-        ),
-        vol.Optional(CONF_IRRADIANCE_THRESHOLD, default=300): selector.NumberSelector(
-            selector.NumberSelectorConfig(mode="box", unit_of_measurement="W/m²")
+        vol.Optional("section_lux"): data_entry_flow.section(LUX, {"collapsed": True}),
+        vol.Optional("section_irradiance"): data_entry_flow.section(
+            IRRADIANCE, {"collapsed": True}
         ),
         vol.Optional(CONF_TRANSPARENT_BLIND, default=False): selector.BooleanSelector(),
         vol.Optional(
@@ -312,33 +432,16 @@ WEATHER_OPTIONS = vol.Schema(
 
 AUTOMATION_CONFIG = vol.Schema(
     {
-        vol.Required(CONF_DELTA_POSITION, default=1): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=1, max=90, step=1, mode="slider", unit_of_measurement="%"
-            )
+        vol.Required("section_delta"): data_entry_flow.section(
+            DELTA, {"collapsed": False}
         ),
-        vol.Optional(CONF_DELTA_TIME, default=2): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=2, mode="box", unit_of_measurement="minutes"
-            )
+        vol.Optional("section_start"): data_entry_flow.section(
+            START, {"collapsed": True}
         ),
-        vol.Optional(CONF_START_TIME, default="00:00:00"): selector.TimeSelector(),
-        vol.Optional(CONF_START_ENTITY): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
+        vol.Optional("section_end"): data_entry_flow.section(END, {"collapsed": True}),
+        vol.Optional("section_manual"): data_entry_flow.section(
+            MANUAL, {"collapsed": True}
         ),
-        vol.Required(
-            CONF_MANUAL_OVERRIDE_DURATION, default={"minutes": 15}
-        ): selector.DurationSelector(),
-        vol.Required(CONF_MANUAL_OVERRIDE_RESET, default=False): bool,
-        vol.Optional(CONF_MANUAL_THRESHOLD): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=99)
-        ),
-        vol.Optional(CONF_MANUAL_IGNORE_INTERMEDIATE, default=False): bool,
-        vol.Optional(CONF_END_TIME, default="00:00:00"): selector.TimeSelector(),
-        vol.Optional(CONF_END_ENTITY): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
-        ),
-        vol.Optional(CONF_RETURN_SUNSET, default=False): bool,
     }
 )
 
