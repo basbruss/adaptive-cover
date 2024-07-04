@@ -81,6 +81,7 @@ from .const import (
     CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
+    CONF_MIN_POSITION,
     DOMAIN,
     LOGGER,
 )
@@ -520,7 +521,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options.get(CONF_FOV_RIGHT),
             options.get(CONF_AZIMUTH),
             options.get(CONF_DEFAULT_HEIGHT),
-            options.get(CONF_MAX_POSITION, 100),
+            options.get(CONF_MAX_POSITION),
+            options.get(CONF_MIN_POSITION),
             options.get(CONF_BLIND_SPOT_LEFT),
             options.get(CONF_BLIND_SPOT_RIGHT),
             options.get(CONF_BLIND_SPOT_ELEVATION),
