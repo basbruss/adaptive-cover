@@ -69,6 +69,7 @@ from .const import (
     CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
+    CONF_OUTSIDE_THRESHOLD,
     DOMAIN,
     SensorType,
 )
@@ -233,6 +234,9 @@ CLIMATE_OPTIONS = vol.Schema(
             CONF_OUTSIDETEMP_ENTITY, default=vol.UNDEFINED
         ): selector.EntitySelector(
             selector.EntityFilterSelectorConfig(domain=["sensor"])
+        ),
+        vol.Optional(CONF_OUTSIDE_THRESHOLD, default=0): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=100)
         ),
         vol.Optional(
             CONF_PRESENCE_ENTITY, default=vol.UNDEFINED
@@ -615,6 +619,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_LUX_THRESHOLD: self.config.get(CONF_LUX_THRESHOLD),
                 CONF_IRRADIANCE_ENTITY: self.config.get(CONF_IRRADIANCE_ENTITY),
                 CONF_IRRADIANCE_THRESHOLD: self.config.get(CONF_IRRADIANCE_THRESHOLD),
+                CONF_OUTSIDE_THRESHOLD: self.config.get(CONF_OUTSIDE_THRESHOLD),
             },
         )
 
