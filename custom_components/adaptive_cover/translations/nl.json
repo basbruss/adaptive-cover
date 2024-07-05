@@ -81,7 +81,8 @@
           "lux_entity": "Lux sensor (optioneel)",
           "lux_threshold": "Lux drempelwaarde",
           "irradiance_entity": "Stralingsintensiteit sensor (optioneel)",
-          "irradiance_threshold": "Stralingsintensiteit drempelwaarde"
+          "irradiance_threshold": "Stralingsintensiteit drempelwaarde",
+          "outside_threshold": "Minimale buitentemperatuur voor zomermodus"
         },
         "data_description": {
           "presence_entity": "Entiteit die de aanwezigheidsstatus van de ruimte of het huis vertegenwoordigt",
@@ -294,7 +295,8 @@
           "weather_entity": "Weer entiteit (optioneel)",
           "outside_temp": "Buitentemperatuur sensor (optioneel)",
           "temp_low": "Minimale comfort temperatuur",
-          "temp_high": "Maximale comfort temperatuur"
+          "temp_high": "Maximale comfort temperatuur",
+          "outside_threshold": "Minimale buitentemperatuur voor zomermodus"
         },
         "data_description": {
           "presence_entity": "Entiteit die de aanwezigheidsstatus van de ruimte of het huis vertegenwoordigt",
