@@ -123,6 +123,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._manual_toggle = None
         self._lux_toggle = None
         self._irradiance_toggle = None
+        self._start_time = None
+        self._end_time = None
         self.manual_reset = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_RESET, False
         )
@@ -412,6 +414,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     @property
     def check_adaptive_time(self):
         """Check if time is within start and end times."""
+        if self._start_time and self._end_time and self._start_time > self._end_time:
+            _LOGGER.error("Start time is after end time")
         return self.before_end_time and self.after_start_time
 
     @property
@@ -425,6 +429,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             _LOGGER.debug(
                 "Start time: %s, now: %s, now >= time: %s ", time, now, now >= time
             )
+            self._start_time = time
             return now >= time
         if self.start_time is not None:
             time = get_datetime_from_str(self.start_time)
@@ -432,6 +437,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             _LOGGER.debug(
                 "Start time: %s, now: %s, now >= time: %s", time, now, now >= time
             )
+            self._start_time
             return now >= time
         return True
 
@@ -446,6 +452,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             _LOGGER.debug(
                 "End time: %s, now: %s, now < time: %s", time, now, now < time
             )
+            self._end_time = time
             return now < time
         if self.end_time is not None:
             time = get_datetime_from_str(self.end_time)
@@ -455,6 +462,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             _LOGGER.debug(
                 "End time: %s, now: %s, now < time: %s", time, now, now < time
             )
+            self._end_time = time
             return now < time
         return True
 
