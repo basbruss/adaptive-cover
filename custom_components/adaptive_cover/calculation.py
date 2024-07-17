@@ -274,7 +274,7 @@ class ClimateCoverData:
 
     @property
     def is_sunny(self) -> bool:
-        """Check if condition can contain radiation in winter."""
+        """Check if condition can contain radiation."""
         weather_state = None
         if self.weather_entity is not None:
             weather_state = get_safe_state(self.hass, self.weather_entity)
@@ -285,7 +285,7 @@ class ClimateCoverData:
 
     @property
     def lux(self) -> bool:
-        """Get lux value and compare to threshold."""
+        """Get lux value and check if it's lower than threshold."""
         if not self._use_lux:
             return False
         if self.lux_entity is not None and self.lux_threshold is not None:
@@ -295,7 +295,7 @@ class ClimateCoverData:
 
     @property
     def irradiance(self) -> bool:
-        """Get irradiance value and compare to threshold."""
+        """Get irradiance value and check if it's lower than threshold."""
         if not self._use_irradiance:
             return False
         if self.irradiance_entity is not None and self.irradiance_threshold is not None:
@@ -335,6 +335,14 @@ class ClimateCoverState(NormalCoverState):
         # If it's summer and there's a transparent blind, return 0
         if self.climate_data.is_summer and self.climate_data.transparent_blind:
             return 0
+
+        if (
+            self.climate_data.is_summer
+            and self.cover.valid
+            and self.climate_data.is_sunny
+            and (self.climate_data.lux or self.climate_data.irradiance)
+        ):
+            return self.cover.default
 
         # If none of the above conditions are met, get the state from the parent class
         return super().get_state()
