@@ -81,6 +81,7 @@ from .const import (
     CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
+    CONF_OUTSIDE_THRESHOLD,
     DOMAIN,
     LOGGER,
 )
@@ -559,6 +560,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options.get(CONF_IRRADIANCE_ENTITY),
             options.get(CONF_LUX_THRESHOLD),
             options.get(CONF_IRRADIANCE_THRESHOLD),
+            options.get(CONF_OUTSIDE_THRESHOLD),
             self._lux_toggle,
             self._irradiance_toggle,
         ]

@@ -203,6 +203,7 @@ class ClimateCoverData:
     irradiance_entity: str
     lux_threshold: int
     irradiance_threshold: int
+    temp_summer_outside: float
     _use_lux: bool
     _use_irradiance: bool
 
@@ -266,10 +267,20 @@ class ClimateCoverData:
         return False
 
     @property
+    def outside_high(self) -> bool:
+        """Check if outdoor temperature is above threshold."""
+        if (
+            self.temp_summer_outside is not None
+            and self.outside_temperature is not None
+        ):
+            return float(self.outside_temperature) > self.temp_summer_outside
+        return True
+
+    @property
     def is_summer(self) -> bool:
         """Check if temperature is over threshold."""
         if self.temp_high is not None and self.get_current_temperature is not None:
-            return self.get_current_temperature > self.temp_high
+            return self.get_current_temperature > self.temp_high and self.outdoor_high
         return False
 
     @property
