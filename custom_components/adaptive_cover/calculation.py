@@ -219,7 +219,7 @@ class ClimateCoverData:
                 self.hass,
                 self.outside_entity,
             )
-        if self.weather_entity:
+        elif self.weather_entity:
             temp = state_attr(self.hass, self.weather_entity, "temperature")
         return temp
 
