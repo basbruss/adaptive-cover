@@ -31,6 +31,7 @@ class AdaptiveGeneralCover(ABC):
     win_azi: int
     h_def: int
     max_pos: int
+    min_pos: int
     blind_spot_left: int
     blind_spot_right: int
     blind_spot_elevation: int
@@ -181,6 +182,8 @@ class NormalCoverState:
         result = np.clip(state, 0, 100)
         if result > self.cover.max_pos:
             return self.cover.max_pos
+        if result < self.cover.min_pos:
+            return self.cover.min_pos
         return result
 
 

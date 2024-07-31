@@ -72,6 +72,7 @@ from .const import (
     CONF_OUTSIDE_THRESHOLD,
     DOMAIN,
     SensorType,
+    CONF_MIN_POSITION,
 )
 
 # DEFAULT_NAME = "Adaptive Cover"
@@ -112,6 +113,9 @@ OPTIONS = vol.Schema(
             selector.NumberSelectorConfig(
                 min=1, max=100, step=1, mode="slider", unit_of_measurement="%"
             )
+        ),
+        vol.Optional(CONF_MIN_POSITION): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=90)
         ),
         vol.Optional(CONF_MIN_ELEVATION): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=90)
@@ -569,6 +573,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_DISTANCE: self.config.get(CONF_DISTANCE),
                 CONF_DEFAULT_HEIGHT: self.config.get(CONF_DEFAULT_HEIGHT),
                 CONF_MAX_POSITION: self.config.get(CONF_MAX_POSITION),
+                CONF_MIN_POSITION: self.config.get(CONF_MIN_POSITION),
                 CONF_FOV_LEFT: self.config.get(CONF_FOV_LEFT),
                 CONF_FOV_RIGHT: self.config.get(CONF_FOV_RIGHT),
                 CONF_ENTITIES: self.config.get(CONF_ENTITIES),

@@ -175,6 +175,7 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 | Entities                      | []      |       | Denotes entities controllable by the integration                                                         |
 | Window Azimuth                | 180     | 0-359 | The compass direction of the window, discoverable via [Open Street Map Compass](https://osmcompass.com/) |
 | Default Position              | 60      | 0-100 | Initial position of the cover in the absence of sunlight glare detection                                 |
+| Minimal Position              | 100     | 0-99  | Minimal opening position for the cover, suitable for partially closing certain cover types               |
 | Maximum Position              | 100     | 1-100 | Maximum opening position for the cover, suitable for partially opening certain cover types               |
 | Field of view Left            | 90      | 1-90  | Unobstructed viewing angle from window center to the left, in degrees                                    |
 | Field of view Right           | 90      | 1-90  | Unobstructed viewing angle from window center to the right, in degrees                                   |
@@ -227,6 +228,7 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 
 ### Climate
 
+
 | Variables                     | Default | Range | Example                                       | Description                                                                                                                                          |
 | ----------------------------- | ------- | ----- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Indoor Temperature Entity     | `None`  |       | `climate.living_room` \| `sensor.indoor_temp` |                                                                                                                                                      |
@@ -240,6 +242,7 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 | Lux Threshold                 | `1000`  |       |                                               | "In non-summer, above threshold, use optimal position. Otherwise, default position or fully open in winter."                                         |
 | Irradiance Entity             | `None`  |       | `sensor.irradiance`                           | Returns measured irradiance                                                                                                                          |
 | Irradiance Threshold          | `300`   |       |                                               | "In non-summer, above threshold, use optimal position. Otherwise, default position or fully open in winter."                                         |
+
 
 ### Blindspot
 
