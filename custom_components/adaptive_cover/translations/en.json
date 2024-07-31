@@ -85,7 +85,8 @@
           "lux_entity": "Lux sensor (optional)",
           "lux_threshold": "Lux threshold",
           "irradiance_entity": "Irradiance sensor (optional)",
-          "irradiance_threshold": "Irradiance threshold"
+          "irradiance_threshold": "Irradiance threshold",
+          "outside_threshold": "Minimum outside temperature for summer mode"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
@@ -311,7 +312,8 @@
           "lux_entity": "Lux sensor (optional)",
           "lux_threshold": "Lux threshold",
           "irradiance_entity": "Irradiance sensor (optional)",
-          "irradiance_threshold": "Irradiance threshold"
+          "irradiance_threshold": "Irradiance threshold",
+          "outside_threshold": "Minimum outside temperature for summer mode"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
