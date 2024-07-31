@@ -25,10 +25,10 @@ python = "^3.11"
 
 [tool.poetry.group.dev.dependencies]
 hass-nabucasa = "0.75.1"
-pre-commit = "3.7.1"
+pre-commit = "3.8.0"
 pre-commit-hooks = "4.6.0"
-pylint = "3.2.3"
-ruff = "0.4.9"
+pylint = "3.2.6"
+ruff = "0.5.5"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/basbruss/adaptive-cover/issues"
