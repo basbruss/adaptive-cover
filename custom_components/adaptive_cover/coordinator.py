@@ -85,6 +85,8 @@ from .const import (
     CONF_OUTSIDE_THRESHOLD,
     DOMAIN,
     LOGGER,
+    CONF_ENABLE_MAX_POSITION,
+    CONF_ENABLE_MIN_POSITION,
 )
 from .helpers import get_datetime_from_str, get_last_updated, get_safe_state
 
@@ -544,6 +546,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options.get(CONF_DEFAULT_HEIGHT),
             options.get(CONF_MAX_POSITION),
             options.get(CONF_MIN_POSITION),
+            options.get(CONF_ENABLE_MAX_POSITION, False),
+            options.get(CONF_ENABLE_MIN_POSITION, False),
             options.get(CONF_BLIND_SPOT_LEFT),
             options.get(CONF_BLIND_SPOT_RIGHT),
             options.get(CONF_BLIND_SPOT_ELEVATION),

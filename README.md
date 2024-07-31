@@ -228,7 +228,6 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 
 ### Climate
 
-
 | Variables                     | Default | Range | Example                                       | Description                                                                                                                                          |
 | ----------------------------- | ------- | ----- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Indoor Temperature Entity     | `None`  |       | `climate.living_room` \| `sensor.indoor_temp` |                                                                                                                                                      |
@@ -242,7 +241,6 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 | Lux Threshold                 | `1000`  |       |                                               | "In non-summer, above threshold, use optimal position. Otherwise, default position or fully open in winter."                                         |
 | Irradiance Entity             | `None`  |       | `sensor.irradiance`                           | Returns measured irradiance                                                                                                                          |
 | Irradiance Threshold          | `300`   |       |                                               | "In non-summer, above threshold, use optimal position. Otherwise, default position or fully open in winter."                                         |
-
 
 ### Blindspot
 
