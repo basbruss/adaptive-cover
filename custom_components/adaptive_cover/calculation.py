@@ -31,6 +31,7 @@ class AdaptiveGeneralCover(ABC):
     win_azi: int
     h_def: int
     max_pos: int
+    min_pos: int
     blind_spot_left: int
     blind_spot_right: int
     blind_spot_elevation: int
@@ -181,6 +182,8 @@ class NormalCoverState:
         result = np.clip(state, 0, 100)
         if result > self.cover.max_pos:
             return self.cover.max_pos
+        if result < self.cover.min_pos:
+            return self.cover.min_pos
         return result
 
 
@@ -203,6 +206,7 @@ class ClimateCoverData:
     irradiance_entity: str
     lux_threshold: int
     irradiance_threshold: int
+    temp_summer_outside: float
     _use_lux: bool
     _use_irradiance: bool
 
@@ -215,7 +219,7 @@ class ClimateCoverData:
                 self.hass,
                 self.outside_entity,
             )
-        if self.weather_entity:
+        elif self.weather_entity:
             temp = state_attr(self.hass, self.weather_entity, "temperature")
         return temp
 
@@ -266,10 +270,20 @@ class ClimateCoverData:
         return False
 
     @property
+    def outside_high(self) -> bool:
+        """Check if outdoor temperature is above threshold."""
+        if (
+            self.temp_summer_outside is not None
+            and self.outside_temperature is not None
+        ):
+            return float(self.outside_temperature) > self.temp_summer_outside
+        return True
+
+    @property
     def is_summer(self) -> bool:
         """Check if temperature is over threshold."""
         if self.temp_high is not None and self.get_current_temperature is not None:
-            return self.get_current_temperature > self.temp_high
+            return self.get_current_temperature > self.temp_high and self.outdoor_high
         return False
 
     @property
