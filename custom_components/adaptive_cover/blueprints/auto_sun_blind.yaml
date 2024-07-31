@@ -252,13 +252,13 @@ variables:
     {# default height, when automatic control is off. #}
     {%- set def_h = def / 100 * h_max -%}
     {%- set alpha = deg2rad * sun_ele -%}
-    {% set gamma = deg2rad * ((win_azi - sun_azi + 180) % 360 - 180) %}    
+    {% set gamma = deg2rad * ((win_azi - sun_azi + 180) % 360 - 180) %}
     {%- set h = (d / cos(gamma)) * tan(alpha) -%}
     {# gamma is outside of FOV #}
     {%- if gamma < azi_left or gamma > azi_right or alpha < elev_low or alpha > elev_high -%}
       {{ clipv(h2perc(def_h) | round(0) | int , 0, 100) }}
     {# gamma is inside of FOV #}
-    {%- else -%}  
+    {%- else -%}
       {{ clipv(h2perc(h) | round(0) | int , min_pos, 100) }}
     {%- endif -%}
   change_threshold: !input change_threshold

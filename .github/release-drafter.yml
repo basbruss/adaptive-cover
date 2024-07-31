@@ -58,7 +58,7 @@ exlude-contributors:
   - "dependabot"
 
 template: |
-  # Adaptive Cover ⛅ v$RESOLVED_VERSION 
+  # Adaptive Cover ⛅ v$RESOLVED_VERSION
   ## Changes
 
   $CHANGES
