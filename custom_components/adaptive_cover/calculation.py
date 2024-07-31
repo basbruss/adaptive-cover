@@ -32,6 +32,8 @@ class AdaptiveGeneralCover(ABC):
     h_def: int
     max_pos: int
     min_pos: int
+    max_pos_bool: bool
+    min_pos_bool: bool
     blind_spot_left: int
     blind_spot_right: int
     blind_spot_elevation: int
@@ -155,6 +157,29 @@ class AdaptiveGeneralCover(ABC):
         """Return field of view."""
         return [self.azi_min_abs, self.azi_max_abs]
 
+    @property
+    def apply_min_position(self) -> bool:
+        """Check if min position is applied."""
+        if self.min_pos is not None and self.min_pos != 0:
+            if self.min_pos_bool:
+                return self.direct_sun_valid
+            return True
+        return False
+
+    @property
+    def apply_max_position(self) -> bool:
+        """Check if max position is applied."""
+        if self.max_pos is not None and self.max_pos != 100:
+            if self.max_pos_bool:
+                return self.direct_sun_valid
+            return True
+        return False
+
+    @property
+    def direct_sun_valid(self) -> bool:
+        """Check if sun is directly in front of window."""
+        return (self.valid) & (not self.sunset_valid) & (not self.is_sun_in_blind_spot)
+
     @abstractmethod
     def calculate_position(self) -> float:
         """Calculate the position of the blind."""
@@ -173,16 +198,14 @@ class NormalCoverState:
     def get_state(self) -> int:
         """Return state."""
         state = np.where(
-            (self.cover.valid)
-            & (not self.cover.sunset_valid)
-            & (not self.cover.is_sun_in_blind_spot),
+            self.cover.direct_sun_valid,
             self.cover.calculate_percentage(),
             self.cover.default,
         )
         result = np.clip(state, 0, 100)
-        if result > self.cover.max_pos:
+        if self.cover.apply_max_position and result > self.cover.max_pos:
             return self.cover.max_pos
-        if result < self.cover.min_pos:
+        if self.cover.apply_min_position and result < self.cover.min_pos:
             return self.cover.min_pos
         return result
 
