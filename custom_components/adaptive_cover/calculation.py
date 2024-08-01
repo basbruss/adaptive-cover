@@ -306,7 +306,7 @@ class ClimateCoverData:
     def is_summer(self) -> bool:
         """Check if temperature is over threshold."""
         if self.temp_high is not None and self.get_current_temperature is not None:
-            return self.get_current_temperature > self.temp_high and self.outdoor_high
+            return self.get_current_temperature > self.temp_high and self.outside_high
         return False
 
     @property
