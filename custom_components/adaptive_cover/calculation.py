@@ -13,6 +13,7 @@ from numpy import radians as rad
 
 from .helpers import get_domain, get_safe_state
 from .sun import SunData
+from .config_context_adapter import ConfigContextAdapter
 
 
 @dataclass
@@ -20,6 +21,7 @@ class AdaptiveGeneralCover(ABC):
     """Collect common data."""
 
     hass: HomeAssistant
+    logger: ConfigContextAdapter
     sol_azi: float
     sol_elev: float
     sunset_pos: int
@@ -215,6 +217,7 @@ class ClimateCoverData:
     """Fetch additional data."""
 
     hass: HomeAssistant
+    logger: ConfigContextAdapter
     temp_entity: str
     temp_low: float
     temp_high: float

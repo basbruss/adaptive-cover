@@ -16,6 +16,7 @@ from .const import (
     CONF_TEMP_ENTITY,
     CONF_WEATHER_ENTITY,
     DOMAIN,
+    _LOGGER,
 )
 from .coordinator import AdaptiveDataUpdateCoordinator
 
@@ -47,6 +48,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     for entity in [_temp_entity, _presence_entity, _weather_entity, _end_time_entity]:
         if entity is not None:
             _entities.append(entity)
+
+    _LOGGER.debug("Setting up entry %s", entry.data.get("name"))
 
     entry.async_on_unload(
         async_track_state_change_event(
