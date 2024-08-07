@@ -137,7 +137,7 @@ class AdaptiveGeneralCover(ABC):
         valid = (
             (self.gamma < azi_min) & (self.gamma > -azi_max) & (self.valid_elevation)
         )
-        self.logger.debug("sun in front of window? %s", valid)
+        self.logger.debug("Sun in front of window (ignoring blindspot)? %s", valid)
         return valid
 
     @property
@@ -150,7 +150,7 @@ class AdaptiveGeneralCover(ABC):
             sunrise + timedelta(minutes=self.sunrise_off)
         )
         self.logger.debug(
-            "after sunset plus offset? %s", (after_sunset or before_sunrise)
+            "After sunset plus offset? %s", (after_sunset or before_sunrise)
         )
         return after_sunset or before_sunrise
 
@@ -206,17 +206,19 @@ class NormalCoverState:
 
     def get_state(self) -> int:
         """Return state."""
-        self.cover.logger.debug("Calculating state")
+        self.cover.logger.debug("Determining normal position")
         dsv = self.cover.direct_sun_valid
-        self.cover.logger.debug("Direct sun valid: %s", dsv)
+        self.cover.logger.debug(
+            "Sun directly in front of window & before sunset + offset? %s", dsv
+        )
         if dsv:
             state = self.cover.calculate_percentage()
+            self.cover.logger.debug(
+                "Yes sun in window: using calculated percentage (%s)", state
+            )
         else:
             state = self.cover.default
-        if dsv:
-            self.cover.logger.debug("Calculated the percentage")
-        else:
-            self.cover.logger.debug("Using default value")
+            self.cover.logger.debug("No sun in window: using default value (%s)", state)
 
         result = np.clip(state, 0, 100)
         if self.cover.apply_max_position and result > self.cover.max_pos:
@@ -323,9 +325,9 @@ class ClimateCoverData:
     def is_summer(self) -> bool:
         """Check if temperature is over threshold."""
         self.logger.debug(
-            "is summer calc? temp_high, current_temp, outside_high: %s, %s, %s",
-            self.temp_high,
+            "Is it summer? current_temp > temp_high and outside_high: %s > %s and %s",
             self.get_current_temperature,
+            self.temp_high,
             self.outside_high,
         )
         if self.temp_high is not None and self.get_current_temperature is not None:
@@ -341,7 +343,11 @@ class ClimateCoverData:
         else:
             return True
         if self.weather_condition is not None:
-            return weather_state in self.weather_condition
+            matches = weather_state in self.weather_condition
+            self.logger.debug(
+                "Weather: %s; Is that sunny? %s", self.weather_condition, matches
+            )
+            return matches
 
     @property
     def lux(self) -> bool:
@@ -372,6 +378,9 @@ class ClimateCoverState(NormalCoverState):
 
     def normal_type_cover(self) -> int:
         """Determine state for horizontal and vertical covers."""
+
+        self.cover.logger.debug("Is presence? %s", self.climate_data.is_presence)
+
         if self.climate_data.is_presence:
             return self.normal_with_presence()
 
@@ -380,15 +389,19 @@ class ClimateCoverState(NormalCoverState):
     def normal_with_presence(self) -> int:
         """Determine state for horizontal and vertical covers with occupants."""
 
+        is_summer = self.climate_data.is_summer
+        is_winter = self.climate_data.is_winter
+        is_sunny = self.climate_data.is_sunny
+
         self.cover.logger.debug(
             "is summer? %s; is winter? %s; is_sunny? %s",
-            self.climate_data.is_summer,
-            self.climate_data.is_winter,
-            self.climate_data.is_sunny,
+            is_summer,
+            is_winter,
+            is_sunny,
         )
 
         # Check if it's not summer and either lux, irradiance or sunny weather is present
-        if not self.climate_data.is_summer and (
+        if not is_summer and (
             self.climate_data.lux
             or self.climate_data.irradiance
             or not self.climate_data.is_sunny
@@ -402,7 +415,7 @@ class ClimateCoverState(NormalCoverState):
             return self.cover.default
 
         # If it's summer and there's a transparent blind, return 0
-        if self.climate_data.is_summer and self.climate_data.transparent_blind:
+        if is_summer and self.climate_data.transparent_blind:
             return 0
 
         # If none of the above conditions are met, get the state from the parent class
