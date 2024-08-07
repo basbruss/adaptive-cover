@@ -48,6 +48,7 @@
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
+          "sunrise_open_speed": "Sunrise Open Speed",
           "climate_mode": "Climate Mode",
           "blind_spot": "Setup Blindspot",
           "min_elevation": "Minimum Elevation of the sun",
@@ -66,6 +67,7 @@
           "sunset_position": "Position to switch to after sunset",
           "sunset_offset": "Offset (±) from sunset time in minutes",
           "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "sunrise_open_speed": "Specify how fast are blinds adjusted in the morning. Allows for nicer wake ups.",
           "climate_mode": "Configure variables for climate mode"
         },
         "description": "Add configuration variables to the sensor",
@@ -101,7 +103,9 @@
         "title": "Climate settings"
       },
       "weather": {
-        "data": { "weather_state": "Weather Conditions" },
+        "data": {
+          "weather_state": "Weather Conditions"
+        },
         "data_description": {
           "weather_state": "Choose the weather conditions that enable automatic window control."
         },
@@ -123,6 +127,7 @@
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
+          "sunrise_open_speed": "Sunrise Open Speed",
           "climate_mode": "Climate Mode",
           "blind_spot": "Setup Blindspot",
           "min_elevation": "Minimum Elevation of the sun",
@@ -143,6 +148,7 @@
           "sunset_position": "Position to switch to after sunset",
           "sunset_offset": "Offset (±) from sunset time in minutes",
           "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "sunrise_open_speed": "Specify how fast are blinds adjusted in the morning. Allows for nicer wake ups.",
           "climate_mode": "Configure variables for climate mode"
         },
         "description": "Add configuration variables to the sensor",
@@ -153,15 +159,18 @@
           "set_azimuth": "Window Azimuth",
           "slat_depth": "Slat Depth",
           "slat_distance": "Slat Spacing",
-          "default_percentage": "Default Position",
+          "default_percentage": "Default Tilt Position",
+          "default_position": "Default Position",
           "max_position": "Maximum Position",
           "fov_left": "Field of view left",
           "fov_right": "Field of view right",
           "group": "Cover Entities",
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
           "sunset_position": "Sunset Position",
+          "sunset_tilt": "Sunset Tilt Position",
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
+          "sunrise_open_speed": "Sunrise Open Speed",
           "climate_mode": "Climate Mode",
           "tilt_mode": "Type of movement",
           "blind_spot": "Setup Blindspot",
@@ -173,7 +182,8 @@
           "set_azimuth": "Specify the Azimuth",
           "slat_depth": "Depth of each individual slat in centimeters",
           "slat_distance": "Vertical distance between two slats in centimeters",
-          "default_percentage": "Default cover position as a percentage",
+          "default_percentage": "Default cover tilt position as a percentage",
+          "default_position": "Default cover position as a percentage",
           "max_position": "Maximum adjustable cover position as a percentage",
           "fov_left": "Degrees to consider from the left side of the window center",
           "fov_right": "Degrees to consider from the right side of the window center",
@@ -181,6 +191,7 @@
           "sunset_position": "Position to transition to after sunset",
           "sunset_offset": "Offset (±) from sunset time in minutes",
           "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "sunrise_open_speed": "Specify how fast are blinds adjusted in the morning. Allows for nicer wake ups.",
           "climate_mode": "Configure variables for climate mode",
           "tilt_mode": "Choose the type of movement"
         },
@@ -268,6 +279,7 @@
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
+          "sunrise_open_speed": "Sunrise Open Speed",
           "climate_mode": "Climate Mode",
           "blind_spot": "Setup Blindspot",
           "min_elevation": "Minimum Elevation of the sun",
@@ -286,6 +298,7 @@
           "sunset_position": "Position to switch to after sunset",
           "sunset_offset": "Offset (±) from sunset time in minutes",
           "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "sunrise_open_speed": "Specify how fast are blinds adjusted in the morning. Allows for nicer wake ups.",
           "climate_mode": "Configure variables for climate mode"
         },
         "description": "Add configuration variables to the sensor",
@@ -321,7 +334,9 @@
         "title": "Climate settings"
       },
       "weather": {
-        "data": { "weather_state": "Weather Conditions" },
+        "data": {
+          "weather_state": "Weather Conditions"
+        },
         "data_description": {
           "weather_state": "Choose the weather conditions that enable automatic window control."
         },
@@ -343,6 +358,7 @@
           "sunset_position": "Sunset Position",
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
+          "sunrise_open_speed": "Sunrise Open Speed",
           "climate_mode": "Climate Mode",
           "blind_spot": "Setup Blindspot",
           "min_elevation": "Minimum Elevation of the sun",
@@ -363,6 +379,7 @@
           "sunset_position": "Position to switch to after sunset",
           "sunset_offset": "Offset (±) from sunset time in minutes",
           "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "sunrise_open_speed": "Specify how fast are blinds adjusted in the morning. Allows for nicer wake ups.",
           "climate_mode": "Configure variables for climate mode"
         },
         "description": "Add configuration variables to the sensor",
@@ -373,15 +390,18 @@
           "set_azimuth": "Window Azimuth",
           "slat_depth": "Slat Depth",
           "slat_distance": "Slat Spacing",
-          "default_percentage": "Default Position",
+          "default_percentage": "Default Tilt Position",
+          "default_position": "Default Position",
           "max_position": "Maximum Position",
           "fov_left": "Field of view left",
           "fov_right": "Field of view right",
           "group": "Cover Entities",
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
           "sunset_position": "Sunset Position",
+          "sunset_tilt": "Sunset Tilt Position",
           "sunset_offset": "Sunset Offset",
           "sunrise_offset": "Sunrise Offset",
+          "sunrise_open_speed": "Sunrise Open Speed",
           "climate_mode": "Climate Mode",
           "tilt_mode": "Type of movement",
           "blind_spot": "Setup Blindspot",
@@ -393,7 +413,8 @@
           "set_azimuth": "Specify the Azimuth",
           "slat_depth": "Depth of each individual slat in centimeters",
           "slat_distance": "Vertical distance between two slats in centimeters",
-          "default_percentage": "Default cover position as a percentage",
+          "default_percentage": "Default cover tilt position as a percentage",
+          "default_position": "Default cover position as a percentage",
           "max_position": "Maximum adjustable cover position as a percentage",
           "fov_left": "Degrees to consider from the left side of the window center",
           "fov_right": "Degrees to consider from the right side of the window center",
@@ -402,6 +423,7 @@
           "sunset_offset": "Offset (±) from sunset time in minutes",
           "sunrise_offset": "Offset (±) from sunrise time in minutes",
           "climate_mode": "Configure variables for climate mode",
+          "sunrise_open_speed": "Specify how fast are blinds adjusted in the morning. Allows for nicer wake ups.",
           "tilt_mode": "Choose the type of movement"
         },
         "description": "Add configuration variables to the sensor",

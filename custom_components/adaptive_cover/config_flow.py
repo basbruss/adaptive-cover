@@ -21,6 +21,7 @@ from .const import (
     CONF_BLIND_SPOT_LEFT,
     CONF_BLIND_SPOT_RIGHT,
     CONF_CLIMATE_MODE,
+    CONF_DEFAULT_POSITION,
     CONF_DEFAULT_HEIGHT,
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
@@ -58,8 +59,10 @@ from .const import (
     CONF_START_ENTITY,
     CONF_START_TIME,
     CONF_SUNRISE_OFFSET,
+    CONF_SUNRISE_OPEN_SPEED,
     CONF_SUNSET_OFFSET,
     CONF_SUNSET_POS,
+    CONF_SUNSET_TILT,
     CONF_TEMP_ENTITY,
     CONF_TEMP_HIGH,
     CONF_TEMP_LOW,
@@ -97,11 +100,6 @@ CLIMATE_MODE = vol.Schema(
 
 OPTIONS = vol.Schema(
     {
-        vol.Required(CONF_AZIMUTH, default=180): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=0, max=359, mode="slider", unit_of_measurement="°"
-            )
-        ),
         vol.Required(CONF_DEFAULT_HEIGHT, default=60): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0, max=100, step=1, mode="slider", unit_of_measurement="%"
@@ -110,6 +108,11 @@ OPTIONS = vol.Schema(
         vol.Optional(CONF_MAX_POSITION, default=100): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=1, max=100, step=1, mode="slider", unit_of_measurement="%"
+            )
+        ),
+        vol.Required(CONF_AZIMUTH, default=180): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=359, mode="slider", unit_of_measurement="°"
             )
         ),
         vol.Optional(CONF_MIN_ELEVATION): vol.All(
@@ -133,11 +136,21 @@ OPTIONS = vol.Schema(
                 min=0, max=100, step=1, mode="slider", unit_of_measurement="%"
             )
         ),
+        vol.Required(CONF_SUNSET_TILT, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=100, step=1, mode="slider", unit_of_measurement="%"
+            )
+        ),
         vol.Required(CONF_SUNSET_OFFSET, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(mode="box", unit_of_measurement="minutes")
         ),
         vol.Required(CONF_SUNRISE_OFFSET, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(mode="box", unit_of_measurement="minutes")
+        ),
+        vol.Optional(CONF_SUNRISE_OPEN_SPEED, default=200): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=1, max=1000, step=10, mode="slider", unit_of_measurement="%"
+            )
         ),
         vol.Required(CONF_INVERSE_STATE, default=False): bool,
         vol.Required(CONF_ENABLE_BLIND_SPOT, default=False): bool,
@@ -209,6 +222,11 @@ TILT_OPTIONS = vol.Schema(
         vol.Required(CONF_TILT_MODE, default="mode2"): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=["mode1", "mode2"], translation_key="tilt_mode"
+            )
+        ),
+        vol.Required(CONF_DEFAULT_POSITION, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=100, step=1, mode="slider", unit_of_measurement="%"
             )
         ),
     }
@@ -570,8 +588,10 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_ENTITIES: self.config.get(CONF_ENTITIES),
                 CONF_INVERSE_STATE: self.config.get(CONF_INVERSE_STATE),
                 CONF_SUNSET_POS: self.config.get(CONF_SUNSET_POS),
+                CONF_SUNSET_TILT: self.config.get(CONF_SUNSET_TILT),
                 CONF_SUNSET_OFFSET: self.config.get(CONF_SUNSET_OFFSET),
                 CONF_SUNRISE_OFFSET: self.config.get(CONF_SUNRISE_OFFSET),
+                CONF_SUNRISE_OPEN_SPEED: self.config.get(CONF_SUNRISE_OPEN_SPEED),
                 CONF_LENGTH_AWNING: self.config.get(CONF_LENGTH_AWNING),
                 CONF_AWNING_ANGLE: self.config.get(CONF_AWNING_ANGLE),
                 CONF_TILT_DISTANCE: self.config.get(CONF_TILT_DISTANCE),

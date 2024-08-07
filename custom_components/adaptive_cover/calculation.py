@@ -23,13 +23,16 @@ class AdaptiveGeneralCover(ABC):
     sol_azi: float
     sol_elev: float
     sunset_pos: int
+    sunset_tilt: int
     sunset_off: int
     sunrise_off: int
+    sunrise_open_speed: int
     timezone: str
     fov_left: int
     fov_right: int
     win_azi: int
     h_def: int
+    p_def: int
     max_pos: int
     blind_spot_left: int
     blind_spot_right: int
@@ -37,7 +40,7 @@ class AdaptiveGeneralCover(ABC):
     blind_spot_on: bool
     min_elevation: int
     max_elevation: int
-    sun_data: SunData = field(init=False)
+    sunc_data: SunData = field(init=False)
 
     def __post_init__(self):
         """Add solar data to dataset."""
@@ -147,6 +150,14 @@ class AdaptiveGeneralCover(ABC):
         """Change default position at sunset."""
         default = self.h_def
         if self.sunset_valid:
+            default = self.sunset_tilt
+        return default
+
+    @property
+    def default_pos(self) -> float:
+        """Change default position at sunset."""
+        default = self.p_def
+        if self.sunset_valid:
             default = self.sunset_pos
         return default
 
@@ -177,6 +188,20 @@ class NormalCoverState:
             & (not self.cover.is_sun_in_blind_spot),
             self.cover.calculate_percentage(),
             self.cover.default,
+        )
+        result = np.clip(state, 0, 100)
+        if result > self.cover.max_pos:
+            return self.cover.max_pos
+        return result
+
+    def get_state_pos(self) -> int:
+        """Return state position for venetian blinds."""
+        state = np.where(
+            (self.cover.valid)
+            & (not self.cover.sunset_valid)
+            & (not self.cover.is_sun_in_blind_spot),
+            0,  # always down, when tilting, todo: min
+            self.cover.default_pos,
         )
         result = np.clip(state, 0, 100)
         if result > self.cover.max_pos:

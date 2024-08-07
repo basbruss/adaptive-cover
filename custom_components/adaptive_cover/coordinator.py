@@ -36,6 +36,7 @@ from .const import (
     CONF_BLIND_SPOT_LEFT,
     CONF_BLIND_SPOT_RIGHT,
     CONF_CLIMATE_MODE,
+    CONF_DEFAULT_POSITION,
     CONF_DEFAULT_HEIGHT,
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
@@ -70,8 +71,10 @@ from .const import (
     CONF_START_ENTITY,
     CONF_START_TIME,
     CONF_SUNRISE_OFFSET,
+    CONF_SUNRISE_OPEN_SPEED,
     CONF_SUNSET_OFFSET,
     CONF_SUNSET_POS,
+    CONF_SUNSET_TILT,
     CONF_TEMP_ENTITY,
     CONF_TEMP_HIGH,
     CONF_TEMP_LOW,
@@ -139,6 +142,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.manager = AdaptiveCoverManager(self.manual_duration)
         self.wait_for_target = {}
         self.target_call = {}
+        self.target_attr = {}
         self.ignore_intermediate_states = self.config_entry.options.get(
             CONF_MANUAL_IGNORE_INTERMEDIATE, False
         )
@@ -200,11 +204,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             _LOGGER.debug("Ignoring intermediate state change for %s", entity_id)
             return
         if self.wait_for_target.get(entity_id):
-            position = event.new_state.attributes.get(
-                "current_position"
-                if self._cover_type != "cover_tilt"
-                else "current_tilt_position"
-            )
+            attribute = "current_tilt_position"
+            if (
+                self.target_attr.get(entity_id)
+                and self.target_attr.get(entity_id) == "position"
+            ) or self._cover_type != "cover_tilt":
+                attribute = "current_position"
+            position = event.new_state.attributes.get(attribute)
             if position == self.target_call.get(entity_id):
                 self.wait_for_target[entity_id] = False
                 _LOGGER.debug("Position %s reached for %s", position, entity_id)
@@ -230,11 +236,16 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.default_state = round(self.normal_cover_state.get_state())
         state = self.state
 
+        self.default_state_pos = round(self.normal_cover_state.get_state_pos())
+        state_pos = self.state_pos
+
         await self.manager.reset_if_needed()
 
         # Handle types of changes
-        if self.state_change:
+        if self.state_change and not self._cover_type == "cover_tilt":
             await self.async_handle_state_change(state, options)
+        if self.state_change and self._cover_type == "cover_tilt":
+            await self.async_handle_state_change2(state_pos, state, options)
         if self.cover_state_change:
             await self.async_handle_cover_state_change(state)
         if self.first_refresh:
@@ -259,7 +270,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             },
             attributes={
                 "default": options.get(CONF_DEFAULT_HEIGHT),
+                "default_pos": options.get(CONF_DEFAULT_POSITION),
                 "sunset_default": options.get(CONF_SUNSET_POS),
+                "sunset_default_tilt": options.get(CONF_SUNSET_TILT),
                 "sunset_offset": options.get(CONF_SUNSET_OFFSET),
                 "azimuth_window": options.get(CONF_AZIMUTH),
                 "field_of_view": [
@@ -279,6 +292,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             _LOGGER.debug("State change but control toggle is off")
         self.state_change = False
 
+    async def async_handle_state_change2(self, position: int, tilt: int, options):
+        """Handle state change from tracked entities."""
+        if self.control_toggle:
+            for cover in self.entities:
+                await self.async_handle_call_service2(cover, position, tilt, options)
+        else:
+            _LOGGER.debug("State change but control toggle is off")
+        self.state_change = False
+
     async def async_handle_cover_state_change(self, state: int):
         """Handle state change from assigned covers."""
         if self.manual_toggle and self.control_toggle:
@@ -292,6 +314,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             )
         self.cover_state_change = False
 
+    # todo: handle pos and tilt for venetian blinds
     async def async_handle_first_refresh(self, state: int, options):
         """Handle first refresh."""
         if self.control_toggle:
@@ -332,9 +355,25 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         ):
             await self.async_set_position(entity, state)
 
+    async def async_handle_call_service2(
+        self, entity, position: int, tilt: int, options
+    ):
+        """Handle call service."""
+        if (
+            self.check_position2(entity, position, tilt, options)
+            and self.check_time_delta(entity)
+            and self.check_adaptive_time
+            and not self.manager.is_cover_manual(entity)
+        ):
+            await self.async_set_position_and_tilt(entity, position, tilt)
+
     async def async_set_position(self, entity, state: int):
         """Call service to set cover position."""
         await self.async_set_manual_position(entity, state)
+
+    async def async_set_position_and_tilt(self, entity, position: int, tilt: int):
+        """Call service to set cover position."""
+        await self.async_set_manual_position_and_tilt(entity, position, tilt)
 
     async def async_set_manual_position(self, entity, position):
         """Call service to set cover position."""
@@ -345,11 +384,14 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self._cover_type == "cover_tilt":
             service = SERVICE_SET_COVER_TILT_POSITION
             service_data[ATTR_TILT_POSITION] = position
+            self.target_attr[entity] = "tilt"
         else:
             service_data[ATTR_POSITION] = position
+            self.target_attr[entity] = "position"
 
         self.wait_for_target[entity] = True
         self.target_call[entity] = position
+
         _LOGGER.debug(
             "Set wait for target %s and target call %s",
             self.wait_for_target,
@@ -357,6 +399,47 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         )
         _LOGGER.debug("Run %s with data %s", service, service_data)
         await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
+
+    async def async_set_manual_position_and_tilt(self, entity, position, tilt):
+        """Call service to set cover position."""
+        service = SERVICE_SET_COVER_POSITION
+        service_data = {}
+        service_data[ATTR_ENTITY_ID] = entity
+
+        service_data[ATTR_POSITION] = position
+
+        self.wait_for_target[entity] = True
+        self.target_call[entity] = position
+        self.target_attr[entity] = "position"
+        _LOGGER.debug(
+            "Set wait for target %s and target call %s",
+            self.wait_for_target,
+            self.target_call,
+        )
+        _LOGGER.debug("Run %s with data %s", service, service_data)
+        await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
+
+        if self._cover_type == "cover_tilt":
+            service = SERVICE_SET_COVER_TILT_POSITION
+            service_data = {}
+            service_data[ATTR_ENTITY_ID] = entity
+
+            service_data[ATTR_TILT_POSITION] = tilt
+
+            self.wait_for_target[entity] = True
+            self.target_call[entity] = tilt
+            self.target_attr[entity] = "tilt"
+            _LOGGER.debug(
+                "Set wait for target %s and target call %s",
+                self.wait_for_target,
+                self.target_call,
+            )
+
+            _LOGGER.debug("Run %s with data %s", service, service_data)
+            await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
+
+    # SERVICE_SET_COVER_POSITION: Final = "set_cover_position"
+    # SERVICE_SET_COVER_TILT_POSITION: Final = "set_cover_tilt_position"
 
     def _update_options(self, options):
         """Update options."""
@@ -436,6 +519,25 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         return True
 
     @property
+    def how_much_after_start_time(self):
+        """Check if time is after start time."""
+
+        if self.start_time is not None:
+            time = self.start_time
+        if self.start_time_entity is not None:
+            time_entity = get_safe_state(self.hass, self.start_time_entity)
+            if time_entity is not None:
+                time = time_entity
+        return dt.datetime.now() - get_datetime_from_str(time)
+
+    @property
+    def is_wakeup_time(self):
+        """Checks if time is after start time."""
+
+        time_check = self.how_much_after_start_time
+        return time_check < dt.timedelta(hours=1)
+
+    @property
     def before_end_time(self):
         """Check if time is before end time."""
         now = dt.datetime.now()
@@ -485,6 +587,45 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             return condition
         return True
 
+    def check_position2(self, entity, state_pos: int, state_tilt: int, options):
+        """Check cover positions to reduce calls."""
+        if self._cover_type == "cover_tilt":
+            position = state_attr(self.hass, entity, "current_position")
+            tilt = state_attr(self.hass, entity, "current_tilt_position")
+        else:
+            position = state_attr(self.hass, entity, "current_position")
+            tilt = 0
+        if position is not None and tilt is not None:
+            condition = (
+                abs(position - state_pos) >= self.min_change
+                or abs(tilt - state_tilt) >= self.min_change
+            )
+            _LOGGER.debug(
+                "Entity: %s,  position: %s, state_pos: %s, tilt: %s, state_tilt: %s, delta position: %s, delta tilt: %s, min_change: %s, condition: %s",
+                entity,
+                position,
+                state_pos,
+                tilt,
+                state_tilt,
+                abs(position - state_pos),
+                abs(tilt - state_tilt),
+                self.min_change,
+                condition,
+            )
+            # todo: weird hack
+            positions = [
+                options.get(CONF_SUNSET_POS),
+                options.get(CONF_SUNSET_TILT),
+                options.get(CONF_DEFAULT_HEIGHT),
+                options.get(CONF_DEFAULT_POSITION),
+                0,
+                100,
+            ]
+            if state_tilt in positions:
+                condition = True
+            return condition
+        return True
+
     def check_time_delta(self, entity):
         """Check if time delta is passed."""
         now = dt.datetime.now(dt.UTC)
@@ -513,13 +654,16 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         """Update shared parameters."""
         return [
             options.get(CONF_SUNSET_POS),
+            options.get(CONF_SUNSET_TILT),
             options.get(CONF_SUNSET_OFFSET),
             options.get(CONF_SUNRISE_OFFSET, options.get(CONF_SUNSET_OFFSET)),
+            options.get(CONF_SUNRISE_OPEN_SPEED),
             self.hass.config.time_zone,
             options.get(CONF_FOV_LEFT),
             options.get(CONF_FOV_RIGHT),
             options.get(CONF_AZIMUTH),
             options.get(CONF_DEFAULT_HEIGHT),
+            options.get(CONF_DEFAULT_POSITION),
             options.get(CONF_MAX_POSITION, 100),
             options.get(CONF_BLIND_SPOT_LEFT),
             options.get(CONF_BLIND_SPOT_RIGHT),
@@ -601,7 +745,20 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self._inverse_state and not self._use_interpolation:
             state = inverse_state(state)
 
+        if self.is_wakeup_time:
+            state = self.calc_wakeup_state(state)
+
         _LOGGER.debug("Calculated position: %s", state)
+        return state
+
+    @property
+    def state_pos(self) -> int:
+        """Handle the output of the state based on mode."""
+        state = self.default_state_pos
+        if self._switch_mode:
+            state = self.climate_state_pos
+
+        _LOGGER.debug("Calculated venetian position: %s", state)
         return state
 
     def interpolate_states(self, state):
@@ -620,6 +777,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             if state == new_range[-1]:
                 state = 100
         return state
+
+    def calc_wakeup_state(self, state) -> int:
+        """Calcs position during soft wakeup time"""
+        passed_time = self.how_much_after_start_time
+        options = self.config_entry.options
+        open_speed = options.get(CONF_SUNRISE_OPEN_SPEED, 0)
+        if open_speed == 0:
+            return state
+        return 100 / open_speed * passed_time.seconds / 60 / 60 * 100
 
     @property
     def switch_mode(self):
