@@ -14,7 +14,14 @@ from homeassistant.const import (
     SERVICE_SET_COVER_POSITION,
     SERVICE_SET_COVER_TILT_POSITION,
 )
-from homeassistant.core import Event, EventStateChangedData, HomeAssistant, State
+from homeassistant.core import (
+    Event,
+    EventStateChangedData,
+    HomeAssistant,
+    State,
+    callback,
+)
+from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.helpers.template import state_attr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -41,6 +48,8 @@ from .const import (
     CONF_DELTA_TIME,
     CONF_DISTANCE,
     CONF_ENABLE_BLIND_SPOT,
+    CONF_ENABLE_MAX_POSITION,
+    CONF_ENABLE_MIN_POSITION,
     CONF_END_ENTITY,
     CONF_END_TIME,
     CONF_ENTITIES,
@@ -65,8 +74,11 @@ from .const import (
     CONF_MAX_ELEVATION,
     CONF_MAX_POSITION,
     CONF_MIN_ELEVATION,
+    CONF_MIN_POSITION,
+    CONF_OUTSIDE_THRESHOLD,
     CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
+    CONF_RETURN_SUNSET,
     CONF_START_ENTITY,
     CONF_START_TIME,
     CONF_SUNRISE_OFFSET,
@@ -81,12 +93,8 @@ from .const import (
     CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
-    CONF_MIN_POSITION,
-    CONF_OUTSIDE_THRESHOLD,
     DOMAIN,
     LOGGER,
-    CONF_ENABLE_MAX_POSITION,
-    CONF_ENABLE_MIN_POSITION,
 )
 from .helpers import get_datetime_from_str, get_last_updated, get_safe_state
 
@@ -122,13 +130,14 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._switch_mode = True if self._climate_mode else False
         self._inverse_state = self.config_entry.options.get(CONF_INVERSE_STATE, False)
         self._use_interpolation = self.config_entry.options.get(CONF_INTERP, False)
+        self._track_end_time = self.config_entry.options.get(CONF_RETURN_SUNSET)
         self._temp_toggle = None
         self._control_toggle = None
         self._manual_toggle = None
         self._lux_toggle = None
         self._irradiance_toggle = None
         self._start_time = None
-        self._end_time = None
+        # self._end_time = None
         self.manual_reset = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_RESET, False
         )
@@ -148,6 +157,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.ignore_intermediate_states = self.config_entry.options.get(
             CONF_MANUAL_IGNORE_INTERMEDIATE, False
         )
+        self._update_listener = None
+        self._scheduled_time = dt.datetime.now()
 
     async def async_config_entry_first_refresh(self) -> None:
         """Config entry first refresh."""
@@ -216,7 +227,31 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 _LOGGER.debug("Position %s reached for %s", position, entity_id)
         _LOGGER.debug("Wait for target: %s", self.wait_for_target)
 
+    @callback
+    def _async_cancel_update_listener(self) -> None:
+        """Cancel the scheduled update."""
+        if self._update_listener:
+            self._update_listener()
+            self._update_listener = None
+
+    async def async_timed_end_time(self) -> None:
+        """Control state at end time."""
+        _LOGGER.debug("Scheduling end time update at %s", self._end_time)
+        self._async_cancel_update_listener()
+        _LOGGER.debug(
+            "End time: %s, Track end time: %s, Scheduled time: %s, Condition: %s",
+            self._end_time,
+            self._track_end_time,
+            self._scheduled_time,
+            self._end_time > self._scheduled_time,
+        )
+        self._update_listener = async_track_point_in_time(
+            self.hass, self.async_timed_refresh, self._end_time
+        )
+        self._scheduled_time = self._end_time
+
     async def _async_update_data(self) -> AdaptiveCoverData:
+        _LOGGER.debug("Updating data")
         options = self.config_entry.options
         self._update_options(options)
 
@@ -237,6 +272,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         state = self.state
 
         await self.manager.reset_if_needed()
+
+        if (
+            self._end_time
+            and self._track_end_time
+            and self._end_time > self._scheduled_time
+        ):
+            await self.async_timed_end_time()
 
         # Handle types of changes
         if self.state_change:
@@ -331,9 +373,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     async def async_handle_call_service(self, entity, state: int, options):
         """Handle call service."""
         if (
-            self.check_position_delta(entity, state, options)
+            self.check_adaptive_time
+            and self.check_position_delta(entity, state, options)
             and self.check_time_delta(entity)
-            and self.check_adaptive_time
             and not self.manager.is_cover_manual(entity)
         ):
             await self.async_set_position(entity, state)
@@ -447,28 +489,31 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         return True
 
     @property
-    def before_end_time(self):
-        """Check if time is before end time."""
-        now = dt.datetime.now()
+    def _end_time(self) -> dt.datetime | None:
+        """Get end time."""
+        time = None
         if self.end_time_entity is not None:
             time = get_datetime_from_str(
                 get_safe_state(self.hass, self.end_time_entity)
             )
-            _LOGGER.debug(
-                "End time: %s, now: %s, now < time: %s", time, now, now < time
-            )
-            self._end_time = time
-            return now < time
-        if self.end_time is not None:
+        elif self.end_time is not None:
             time = get_datetime_from_str(self.end_time)
             if time.time() == dt.time(0, 0):
                 time = time + dt.timedelta(days=1)
+        return time
+
+    @property
+    def before_end_time(self):
+        """Check if time is before end time."""
+        if self._end_time is not None:
             now = dt.datetime.now()
             _LOGGER.debug(
-                "End time: %s, now: %s, now < time: %s", time, now, now < time
+                "End time: %s, now: %s, now < time: %s",
+                self._end_time,
+                now,
+                now < self._end_time,
             )
-            self._end_time = time
-            return now < time
+            return now < self._end_time
         return True
 
     def _get_current_position(self, entity) -> int | None:
