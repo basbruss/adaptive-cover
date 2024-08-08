@@ -133,9 +133,9 @@ This component supports two strategy modes: A `basic` mode and a `climate comfor
       CA --> |False| CC("Sun infront of window and elevation > 0?")
       CC --> |No| BC
       CC --> |Yes| CI("Temperature above maximum comfort (summer)?")
-      CI --> |Yes| CH
+      CI --> |Yes| CF
       CI --> |No| CJ("Temperature below minimum comfort (winter)")
-      CJ --> |Yes| CF
+      CJ --> |Yes| CH
       CJ --> |No| BC
   end
 ```
