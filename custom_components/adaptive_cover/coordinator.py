@@ -326,6 +326,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         else:
             _LOGGER.debug("State change but control toggle is off")
         self.state_change = False
+        _LOGGER.debug("State change handled")
 
     async def async_handle_cover_state_change(self, state: int):
         """Handle state change from assigned covers."""
@@ -339,6 +340,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.manual_threshold,
             )
         self.cover_state_change = False
+        _LOGGER.debug("Cover state change handled")
 
     async def async_handle_first_refresh(self, state: int, options):
         """Handle first refresh."""
@@ -353,6 +355,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         else:
             _LOGGER.debug("First refresh but control toggle is off")
         self.first_refresh = False
+        _LOGGER.debug("First refresh handled")
 
     async def async_handle_timed_refresh(self, options):
         """Handle timed refresh."""
@@ -369,6 +372,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         else:
             _LOGGER.debug("Timed refresh but control toggle is off")
         self.timed_refresh = False
+        _LOGGER.debug("Timed refresh handled")
 
     async def async_handle_call_service(self, entity, state: int, options):
         """Handle call service."""
