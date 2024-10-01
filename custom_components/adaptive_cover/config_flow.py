@@ -74,8 +74,6 @@ from .const import (
     DOMAIN,
     SensorType,
     CONF_MIN_POSITION,
-    CONF_ENABLE_MAX_POSITION,
-    CONF_ENABLE_MIN_POSITION,
 )
 
 # DEFAULT_NAME = "Adaptive Cover"
@@ -149,20 +147,21 @@ TEMPERATURE = vol.Schema(
                 min=0, max=86, step=1, mode="slider", unit_of_measurement="°"
             )
         ),
-        vol.Optional(CONF_MAX_POSITION): vol.All(
-            vol.Coerce(int), vol.Range(min=1, max=100)
+        vol.Required(CONF_TEMP_HIGH, default=25): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=90, step=1, mode="slider", unit_of_measurement="°"
+            )
         ),
-        vol.Optional(CONF_ENABLE_MAX_POSITION, default=False): bool,
-        vol.Optional(CONF_MIN_POSITION): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=99)
+        vol.Optional(
+            CONF_OUTSIDETEMP_ENTITY, default=vol.UNDEFINED
+        ): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=["sensor"])
         ),
-        vol.Optional(CONF_ENABLE_MIN_POSITION, default=False): bool,
-        vol.Optional(CONF_MIN_ELEVATION): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=90)
-        ),
-        vol.Optional(CONF_MAX_ELEVATION): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=90)
-        ),
+    }
+)
+
+FOV = vol.Schema(
+    {
         vol.Required(CONF_FOV_LEFT, default=90): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=1, max=90, step=1, mode="slider", unit_of_measurement="°"
@@ -374,9 +373,6 @@ CLIMATE_OPTIONS = vol.Schema(
             CONF_OUTSIDETEMP_ENTITY, default=vol.UNDEFINED
         ): selector.EntitySelector(
             selector.EntityFilterSelectorConfig(domain=["sensor"])
-        ),
-        vol.Optional(CONF_OUTSIDE_THRESHOLD, default=0): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=100)
         ),
         vol.Optional(
             CONF_PRESENCE_ENTITY, default=vol.UNDEFINED
