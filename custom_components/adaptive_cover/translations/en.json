@@ -35,47 +35,117 @@
         }
       },
       "vertical": {
+        "sections": {
+          "section_fov": {
+            "data": {
+              "fov_left": "Field of view left",
+              "fov_right": "Field of view right"
+            },
+            "data_description": {
+              "fov_left": "Field of view angle to the left of the window center",
+              "fov_right": "Field of view angle to the right of the window center"
+            },
+            "name": "Field of view Options",
+            "description": "Set the field of view for the cover"
+          },
+          "section_default": {
+            "data": {
+              "default_percentage": "Default Position cover",
+              "sunset_position": "After Sunset Position"
+            },
+            "data_description": {
+              "default_percentage": "Default cover position when the sun is not in front of the window",
+              "sunset_position": "Cover position after sunset +- time offset"
+            },
+            "name": "Default Position Options",
+            "description": "Set the default positions for the cover"
+          },
+          "section_sun_offset": {
+            "data": {
+              "sunset_offset": "Sunset Offset",
+              "sunrise_offset": "Sunrise Offset"
+            },
+            "data_description": {
+              "sunset_offset": "Offset from local sunset time in minutes",
+              "sunrise_offset": "Offset from local sunrise time in minutes"
+            },
+            "name": "Sun Offset Options (Optional)",
+            "description": "Adjust the local sunrise and sunset times with a standard offset"
+          },
+          "section_elevation": {
+            "data": {
+              "min_elevation": "Minimum Elevation angle of the sun",
+              "max_elevation": "Maximum Elevation angle of the sun"
+            },
+            "data_description": {
+              "min_elevation": "Minimum Elevation angle of the sun to consider when the sun is in front of the window",
+              "max_elevation": "Maximum Elevation angle of the sun to consider when the sun is in front of the window"
+            },
+            "name": "Elevation Options (Optional)",
+            "description": "Set the considered elevation angles for the cover"
+          },
+          "section_position_limits": {
+            "data": {
+              "max_position": "Maximum cover position as a percentage",
+              "min_position": "Minimum cover position as a percentage",
+              "enable_max_position": "Only force the maximum position when the sun is in front of the window",
+              "enable_min_position": "Only force the minimum position when the sun is in front of the window"
+            },
+            "data_description": {
+              "max_position": "Maximum cover position it is allowed to change to",
+              "min_position": "Minimum cover position it is allowed to change to"
+            },
+            "name": "Cover Position limit Options (Optional)",
+            "description": "Set the limits for the cover position"
+          }
+        },
         "data": {
           "set_azimuth": "Window Azimuth",
           "window_height": "Window Height",
           "distance_shaded_area": "Shaded area",
           "default_percentage": "Default Position",
-          "min_position": "Minimum Position",
-          "max_position": "Maximum Position",
-          "enable_min_position": "Only force the minimum position when the sun is in front of the window",
-          "enable_max_position": "Only force the maximum position when the sun is in front of the window",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
           "group": "Cover Entities",
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
-          "blind_spot": "Setup Blindspot",
-          "min_elevation": "Minimum Elevation of the sun",
-          "max_elevation": "Maximum Elevation of the sun",
           "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
         },
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
           "window_height": "Specify window height in meters",
           "distance_shaded_area": "Distance from cover to shaded area in meters",
-          "default_percentage": "Default cover position as a percentage",
-          "min_position": "Minimum adjustable cover position as a percentage",
-          "max_position": "Maximum adjustable cover position as a percentage",
-          "fov_left": "Field of view angle to the left of the window center",
-          "fov_right": "Field of view angle to the right of the window center",
-          "group": "Select entities to control via integration",
-          "sunset_position": "Position to switch to after sunset",
-          "sunset_offset": "Offset (±) from sunset time in minutes",
-          "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "group": "Select entities to control via integration, when none is selected the integration will provide you with multiple sensors that can be used in automations",
           "climate_mode": "Configure variables for climate mode"
         },
         "description": "Add configuration variables to the sensor",
         "title": "Vertical cover"
       },
       "climate": {
+        "sections": {
+          "section_lux": {
+            "data": {
+              "lux_entity": "Lux sensor",
+              "lux_threshold": "Lux threshold"
+            },
+            "data_description": {
+              "lux_entity": "Use lux sensor to determine if cover should reduce glare in presence mode",
+              "lux_threshold": "Threshold for lux sensor, above this value glare should be reduced"
+            },
+            "name": "Lux Options (Opional)",
+            "description": "Set the lux sensor and threshold for glare reduction"
+          },
+          "section_irradiance": {
+            "data": {
+              "irradiance_entity": "Irradiance sensor",
+              "irradiance_threshold": "Irradiance threshold"
+            },
+            "data_description": {
+              "irradiance_entity": "Use irradiance sensor to determine if cover should reduce glare in presence mode",
+              "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced"
+            },
+            "name": "Irradiance Options (Opional)",
+            "description": "Set the irradiance sensor and threshold for glare reduction"
+          }
+        },
         "data": {
           "temp_entity": "Inside temperature entity",
           "presence_entity": "Presence entity (optional)",
@@ -84,10 +154,6 @@
           "temp_low": "Low temperature threshold",
           "temp_high": "High temperature threshold",
           "transparent_blind": "Transparent blind",
-          "lux_entity": "Lux sensor (optional)",
-          "lux_threshold": "Lux threshold",
-          "irradiance_entity": "Irradiance sensor (optional)",
-          "irradiance_threshold": "Irradiance threshold",
           "outside_threshold": "Minimum outside temperature for summer mode"
         },
         "data_description": {
@@ -113,28 +179,80 @@
         "title": "Weather Conditions"
       },
       "horizontal": {
+        "sections": {
+          "section_fov": {
+            "data": {
+              "fov_left": "Field of view left",
+              "fov_right": "Field of view right"
+            },
+            "data_description": {
+              "fov_left": "Field of view angle to the left of the window center",
+              "fov_right": "Field of view angle to the right of the window center"
+            },
+            "name": "Field of view Options",
+            "description": "Set the field of view for the cover"
+          },
+          "section_default": {
+            "data": {
+              "default_percentage": "Default Position cover",
+              "sunset_position": "After Sunset Position"
+            },
+            "data_description": {
+              "default_percentage": "Default cover position when the sun is not in front of the window",
+              "sunset_position": "Cover position after sunset +- time offset"
+            },
+            "name": "Default Position Options",
+            "description": "Set the default positions for the cover"
+          },
+          "section_sun_offset": {
+            "data": {
+              "sunset_offset": "Sunset Offset",
+              "sunrise_offset": "Sunrise Offset"
+            },
+            "data_description": {
+              "sunset_offset": "Offset from local sunset time in minutes",
+              "sunrise_offset": "Offset from local sunrise time in minutes"
+            },
+            "name": "Sun Offset Options (Optional)",
+            "description": "Adjust the local sunrise and sunset times with a standard offset"
+          },
+          "section_elevation": {
+            "data": {
+              "min_elevation": "Minimum Elevation angle of the sun",
+              "max_elevation": "Maximum Elevation angle of the sun"
+            },
+            "data_description": {
+              "min_elevation": "Minimum Elevation angle of the sun to consider when the sun is in front of the window",
+              "max_elevation": "Maximum Elevation angle of the sun to consider when the sun is in front of the window"
+            },
+            "name": "Elevation Options (Optional)",
+            "description": "Set the considered elevation angles for the cover"
+          },
+          "section_position_limits": {
+            "data": {
+              "max_position": "Maximum cover position as a percentage",
+              "min_position": "Minimum cover position as a percentage",
+              "enable_max_position": "Only force the maximum position when the sun is in front of the window",
+              "enable_min_position": "Only force the minimum position when the sun is in front of the window"
+            },
+            "data_description": {
+              "max_position": "Maximum cover position it is allowed to change to",
+              "min_position": "Minimum cover position it is allowed to change to"
+            },
+            "name": "Cover Position limit Options (Optional)",
+            "description": "Set the limits for the cover position"
+          }
+        },
         "data": {
           "set_azimuth": "Window Azimuth",
           "length_awning": "Awning Span Length",
           "window_height": "Awning Height",
           "angle": "Awning Angle",
           "distance_shaded_area": "Shaded area",
-          "default_percentage": "Default Position",
-          "min_position": "Minimum Position",
-          "max_position": "Maximum Position",
-          "enable_min_position": "Only force the minimum position when the sun is in front of the window",
-          "enable_max_position": "Only force the maximum position when the sun is in front of the window",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
           "group": "Cover Entities",
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
           "blind_spot": "Setup Blindspot",
-          "min_elevation": "Minimum Elevation of the sun",
-          "max_elevation": "Maximum Elevation of the sun",
           "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
         },
         "data_description": {
@@ -143,57 +261,92 @@
           "length_awning": "Total span length in meters",
           "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
           "distance_shaded_area": "Distance from cover to shaded area in meters",
-          "default_percentage": "Default cover position as a percentage",
-          "min_position": "Minimum adjustable cover position as a percentage",
-          "max_position": "Maximum adjustable cover position as a percentage",
-          "fov_left": "Field of view degrees to the left of the window center",
-          "fov_right": "Field of view degrees to the right of the window center",
-          "group": "Select entities to control via integration",
-          "sunset_position": "Position to switch to after sunset",
-          "sunset_offset": "Offset (±) from sunset time in minutes",
-          "sunrise_offset": "Offset (±) from sunrise time in minutes",
           "climate_mode": "Configure variables for climate mode"
         },
         "description": "Add configuration variables to the sensor",
         "title": "Horizontal cover"
       },
       "tilt": {
+        "sections": {
+          "section_fov": {
+            "data": {
+              "fov_left": "Field of view left",
+              "fov_right": "Field of view right"
+            },
+            "data_description": {
+              "fov_left": "Field of view angle to the left of the window center",
+              "fov_right": "Field of view angle to the right of the window center"
+            },
+            "name": "Field of view Options",
+            "description": "Set the field of view for the cover"
+          },
+          "section_default": {
+            "data": {
+              "default_percentage": "Default Position cover",
+              "sunset_position": "After Sunset Position"
+            },
+            "data_description": {
+              "default_percentage": "Default cover position when the sun is not in front of the window",
+              "sunset_position": "Cover position after sunset +- time offset"
+            },
+            "name": "Default Position Options",
+            "description": "Set the default positions for the cover"
+          },
+          "section_sun_offset": {
+            "data": {
+              "sunset_offset": "Sunset Offset",
+              "sunrise_offset": "Sunrise Offset"
+            },
+            "data_description": {
+              "sunset_offset": "Offset from local sunset time in minutes",
+              "sunrise_offset": "Offset from local sunrise time in minutes"
+            },
+            "name": "Sun Offset Options (Optional)",
+            "description": "Adjust the local sunrise and sunset times with a standard offset"
+          },
+          "section_elevation": {
+            "data": {
+              "min_elevation": "Minimum Elevation angle of the sun",
+              "max_elevation": "Maximum Elevation angle of the sun"
+            },
+            "data_description": {
+              "min_elevation": "Minimum Elevation angle of the sun to consider when the sun is in front of the window",
+              "max_elevation": "Maximum Elevation angle of the sun to consider when the sun is in front of the window"
+            },
+            "name": "Elevation Options (Optional)",
+            "description": "Set the considered elevation angles for the cover"
+          },
+          "section_position_limits": {
+            "data": {
+              "max_position": "Maximum cover position as a percentage",
+              "min_position": "Minimum cover position as a percentage",
+              "enable_max_position": "Only force the maximum position when the sun is in front of the window",
+              "enable_min_position": "Only force the minimum position when the sun is in front of the window"
+            },
+            "data_description": {
+              "max_position": "Maximum cover position it is allowed to change to",
+              "min_position": "Minimum cover position it is allowed to change to"
+            },
+            "name": "Cover Position limit Options (Optional)",
+            "description": "Set the limits for the cover position"
+          }
+        },
         "data": {
           "set_azimuth": "Window Azimuth",
           "slat_depth": "Slat Depth",
           "slat_distance": "Slat Spacing",
-          "default_percentage": "Default Position",
-          "min_position": "Minimum Position",
-          "max_position": "Maximum Position",
-          "enable_min_position": "Only force the minimum position when the sun is in front of the window",
-          "enable_max_position": "Only force the maximum position when the sun is in front of the window",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
           "group": "Cover Entities",
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
           "tilt_mode": "Type of movement",
           "blind_spot": "Setup Blindspot",
-          "min_elevation": "Minimum Elevation of the sun",
-          "max_elevation": "Maximum Elevation of the sun",
           "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
           "slat_depth": "Depth of each individual slat in centimeters",
           "slat_distance": "Vertical distance between two slats in centimeters",
-          "default_percentage": "Default cover position as a percentage",
-          "min_position": "Minimum adjustable cover position as a percentage",
-          "max_position": "Maximum adjustable cover position as a percentage",
-          "fov_left": "Degrees to consider from the left side of the window center",
-          "fov_right": "Degrees to consider from the right side of the window center",
           "group": "Select entities to control via integration",
-          "sunset_position": "Position to transition to after sunset",
-          "sunset_offset": "Offset (±) from sunset time in minutes",
-          "sunrise_offset": "Offset (±) from sunrise time in minutes",
           "climate_mode": "Configure variables for climate mode",
           "tilt_mode": "Choose the type of movement"
         },
@@ -268,47 +421,117 @@
         }
       },
       "vertical": {
+        "sections": {
+          "section_fov": {
+            "data": {
+              "fov_left": "Field of view left",
+              "fov_right": "Field of view right"
+            },
+            "data_description": {
+              "fov_left": "Field of view angle to the left of the window center",
+              "fov_right": "Field of view angle to the right of the window center"
+            },
+            "name": "Field of view Options",
+            "description": "Set the field of view for the cover"
+          },
+          "section_default": {
+            "data": {
+              "default_percentage": "Default Position cover",
+              "sunset_position": "After Sunset Position"
+            },
+            "data_description": {
+              "default_percentage": "Default cover position when the sun is not in front of the window",
+              "sunset_position": "Cover position after sunset +- time offset"
+            },
+            "name": "Default Position Options",
+            "description": "Set the default positions for the cover"
+          },
+          "section_sun_offset": {
+            "data": {
+              "sunset_offset": "Sunset Offset",
+              "sunrise_offset": "Sunrise Offset"
+            },
+            "data_description": {
+              "sunset_offset": "Offset from local sunset time in minutes",
+              "sunrise_offset": "Offset from local sunrise time in minutes"
+            },
+            "name": "Sun Offset Options (Optional)",
+            "description": "Adjust the local sunrise and sunset times with a standard offset"
+          },
+          "section_elevation": {
+            "data": {
+              "min_elevation": "Minimum Elevation angle of the sun",
+              "max_elevation": "Maximum Elevation angle of the sun"
+            },
+            "data_description": {
+              "min_elevation": "Minimum Elevation angle of the sun to consider when the sun is in front of the window",
+              "max_elevation": "Maximum Elevation angle of the sun to consider when the sun is in front of the window"
+            },
+            "name": "Elevation Options (Optional)",
+            "description": "Set the considered elevation angles for the cover"
+          },
+          "section_position_limits": {
+            "data": {
+              "max_position": "Maximum cover position as a percentage",
+              "min_position": "Minimum cover position as a percentage",
+              "enable_max_position": "Only force the maximum position when the sun is in front of the window",
+              "enable_min_position": "Only force the minimum position when the sun is in front of the window"
+            },
+            "data_description": {
+              "max_position": "Maximum cover position it is allowed to change to",
+              "min_position": "Minimum cover position it is allowed to change to"
+            },
+            "name": "Cover Position limit Options (Optional)",
+            "description": "Set the limits for the cover position"
+          }
+        },
         "data": {
           "set_azimuth": "Window Azimuth",
           "window_height": "Window Height",
           "distance_shaded_area": "Shaded area",
           "default_percentage": "Default Position",
-          "min_position": "Minimum Position",
-          "max_position": "Maximum Position",
-          "enable_min_position": "Only force the minimum position when the sun is in front of the window",
-          "enable_max_position": "Only force the maximum position when the sun is in front of the window",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
           "group": "Cover Entities",
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
-          "blind_spot": "Setup Blindspot",
-          "min_elevation": "Minimum Elevation of the sun",
-          "max_elevation": "Maximum Elevation of the sun",
           "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
         },
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
           "window_height": "Specify window height in meters",
           "distance_shaded_area": "Distance from cover to shaded area in meters",
-          "default_percentage": "Default cover position as a percentage",
-          "min_position": "Minimum adjustable cover position as a percentage",
-          "max_position": "Maximum adjustable cover position as a percentage",
-          "fov_left": "Field of view angle to the left of the window center",
-          "fov_right": "Field of view angle to the right of the window center",
-          "group": "Select entities to control via integration",
-          "sunset_position": "Position to switch to after sunset",
-          "sunset_offset": "Offset (±) from sunset time in minutes",
-          "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "group": "Select entities to control via integration, when none is selected the integration will provide you with multiple sensors that can be used in automations",
           "climate_mode": "Configure variables for climate mode"
         },
         "description": "Add configuration variables to the sensor",
         "title": "Vertical cover"
       },
       "climate": {
+        "sections": {
+          "section_lux": {
+            "data": {
+              "lux_entity": "Lux sensor",
+              "lux_threshold": "Lux threshold"
+            },
+            "data_description": {
+              "lux_entity": "Use lux sensor to determine if cover should reduce glare in presence mode",
+              "lux_threshold": "Threshold for lux sensor, above this value glare should be reduced"
+            },
+            "name": "Lux Options (Opional)",
+            "description": "Set the lux sensor and threshold for glare reduction"
+          },
+          "section_irradiance": {
+            "data": {
+              "irradiance_entity": "Irradiance sensor",
+              "irradiance_threshold": "Irradiance threshold"
+            },
+            "data_description": {
+              "irradiance_entity": "Use irradiance sensor to determine if cover should reduce glare in presence mode",
+              "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced"
+            },
+            "name": "Irradiance Options (Opional)",
+            "description": "Set the irradiance sensor and threshold for glare reduction"
+          }
+        },
         "data": {
           "temp_entity": "Inside temperature entity",
           "presence_entity": "Presence entity (optional)",
@@ -317,10 +540,6 @@
           "temp_low": "Low temperature threshold",
           "temp_high": "High temperature threshold",
           "transparent_blind": "Transparent blind",
-          "lux_entity": "Lux sensor (optional)",
-          "lux_threshold": "Lux threshold",
-          "irradiance_entity": "Irradiance sensor (optional)",
-          "irradiance_threshold": "Irradiance threshold",
           "outside_threshold": "Minimum outside temperature for summer mode"
         },
         "data_description": {
@@ -346,28 +565,80 @@
         "title": "Weather Conditions"
       },
       "horizontal": {
+        "sections": {
+          "section_fov": {
+            "data": {
+              "fov_left": "Field of view left",
+              "fov_right": "Field of view right"
+            },
+            "data_description": {
+              "fov_left": "Field of view angle to the left of the window center",
+              "fov_right": "Field of view angle to the right of the window center"
+            },
+            "name": "Field of view Options",
+            "description": "Set the field of view for the cover"
+          },
+          "section_default": {
+            "data": {
+              "default_percentage": "Default Position cover",
+              "sunset_position": "After Sunset Position"
+            },
+            "data_description": {
+              "default_percentage": "Default cover position when the sun is not in front of the window",
+              "sunset_position": "Cover position after sunset +- time offset"
+            },
+            "name": "Default Position Options",
+            "description": "Set the default positions for the cover"
+          },
+          "section_sun_offset": {
+            "data": {
+              "sunset_offset": "Sunset Offset",
+              "sunrise_offset": "Sunrise Offset"
+            },
+            "data_description": {
+              "sunset_offset": "Offset from local sunset time in minutes",
+              "sunrise_offset": "Offset from local sunrise time in minutes"
+            },
+            "name": "Sun Offset Options (Optional)",
+            "description": "Adjust the local sunrise and sunset times with a standard offset"
+          },
+          "section_elevation": {
+            "data": {
+              "min_elevation": "Minimum Elevation angle of the sun",
+              "max_elevation": "Maximum Elevation angle of the sun"
+            },
+            "data_description": {
+              "min_elevation": "Minimum Elevation angle of the sun to consider when the sun is in front of the window",
+              "max_elevation": "Maximum Elevation angle of the sun to consider when the sun is in front of the window"
+            },
+            "name": "Elevation Options (Optional)",
+            "description": "Set the considered elevation angles for the cover"
+          },
+          "section_position_limits": {
+            "data": {
+              "max_position": "Maximum cover position as a percentage",
+              "min_position": "Minimum cover position as a percentage",
+              "enable_max_position": "Only force the maximum position when the sun is in front of the window",
+              "enable_min_position": "Only force the minimum position when the sun is in front of the window"
+            },
+            "data_description": {
+              "max_position": "Maximum cover position it is allowed to change to",
+              "min_position": "Minimum cover position it is allowed to change to"
+            },
+            "name": "Cover Position limit Options (Optional)",
+            "description": "Set the limits for the cover position"
+          }
+        },
         "data": {
           "set_azimuth": "Window Azimuth",
           "length_awning": "Awning Span Length",
           "window_height": "Awning Height",
           "angle": "Awning Angle",
           "distance_shaded_area": "Shaded area",
-          "default_percentage": "Default Position",
-          "min_position": "Minimum Position",
-          "max_position": "Maximum Position",
-          "enable_min_position": "Only force the minimum position when the sun is in front of the window",
-          "enable_max_position": "Only force the maximum position when the sun is in front of the window",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
           "group": "Cover Entities",
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
           "blind_spot": "Setup Blindspot",
-          "min_elevation": "Minimum Elevation of the sun",
-          "max_elevation": "Maximum Elevation of the sun",
           "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
         },
         "data_description": {
@@ -376,57 +647,92 @@
           "length_awning": "Total span length in meters",
           "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
           "distance_shaded_area": "Distance from cover to shaded area in meters",
-          "default_percentage": "Default cover position as a percentage",
-          "min_position": "Minimum adjustable cover position as a percentage",
-          "max_position": "Maximum adjustable cover position as a percentage",
-          "fov_left": "Field of view degrees to the left of the window center",
-          "fov_right": "Field of view degrees to the right of the window center",
-          "group": "Select entities to control via integration",
-          "sunset_position": "Position to switch to after sunset",
-          "sunset_offset": "Offset (±) from sunset time in minutes",
-          "sunrise_offset": "Offset (±) from sunrise time in minutes",
           "climate_mode": "Configure variables for climate mode"
         },
         "description": "Add configuration variables to the sensor",
         "title": "Horizontal cover"
       },
       "tilt": {
+        "sections": {
+          "section_fov": {
+            "data": {
+              "fov_left": "Field of view left",
+              "fov_right": "Field of view right"
+            },
+            "data_description": {
+              "fov_left": "Field of view angle to the left of the window center",
+              "fov_right": "Field of view angle to the right of the window center"
+            },
+            "name": "Field of view Options",
+            "description": "Set the field of view for the cover"
+          },
+          "section_default": {
+            "data": {
+              "default_percentage": "Default Position cover",
+              "sunset_position": "After Sunset Position"
+            },
+            "data_description": {
+              "default_percentage": "Default cover position when the sun is not in front of the window",
+              "sunset_position": "Cover position after sunset +- time offset"
+            },
+            "name": "Default Position Options",
+            "description": "Set the default positions for the cover"
+          },
+          "section_sun_offset": {
+            "data": {
+              "sunset_offset": "Sunset Offset",
+              "sunrise_offset": "Sunrise Offset"
+            },
+            "data_description": {
+              "sunset_offset": "Offset from local sunset time in minutes",
+              "sunrise_offset": "Offset from local sunrise time in minutes"
+            },
+            "name": "Sun Offset Options (Optional)",
+            "description": "Adjust the local sunrise and sunset times with a standard offset"
+          },
+          "section_elevation": {
+            "data": {
+              "min_elevation": "Minimum Elevation angle of the sun",
+              "max_elevation": "Maximum Elevation angle of the sun"
+            },
+            "data_description": {
+              "min_elevation": "Minimum Elevation angle of the sun to consider when the sun is in front of the window",
+              "max_elevation": "Maximum Elevation angle of the sun to consider when the sun is in front of the window"
+            },
+            "name": "Elevation Options (Optional)",
+            "description": "Set the considered elevation angles for the cover"
+          },
+          "section_position_limits": {
+            "data": {
+              "max_position": "Maximum cover position as a percentage",
+              "min_position": "Minimum cover position as a percentage",
+              "enable_max_position": "Only force the maximum position when the sun is in front of the window",
+              "enable_min_position": "Only force the minimum position when the sun is in front of the window"
+            },
+            "data_description": {
+              "max_position": "Maximum cover position it is allowed to change to",
+              "min_position": "Minimum cover position it is allowed to change to"
+            },
+            "name": "Cover Position limit Options (Optional)",
+            "description": "Set the limits for the cover position"
+          }
+        },
         "data": {
           "set_azimuth": "Window Azimuth",
           "slat_depth": "Slat Depth",
           "slat_distance": "Slat Spacing",
-          "default_percentage": "Default Position",
-          "min_position": "Minimum Position",
-          "max_position": "Maximum Position",
-          "enable_min_position": "Only force the minimum position when the sun is in front of the window",
-          "enable_max_position": "Only force the maximum position when the sun is in front of the window",
-          "fov_left": "Field of view left",
-          "fov_right": "Field of view right",
           "group": "Cover Entities",
           "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
-          "sunset_position": "Sunset Position",
-          "sunset_offset": "Sunset Offset",
-          "sunrise_offset": "Sunrise Offset",
           "climate_mode": "Climate Mode",
           "tilt_mode": "Type of movement",
           "blind_spot": "Setup Blindspot",
-          "min_elevation": "Minimum Elevation of the sun",
-          "max_elevation": "Maximum Elevation of the sun",
           "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
         },
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
           "slat_depth": "Depth of each individual slat in centimeters",
           "slat_distance": "Vertical distance between two slats in centimeters",
-          "default_percentage": "Default cover position as a percentage",
-          "min_position": "Minimum Position",
-          "max_position": "Maximum adjustable cover position as a percentage",
-          "fov_left": "Degrees to consider from the left side of the window center",
-          "fov_right": "Degrees to consider from the right side of the window center",
           "group": "Select entities to control via integration",
-          "sunset_position": "Position to transition to after sunset",
-          "sunset_offset": "Offset (±) from sunset time in minutes",
-          "sunrise_offset": "Offset (±) from sunrise time in minutes",
           "climate_mode": "Configure variables for climate mode",
           "tilt_mode": "Choose the type of movement"
         },

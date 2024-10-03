@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
+from homeassistant import data_entry_flow
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
@@ -13,7 +14,6 @@ from homeassistant.config_entries import (
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
-from homeassistant import data_entry_flow
 
 from .const import (
     CONF_AWNING_ANGLE,
@@ -27,6 +27,8 @@ from .const import (
     CONF_DELTA_TIME,
     CONF_DISTANCE,
     CONF_ENABLE_BLIND_SPOT,
+    CONF_ENABLE_MAX_POSITION,
+    CONF_ENABLE_MIN_POSITION,
     CONF_END_ENTITY,
     CONF_END_TIME,
     CONF_ENTITIES,
@@ -51,7 +53,9 @@ from .const import (
     CONF_MAX_ELEVATION,
     CONF_MAX_POSITION,
     CONF_MIN_ELEVATION,
+    CONF_MIN_POSITION,
     CONF_MODE,
+    CONF_OUTSIDE_THRESHOLD,
     CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
     CONF_RETURN_SUNSET,
@@ -70,10 +74,8 @@ from .const import (
     CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
-    CONF_OUTSIDE_THRESHOLD,
     DOMAIN,
     SensorType,
-    CONF_MIN_POSITION,
 )
 
 # DEFAULT_NAME = "Adaptive Cover"
@@ -100,11 +102,15 @@ CLIMATE_MODE = vol.Schema(
 
 ELEVATION = vol.Schema(
     {
-        vol.Optional(CONF_MIN_ELEVATION): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=90)
+        vol.Optional(CONF_MIN_ELEVATION, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=90, mode="slider", unit_of_measurement="°"
+            )
         ),
-        vol.Optional(CONF_MAX_ELEVATION): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=90)
+        vol.Optional(CONF_MAX_ELEVATION, default=90): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=90, mode="slider", unit_of_measurement="°"
+            )
         ),
     }
 )
@@ -206,9 +212,16 @@ POSITION_LIMITS = vol.Schema(
     {
         vol.Optional(CONF_MAX_POSITION, default=100): selector.NumberSelector(
             selector.NumberSelectorConfig(
-                min=1, max=100, step=1, mode="slider", unit_of_measurement="%"
+                min=1, max=100, mode="slider", unit_of_measurement="°"
             )
         ),
+        vol.Optional(CONF_ENABLE_MAX_POSITION, default=False): bool,
+        vol.Optional(CONF_MIN_POSITION, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=99, mode="slider", unit_of_measurement="°"
+            )
+        ),
+        vol.Optional(CONF_ENABLE_MIN_POSITION, default=False): bool,
     }
 )
 
