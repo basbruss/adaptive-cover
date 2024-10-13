@@ -375,6 +375,7 @@ class ClimateCoverState(NormalCoverState):
 
     def tilt_with_presence(self, degrees: int) -> int:
         """Determine state for tilted blinds with occupants."""
+        return super().get_state()
         if self.cover.valid and (
             self.climate_data.lux
             or self.climate_data.irradiance
@@ -391,13 +392,37 @@ class ClimateCoverState(NormalCoverState):
         beta = np.rad2deg(self.cover.beta)
         if self.cover.valid:
             if self.climate_data.is_summer:
-                # block out all light in summer
+                return super().get_state()
+            if self.climate_data.is_winter:
+                # parallel to sun beams, not possible with single direction
+                return self.cover.default
+            return self.cover.default
+        return super().get_state()
+
+    def pos_with_presence(self) -> int:
+        """Determine state for tilted blinds with occupants."""
+        if self.cover.valid and (
+            self.climate_data.lux
+            or self.climate_data.irradiance
+            or not self.climate_data.is_sunny
+        ):
+            if self.climate_data.is_summer:
+                # If it's summer, return 0 degrees
+                return 0
+            return 0
+        return super().get_state_pos()
+
+    def pos_without_presence(self) -> int:
+        """Determine state for tilted blinds without occupants."""
+        if self.cover.valid:
+            if self.climate_data.is_summer:
                 return 0
             if self.climate_data.is_winter and self.cover.mode == "mode2":
                 # parallel to sun beams, not possible with single direction
-                return (beta + 90) / degrees * 100
-            return 80 / degrees * 100
-        return super().get_state()
+                return 0
+            if not self.cover.sunset_valid:
+                return 100
+        return super().get_state_pos()
 
     def tilt_state(self):
         """Add tilt specific controls."""
@@ -408,11 +433,26 @@ class ClimateCoverState(NormalCoverState):
             return self.tilt_with_presence(degrees)
         return self.tilt_without_presence(degrees)
 
+    def pos_state(self):
+        """Add tilt specific controls."""
+        if self.climate_data.is_presence:
+            return self.pos_with_presence()
+        return self.pos_without_presence()
+
     def get_state(self) -> int:
         """Return state."""
         result = self.normal_type_cover()
         if self.climate_data.blind_type == "cover_tilt":
             result = self.tilt_state()
+        if result > self.cover.max_pos:
+            return self.cover.max_pos
+        return result
+
+    def get_state_pos(self) -> int:
+        """Return state position."""
+        result = self.normal_type_cover()
+        if self.climate_data.blind_type == "cover_tilt":
+            result = self.pos_state()
         if result > self.cover.max_pos:
             return self.cover.max_pos
         return result

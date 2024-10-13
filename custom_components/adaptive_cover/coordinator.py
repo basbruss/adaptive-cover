@@ -137,6 +137,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.first_refresh = False
         self.timed_refresh = False
         self.climate_state = None
+        self.climate_state_pos = None
         self.control_method = "intermediate"
         self.state_change_data: StateChangedData | None = None
         self.manager = AdaptiveCoverManager(self.manual_duration)
@@ -699,6 +700,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         """Update climate mode data and control method."""
         climate = ClimateCoverData(*self.get_climate_data(options))
         self.climate_state = round(ClimateCoverState(cover_data, climate).get_state())
+        self.climate_state_pos = round(
+            ClimateCoverState(cover_data, climate).get_state_pos()
+        )
         climate_data = ClimateCoverState(cover_data, climate).climate_data
         if climate_data.is_summer and self.switch_mode:
             self.control_method = "summer"
