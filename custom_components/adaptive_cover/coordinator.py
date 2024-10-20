@@ -7,6 +7,7 @@ import datetime as dt
 from dataclasses import dataclass
 
 import numpy as np
+import pytz
 from homeassistant.components.cover import DOMAIN as COVER_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -137,6 +138,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._lux_toggle = None
         self._irradiance_toggle = None
         self._start_time = None
+        self._sun_end_time = None
+        self._sun_start_time = None
         # self._end_time = None
         self.manual_reset = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_RESET, False
@@ -159,6 +162,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         )
         self._update_listener = None
         self._scheduled_time = dt.datetime.now()
+
+        self._cached_options = None
 
     async def async_config_entry_first_refresh(self) -> None:
         """Config entry first refresh."""
@@ -201,9 +206,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.state_change_data = StateChangedData(
             data["entity_id"], data["old_state"], data["new_state"]
         )
-        self.cover_state_change = True
-        self.process_entity_state_change()
-        await self.async_refresh()
+        if self.state_change_data.old_state.state != "unknown":
+            self.cover_state_change = True
+            self.process_entity_state_change()
+            await self.async_refresh()
+        else:
+            _LOGGER.debug("Old state is unknown, not processing")
 
     def process_entity_state_change(self):
         """Process state change event."""
@@ -252,6 +260,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def _async_update_data(self) -> AdaptiveCoverData:
         _LOGGER.debug("Updating data")
+        if self.first_refresh:
+            self._cached_options = self.config_entry.options
+
         options = self.config_entry.options
         self._update_options(options)
 
@@ -292,8 +303,19 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         normal_cover = self.normal_cover_state.cover
         # Run the solar_times method in a separate thread
-        loop = asyncio.get_event_loop()
-        start, end = await loop.run_in_executor(None, normal_cover.solar_times)
+        if (
+            self.first_refresh
+            or self._sun_start_time is None
+            or dt.datetime.now(pytz.UTC).date() != self._sun_start_time.date()
+        ):
+            _LOGGER.debug("Calculating solar times")
+            loop = asyncio.get_event_loop()
+            start, end = await loop.run_in_executor(None, normal_cover.solar_times)
+            self._sun_start_time = start
+            self._sun_end_time = end
+            _LOGGER.debug("Sun start time: %s, Sun end time: %s", start, end)
+        else:
+            start, end = self._sun_start_time, self._sun_end_time
         return AdaptiveCoverData(
             climate_mode_toggle=self.switch_mode,
             states={
