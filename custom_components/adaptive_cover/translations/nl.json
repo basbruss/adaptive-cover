@@ -35,117 +35,46 @@
         }
       },
       "vertical": {
-        "sections": {
-          "section_fov": {
-            "data": {
-              "fov_left": "Links gezichtsveld",
-              "fov_right": "Rechts gezichtsveld"
-            },
-            "data_description": {
-              "fov_left": "Gezichtshoek naar links van het raamcentrum",
-              "fov_right": "Gezichtshoek naar rechts van het raamcentrum"
-            },
-            "name": "Gezichtsveld Opties",
-            "description": "Stel de gezichtshoeken in voor de cover"
-          },
-          "section_default": {
-            "data": {
-              "default_percentage": "Standaard positie",
-              "sunset_position": "Zonsondergang Posistie"
-            },
-            "data_description": {
-              "default_percentage": "Standaard positie van de cover als de zon niet voor het raam staat",
-              "sunset_position": "Cover positie om naar over te schakelen na zonsondergang"
-            },
-            "name": "Standaard positie Opties",
-            "description": "Stel de standaard posities in voor de cover"
-          },
-          "section_sun_offset": {
-            "data": {
-              "sunset_offset": "Afwijking Zonsondergang",
-              "sunrise_offset": "Afwijking Zonsopkomst"
-            },
-            "data_description": {
-              "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
-              "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten"
-            },
-            "name": "Offset voor Zonsondergang en Zonsopkomst (Optioneel)",
-            "description": "Stel de offset in voor zonsondergang en zonsopkomst"
-          },
-          "section_elevation": {
-            "data": {
-              "min_elevation": "Minimale zonhoogte",
-              "max_elevation": "Maximale zonhoogte"
-            },
-            "data_description": {
-              "min_elevation": "Minimum Elevation hoek van de zon om te overwegen wanneer de zon voor het raam staat",
-              "max_elevation": "Maximum Elevation hoek van de zon om te overwegen wanneer de zon voor het raam staat"
-            },
-            "name": "Zonelevatie Opties (Optioneel)",
-            "description": "Set the considered elevation angles for the cover"
-          },
-          "section_position_limits": {
-            "data": {
-              "min_position": "Minimale positie",
-              "max_position": "Maximale positie",
-              "enable_min_position": "Forceer alleen de minimale positie wanneer de zon voor het raam staat",
-              "enable_max_position": "Forceer alleen de maximale positie wanneer de zon voor het raam staat"
-            },
-            "data_description": {
-              "min_position": "Minimale verstelbare coverpositie",
-              "max_position": "Maximale verstelbare coverpositie"
-            },
-            "name": "Cover Position limit Options (Optional)",
-            "description": "Set the limits for the cover position"
-          }
-        },
         "data": {
           "set_azimuth": "Raam Azimuth",
           "window_height": "Raamhoogte",
           "distance_shaded_area": "Beschaduwde gebied",
+          "default_percentage": "Standaard positie",
+          "min_position": "Minimale positie",
+          "max_position": "Maximale positie",
+          "enable_min_position": "Forceer alleen de minimale positie wanneer de zon voor het raam staat",
+          "enable_max_position": "Forceer alleen de maximale positie wanneer de zon voor het raam staat",
+          "fov_left": "Links gezichtsveld",
+          "fov_right": "Rechts gezichtsveld",
           "group": "Cover Entiteiten",
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
+          "sunset_position": "Zonsondergang Posistie",
+          "sunset_offset": "Afwijking Zonsondergang",
           "climate_mode": "Klimaatmodus",
           "blind_spot": "Configureer schaduwzone",
+          "min_elevation": "Minimale zonhoogte",
+          "max_elevation": "Maximale zonhoogte",
           "interp": "Stel aangepaste open/sluit posities in voor jouw Cover, als deze niet volledig functioneert bij 0-100%"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
           "window_height": "Specificeer raamhoogte in meters",
           "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",
+          "default_percentage": "Standaard bekledingspositie als percentage",
+          "min_position": "Minimale verstelbare bekledingspositie als percentage",
+          "max_position": "Maximale verstelbare bekledingspositie als percentage",
+          "fov_left": "Gezichtshoek naar links van het raamcentrum",
+          "fov_right": "Gezichtshoek naar rechts van het raamcentrum",
           "group": "Selecteer entiteiten om te besturen via integratie",
+          "sunset_position": "Positie om naar over te schakelen na zonsondergang",
+          "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
           "climate_mode": "Configureer variabelen voor klimaatmodus"
         },
         "description": "Voeg configuratie variabelen toe",
         "title": "Verticaal scherm"
       },
       "climate": {
-        "sections": {
-          "section_lux": {
-            "data": {
-              "lux_entity": "Lux sensor",
-              "lux_threshold": "Lux drempelwaarde"
-            },
-            "data_description": {
-              "lux_entity": "Gebruik de lux sensor om te bepalen of de zonwering verblinding moet verminderen in aanwezigheid modus",
-              "lux_threshold": "Drempelwaarde voor de lux sensor, boven deze waarde moet de verblinding worden verminderd"
-            },
-            "name": "Lux Opties (Optioneel)",
-            "description": "Stel de lux sensor en drempelwaarde in voor verblindingsreductie"
-          },
-          "section_irradiance": {
-            "data": {
-              "irradiance_entity": "Stralingssensor",
-              "irradiance_threshold": "Stralingsdrempelwaarde"
-            },
-            "data_description": {
-              "irradiance_entity": "Gebruik de stralingssensor om te bepalen of de zonwering verblinding moet verminderen in aanwezigheid modus",
-              "irradiance_threshold": "Drempelwaarde voor de stralingssensor, boven deze waarde moet de verblinding worden verminderd"
-            },
-            "name": "Stralingsopties (Optioneel)",
-            "description": "Stel de stralingssensor en drempelwaarde in voor verblindingsreductie"
-          }
-        },
         "data": {
           "temp_entity": "Binnen temperatuur entiteit",
           "presence_entity": "Aanwezigheid entiteit (optioneel)",
@@ -183,70 +112,6 @@
         "title": "Weer Condities"
       },
       "horizontal": {
-        "sections": {
-          "section_fov": {
-            "data": {
-              "fov_left": "Links gezichtsveld",
-              "fov_right": "Rechts gezichtsveld"
-            },
-            "data_description": {
-              "fov_left": "Gezichtshoek naar links van het raamcentrum",
-              "fov_right": "Gezichtshoek naar rechts van het raamcentrum"
-            },
-            "name": "Gezichtsveld Opties",
-            "description": "Stel de gezichtshoeken in voor de cover"
-          },
-          "section_default": {
-            "data": {
-              "default_percentage": "Standaard positie",
-              "sunset_position": "Zonsondergang Posistie"
-            },
-            "data_description": {
-              "default_percentage": "Standaard positie van de cover als de zon niet voor het raam staat",
-              "sunset_position": "Cover positie om naar over te schakelen na zonsondergang"
-            },
-            "name": "Standaard positie Opties",
-            "description": "Stel de standaard posities in voor de cover"
-          },
-          "section_sun_offset": {
-            "data": {
-              "sunset_offset": "Afwijking Zonsondergang",
-              "sunrise_offset": "Afwijking Zonsopkomst"
-            },
-            "data_description": {
-              "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
-              "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten"
-            },
-            "name": "Offset voor Zonsondergang en Zonsopkomst (Optioneel)",
-            "description": "Stel de offset in voor zonsondergang en zonsopkomst"
-          },
-          "section_elevation": {
-            "data": {
-              "min_elevation": "Minimale zonhoogte",
-              "max_elevation": "Maximale zonhoogte"
-            },
-            "data_description": {
-              "min_elevation": "Minimum Elevation hoek van de zon om te overwegen wanneer de zon voor het raam staat",
-              "max_elevation": "Maximum Elevation hoek van de zon om te overwegen wanneer de zon voor het raam staat"
-            },
-            "name": "Zonelevatie Opties (Optioneel)",
-            "description": "Set the considered elevation angles for the cover"
-          },
-          "section_position_limits": {
-            "data": {
-              "min_position": "Minimale positie",
-              "max_position": "Maximale positie",
-              "enable_min_position": "Forceer alleen de minimale positie wanneer de zon voor het raam staat",
-              "enable_max_position": "Forceer alleen de maximale positie wanneer de zon voor het raam staat"
-            },
-            "data_description": {
-              "min_position": "Minimale verstelbare coverpositie",
-              "max_position": "Maximale verstelbare coverpositie"
-            },
-            "name": "Cover Position limit Options (Optional)",
-            "description": "Set the limits for the cover position"
-          }
-        },
         "data": {
           "set_azimuth": "Raam Azimuth",
           "length_awning": "Zonneschermspanlengte",
@@ -291,70 +156,6 @@
         "title": "Horizontaal scherm"
       },
       "tilt": {
-        "sections": {
-          "section_fov": {
-            "data": {
-              "fov_left": "Links gezichtsveld",
-              "fov_right": "Rechts gezichtsveld"
-            },
-            "data_description": {
-              "fov_left": "Gezichtshoek naar links van het raamcentrum",
-              "fov_right": "Gezichtshoek naar rechts van het raamcentrum"
-            },
-            "name": "Gezichtsveld Opties",
-            "description": "Stel de gezichtshoeken in voor de cover"
-          },
-          "section_default": {
-            "data": {
-              "default_percentage": "Standaard positie",
-              "sunset_position": "Zonsondergang Posistie"
-            },
-            "data_description": {
-              "default_percentage": "Standaard positie van de cover als de zon niet voor het raam staat",
-              "sunset_position": "Cover positie om naar over te schakelen na zonsondergang"
-            },
-            "name": "Standaard positie Opties",
-            "description": "Stel de standaard posities in voor de cover"
-          },
-          "section_sun_offset": {
-            "data": {
-              "sunset_offset": "Afwijking Zonsondergang",
-              "sunrise_offset": "Afwijking Zonsopkomst"
-            },
-            "data_description": {
-              "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
-              "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten"
-            },
-            "name": "Offset voor Zonsondergang en Zonsopkomst (Optioneel)",
-            "description": "Stel de offset in voor zonsondergang en zonsopkomst"
-          },
-          "section_elevation": {
-            "data": {
-              "min_elevation": "Minimale zonhoogte",
-              "max_elevation": "Maximale zonhoogte"
-            },
-            "data_description": {
-              "min_elevation": "Minimum Elevation hoek van de zon om te overwegen wanneer de zon voor het raam staat",
-              "max_elevation": "Maximum Elevation hoek van de zon om te overwegen wanneer de zon voor het raam staat"
-            },
-            "name": "Zonelevatie Opties (Optioneel)",
-            "description": "Set the considered elevation angles for the cover"
-          },
-          "section_position_limits": {
-            "data": {
-              "min_position": "Minimale positie",
-              "max_position": "Maximale positie",
-              "enable_min_position": "Forceer alleen de minimale positie wanneer de zon voor het raam staat",
-              "enable_max_position": "Forceer alleen de maximale positie wanneer de zon voor het raam staat"
-            },
-            "data_description": {
-              "min_position": "Minimale verstelbare coverpositie",
-              "max_position": "Maximale verstelbare coverpositie"
-            },
-            "name": "Cover Position limit Options (Optional)",
-            "description": "Set the limits for the cover position"
-          }
-        },
         "data": {
           "set_azimuth": "Raam Azimuth",
           "slat_depth": "Lameldiepte",
@@ -464,70 +265,6 @@
         }
       },
       "vertical": {
-        "sections": {
-          "section_fov": {
-            "data": {
-              "fov_left": "Links gezichtsveld",
-              "fov_right": "Rechts gezichtsveld"
-            },
-            "data_description": {
-              "fov_left": "Gezichtshoek naar links van het raamcentrum",
-              "fov_right": "Gezichtshoek naar rechts van het raamcentrum"
-            },
-            "name": "Gezichtsveld Opties",
-            "description": "Stel de gezichtshoeken in voor de cover"
-          },
-          "section_default": {
-            "data": {
-              "default_percentage": "Standaard positie",
-              "sunset_position": "Zonsondergang Posistie"
-            },
-            "data_description": {
-              "default_percentage": "Standaard positie van de cover als de zon niet voor het raam staat",
-              "sunset_position": "Cover positie om naar over te schakelen na zonsondergang"
-            },
-            "name": "Standaard positie Opties",
-            "description": "Stel de standaard posities in voor de cover"
-          },
-          "section_sun_offset": {
-            "data": {
-              "sunset_offset": "Afwijking Zonsondergang",
-              "sunrise_offset": "Afwijking Zonsopkomst"
-            },
-            "data_description": {
-              "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
-              "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten"
-            },
-            "name": "Offset voor Zonsondergang en Zonsopkomst (Optioneel)",
-            "description": "Stel de offset in voor zonsondergang en zonsopkomst"
-          },
-          "section_elevation": {
-            "data": {
-              "min_elevation": "Minimale zonhoogte",
-              "max_elevation": "Maximale zonhoogte"
-            },
-            "data_description": {
-              "min_elevation": "Minimum Elevation hoek van de zon om te overwegen wanneer de zon voor het raam staat",
-              "max_elevation": "Maximum Elevation hoek van de zon om te overwegen wanneer de zon voor het raam staat"
-            },
-            "name": "Zonelevatie Opties (Optioneel)",
-            "description": "Set the considered elevation angles for the cover"
-          },
-          "section_position_limits": {
-            "data": {
-              "min_position": "Minimale positie",
-              "max_position": "Maximale positie",
-              "enable_min_position": "Forceer alleen de minimale positie wanneer de zon voor het raam staat",
-              "enable_max_position": "Forceer alleen de maximale positie wanneer de zon voor het raam staat"
-            },
-            "data_description": {
-              "min_position": "Minimale verstelbare coverpositie",
-              "max_position": "Maximale verstelbare coverpositie"
-            },
-            "name": "Cover Position limit Options (Optional)",
-            "description": "Set the limits for the cover position"
-          }
-        },
         "data": {
           "set_azimuth": "Raam Azimuth",
           "window_height": "Raamhoogte",
@@ -568,32 +305,6 @@
         "title": "Verticaal scherm"
       },
       "climate": {
-        "sections": {
-          "section_lux": {
-            "data": {
-              "lux_entity": "Lux sensor",
-              "lux_threshold": "Lux drempelwaarde"
-            },
-            "data_description": {
-              "lux_entity": "Gebruik de lux sensor om te bepalen of de zonwering verblinding moet verminderen in aanwezigheid modus",
-              "lux_threshold": "Drempelwaarde voor de lux sensor, boven deze waarde moet de verblinding worden verminderd"
-            },
-            "name": "Lux Opties (Optioneel)",
-            "description": "Stel de lux sensor en drempelwaarde in voor verblindingsreductie"
-          },
-          "section_irradiance": {
-            "data": {
-              "irradiance_entity": "Stralingssensor",
-              "irradiance_threshold": "Stralingsdrempelwaarde"
-            },
-            "data_description": {
-              "irradiance_entity": "Gebruik de stralingssensor om te bepalen of de zonwering verblinding moet verminderen in aanwezigheid modus",
-              "irradiance_threshold": "Drempelwaarde voor de stralingssensor, boven deze waarde moet de verblinding worden verminderd"
-            },
-            "name": "Stralingsopties (Optioneel)",
-            "description": "Stel de stralingssensor en drempelwaarde in voor verblindingsreductie"
-          }
-        },
         "data": {
           "temp_entity": "Binnen temperatuur entiteit",
           "presence_entity": "Aanwezigheid entiteit (optioneel)",
@@ -623,70 +334,6 @@
         "title": "Weer Condities"
       },
       "horizontal": {
-        "sections": {
-          "section_fov": {
-            "data": {
-              "fov_left": "Links gezichtsveld",
-              "fov_right": "Rechts gezichtsveld"
-            },
-            "data_description": {
-              "fov_left": "Gezichtshoek naar links van het raamcentrum",
-              "fov_right": "Gezichtshoek naar rechts van het raamcentrum"
-            },
-            "name": "Gezichtsveld Opties",
-            "description": "Stel de gezichtshoeken in voor de cover"
-          },
-          "section_default": {
-            "data": {
-              "default_percentage": "Standaard positie",
-              "sunset_position": "Zonsondergang Posistie"
-            },
-            "data_description": {
-              "default_percentage": "Standaard positie van de cover als de zon niet voor het raam staat",
-              "sunset_position": "Cover positie om naar over te schakelen na zonsondergang"
-            },
-            "name": "Standaard positie Opties",
-            "description": "Stel de standaard posities in voor de cover"
-          },
-          "section_sun_offset": {
-            "data": {
-              "sunset_offset": "Afwijking Zonsondergang",
-              "sunrise_offset": "Afwijking Zonsopkomst"
-            },
-            "data_description": {
-              "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
-              "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten"
-            },
-            "name": "Offset voor Zonsondergang en Zonsopkomst (Optioneel)",
-            "description": "Stel de offset in voor zonsondergang en zonsopkomst"
-          },
-          "section_elevation": {
-            "data": {
-              "min_elevation": "Minimale zonhoogte",
-              "max_elevation": "Maximale zonhoogte"
-            },
-            "data_description": {
-              "min_elevation": "Minimum Elevation hoek van de zon om te overwegen wanneer de zon voor het raam staat",
-              "max_elevation": "Maximum Elevation hoek van de zon om te overwegen wanneer de zon voor het raam staat"
-            },
-            "name": "Zonelevatie Opties (Optioneel)",
-            "description": "Set the considered elevation angles for the cover"
-          },
-          "section_position_limits": {
-            "data": {
-              "min_position": "Minimale positie",
-              "max_position": "Maximale positie",
-              "enable_min_position": "Forceer alleen de minimale positie wanneer de zon voor het raam staat",
-              "enable_max_position": "Forceer alleen de maximale positie wanneer de zon voor het raam staat"
-            },
-            "data_description": {
-              "min_position": "Minimale verstelbare coverpositie",
-              "max_position": "Maximale verstelbare coverpositie"
-            },
-            "name": "Cover Position limit Options (Optional)",
-            "description": "Set the limits for the cover position"
-          }
-        },
         "data": {
           "set_azimuth": "Raam Azimuth",
           "length_awning": "Zonneschermspanlengte",
@@ -731,70 +378,6 @@
         "title": "Horizontaal scherm"
       },
       "tilt": {
-        "sections": {
-          "section_fov": {
-            "data": {
-              "fov_left": "Links gezichtsveld",
-              "fov_right": "Rechts gezichtsveld"
-            },
-            "data_description": {
-              "fov_left": "Gezichtshoek naar links van het raamcentrum",
-              "fov_right": "Gezichtshoek naar rechts van het raamcentrum"
-            },
-            "name": "Gezichtsveld Opties",
-            "description": "Stel de gezichtshoeken in voor de cover"
-          },
-          "section_default": {
-            "data": {
-              "default_percentage": "Standaard positie",
-              "sunset_position": "Zonsondergang Posistie"
-            },
-            "data_description": {
-              "default_percentage": "Standaard positie van de cover als de zon niet voor het raam staat",
-              "sunset_position": "Cover positie om naar over te schakelen na zonsondergang"
-            },
-            "name": "Standaard positie Opties",
-            "description": "Stel de standaard posities in voor de cover"
-          },
-          "section_sun_offset": {
-            "data": {
-              "sunset_offset": "Afwijking Zonsondergang",
-              "sunrise_offset": "Afwijking Zonsopkomst"
-            },
-            "data_description": {
-              "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
-              "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten"
-            },
-            "name": "Offset voor Zonsondergang en Zonsopkomst (Optioneel)",
-            "description": "Stel de offset in voor zonsondergang en zonsopkomst"
-          },
-          "section_elevation": {
-            "data": {
-              "min_elevation": "Minimale zonhoogte",
-              "max_elevation": "Maximale zonhoogte"
-            },
-            "data_description": {
-              "min_elevation": "Minimum Elevation hoek van de zon om te overwegen wanneer de zon voor het raam staat",
-              "max_elevation": "Maximum Elevation hoek van de zon om te overwegen wanneer de zon voor het raam staat"
-            },
-            "name": "Zonelevatie Opties (Optioneel)",
-            "description": "Set the considered elevation angles for the cover"
-          },
-          "section_position_limits": {
-            "data": {
-              "min_position": "Minimale positie",
-              "max_position": "Maximale positie",
-              "enable_min_position": "Forceer alleen de minimale positie wanneer de zon voor het raam staat",
-              "enable_max_position": "Forceer alleen de maximale positie wanneer de zon voor het raam staat"
-            },
-            "data_description": {
-              "min_position": "Minimale verstelbare coverpositie",
-              "max_position": "Maximale verstelbare coverpositie"
-            },
-            "name": "Cover Position limit Options (Optional)",
-            "description": "Set the limits for the cover position"
-          }
-        },
         "data": {
           "set_azimuth": "Raam Azimuth",
           "slat_depth": "Lameldiepte",
