@@ -3,5 +3,5 @@ pre-commit~=3.7
 ruff~=0.4
 colorlog~=6.8
 pvlib~=0.11
-matplotlib~=3.9
+matplotlib~=3.10
 ipykernel~=6.29
