@@ -199,34 +199,34 @@
         },
         "description": "Konfigurationsvariablen zum Sensor hinzufügen",
 		"title": "Kippbare Abdeckung"
+	  },
+	  "blind_spot": {
+		"data": {
+          "blind_spot_left": "Start der blinden Zone links",
+          "blind_spot_right": "Ende der blinden Zone rechts",
+          "blind_spot_elevation": "Elevationshöhe der blinden Zone"
 		},
-		"blind_spot": {
-		  "data": {
-			"blind_spot_left": "Start der blinden Zone links",
-			"blind_spot_right": "Ende der blinden Zone rechts",
-			"blind_spot_elevation": "Elevationshöhe der blinden Zone"
-		  },
-		  "data_description": {
-			"blind_spot_left": "Linke Kante der blinden Zone",
-			"blind_spot_right": "Rechte Kante der blinden Zone",
-			"blind_spot_elevation": "Alle Werte, die gleich oder kleiner sind, gelten als innerhalb der blinden Zone. Nützlich, wenn die Sonne über ein Objekt in der blinden Zone scheinen kann"
-		  },
-		  "title": "Blinde Zone",
-		  "description": "Blinde Zone für die Abdeckung einrichten. Diese Werte sind relative Gradwerte zur Breite des Sichtfelds, wobei 0 die linkeste Position darstellt, die vom Parameter 'FOV links' des Sichtfeldes genommen wird."
+		"data_description": {
+          "blind_spot_left": "Linke Kante der blinden Zone",
+          "blind_spot_right": "Rechte Kante der blinden Zone",
+          "blind_spot_elevation": "Alle Werte, die gleich oder kleiner sind, gelten als innerhalb der blinden Zone. Nützlich, wenn die Sonne über ein Objekt in der blinden Zone scheinen kann"
 		},
-		"interp": {
-		  "data": {
-			"interp_start": "Wert, bei dem die Öffnung beginnt",
-			"interp_end": "Wert, bei dem das Schließen beginnt",
-			"interp_list": "Liste der Interpolationen",
-			"interp_list_new": "Benutzerdefinierte Interpolationsliste"
-		  },
-		  "data_description": {
-			"interp_list": "Liste der Interpolationswerte, bei denen 0 vollständig geschlossen und 100 vollständig offen ist",
-			"interp_list_new": "Benutzerdefinierter Bereich von Interpolationswerten, wobei der Beginn geschlossen und das Ende offen darstellen sollte"
+		"title": "Blinde Zone",
+		"description": "Blinde Zone für die Abdeckung einrichten. Diese Werte sind relative Gradwerte zur Breite des Sichtfelds, wobei 0 die linkeste Position darstellt, die vom Parameter 'FOV links' des Sichtfeldes genommen wird."
+	  },
+	  "interp": {
+		"data": {
+          "interp_start": "Wert, bei dem die Öffnung beginnt",
+          "interp_end": "Wert, bei dem das Schließen beginnt",
+          "interp_list": "Liste der Interpolationen",
+          "interp_list_new": "Benutzerdefinierte Interpolationsliste"
+		},
+		"data_description": {
+          "interp_list": "Liste der Interpolationswerte, bei denen 0 vollständig geschlossen und 100 vollständig offen ist",
+          "interp_list_new": "Benutzerdefinierter Bereich von Interpolationswerten, wobei der Beginn geschlossen und das Ende offen darstellen sollte"
 		  },
 		  "title": "Bereichsanpassung",
-		  "description": "Passen Sie die Werte an, bei denen Ihre Abdeckung effektiv öffnet oder schließt. Ideal für Abdeckungen, die nicht vollständig bei 0% öffnen oder bei 100% schließen. \n Die ersten beiden Schieberegler sind für eine 2-Punkte-Anpassung, die Listenauswahl ist für eine Mehrpunkt-Anpassung."																																																													  
+		  "description": "Passen Sie die Werte an, bei denen Ihre Abdeckung effektiv öffnet oder schließt. Ideal für Abdeckungen, die nicht vollständig bei 0% öffnen oder bei 100% schließen. \n Die ersten beiden Schieberegler sind für eine 2-Punkte-Anpassung, die Listenauswahl ist für eine Mehrpunkt-Anpassung."
       }
     }
   },
@@ -344,138 +344,138 @@
           "weather_state": "Wähle die Wetterbedingungen, die eine automatische Fenstersteuerung aktivieren."
         },
         "title": "Wetterbedingungen"
+	  },
+	  "horizontal": {
+		"data": {
+          "set_azimuth": "Fenster-Azimut",
+          "length_awning": "Markisen-Spannweite",
+          "window_height": "Markisenhöhe",
+          "angle": "Markisenwinkel",
+          "distance_shaded_area": "Beschatteter Bereich",
+          "default_percentage": "Standardposition",
+          "min_position": "Mindestposition",
+          "max_position": "Maximale Position",
+          "enable_min_position": "Minimale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "enable_max_position": "Maximale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "fov_left": "Sichtfeld links",
+          "fov_right": "Sichtfeld rechts",
+          "group": "Abdeck-Entitäten",
+          "inverse_state": "Zustand umkehren (benötigt für einige Abdeckungen, die den HA-Richtlinien nicht folgen)",
+          "sunset_position": "Sonnenuntergangsposition",
+          "sunset_offset": "Sonnenuntergangs-Offset",
+          "sunrise_offset": "Sonnenaufgangs-Offset",
+          "climate_mode": "Klimamodus",
+          "blind_spot": "Blinde Zone einrichten",
+          "min_elevation": "Minimale Elevation der Sonne",
+          "max_elevation": "Maximale Elevation der Sonne",
+          "interp": "Benutzerdefinierte Öffnungs-/Schließpositionen für Meine Abdeckung einstellen, wenn diese nicht vollständig bei 0-100% funktioniert"
 		},
-		"horizontal": {
-		  "data": {
-			"set_azimuth": "Fenster-Azimut",
-			"length_awning": "Markisen-Spannweite",
-			"window_height": "Markisenhöhe",
-			"angle": "Markisenwinkel",
-			"distance_shaded_area": "Beschatteter Bereich",
-			"default_percentage": "Standardposition",
-			"min_position": "Mindestposition",
-			"max_position": "Maximale Position",
-			"enable_min_position": "Minimale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
-			"enable_max_position": "Maximale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
-			"fov_left": "Sichtfeld links",
-			"fov_right": "Sichtfeld rechts",
-			"group": "Abdeck-Entitäten",
-			"inverse_state": "Zustand umkehren (benötigt für einige Abdeckungen, die den HA-Richtlinien nicht folgen)",
-			"sunset_position": "Sonnenuntergangsposition",
-			"sunset_offset": "Sonnenuntergangs-Offset",
-			"sunrise_offset": "Sonnenaufgangs-Offset",
-			"climate_mode": "Klimamodus",
-			"blind_spot": "Blinde Zone einrichten",
-			"min_elevation": "Minimale Elevation der Sonne",
-			"max_elevation": "Maximale Elevation der Sonne",
-			"interp": "Benutzerdefinierte Öffnungs-/Schließpositionen für Meine Abdeckung einstellen, wenn diese nicht vollständig bei 0-100% funktioniert"
-		  },
-		  "data_description": {
-			"set_azimuth": "Azimut angeben",
-			"window_height": "Höhe der Markise vom Arbeitsbereich aus anpassen",
-			"length_awning": "Gesamtlänge der Markise in Metern",
-			"angle": "Winkel der befestigten Markise, senkrecht von der Wand zum Boden gemessen",
-			"distance_shaded_area": "Abstand von der Abdeckung zum beschatteten Bereich in Metern",
-			"default_percentage": "Standardposition der Abdeckung als Prozentsatz",
-			"min_position": "Minimale verstellbare Abdeckposition als Prozentsatz",
-			"max_position": "Maximale verstellbare Abdeckposition als Prozentsatz",
-			"fov_left": "Sichtfeldwinkel links vom Fensterzentrum",
-			"fov_right": "Sichtfeldwinkel rechts vom Fensterzentrum",
-			"group": "Entitäten auswählen, die über die Integration gesteuert werden sollen",
-			"sunset_position": "Position, die nach Sonnenuntergang eingenommen wird",
-			"sunset_offset": "Offset (±) von der Sonnenuntergangszeit in Minuten",
-			"sunrise_offset": "Offset (±) von der Sonnenaufgangszeit in Minuten",
-			"climate_mode": "Variablen für den Klimamodus konfigurieren"
-		  },
-		  "description": "Füge Konfigurationsvariablen zum Sensor hinzu",
-		  "title": "Horizontale Abdeckung"
+		"data_description": {
+          "set_azimuth": "Azimut angeben",
+          "window_height": "Höhe der Markise vom Arbeitsbereich aus anpassen",
+          "length_awning": "Gesamtlänge der Markise in Metern",
+          "angle": "Winkel der befestigten Markise, senkrecht von der Wand zum Boden gemessen",
+          "distance_shaded_area": "Abstand von der Abdeckung zum beschatteten Bereich in Metern",
+          "default_percentage": "Standardposition der Abdeckung als Prozentsatz",
+          "min_position": "Minimale verstellbare Abdeckposition als Prozentsatz",
+          "max_position": "Maximale verstellbare Abdeckposition als Prozentsatz",
+          "fov_left": "Sichtfeldwinkel links vom Fensterzentrum",
+          "fov_right": "Sichtfeldwinkel rechts vom Fensterzentrum",
+          "group": "Entitäten auswählen, die über die Integration gesteuert werden sollen",
+          "sunset_position": "Position, die nach Sonnenuntergang eingenommen wird",
+          "sunset_offset": "Offset (±) von der Sonnenuntergangszeit in Minuten",
+          "sunrise_offset": "Offset (±) von der Sonnenaufgangszeit in Minuten",
+          "climate_mode": "Variablen für den Klimamodus konfigurieren"
 		},
-		"tilt": {
-		  "data": {
-			"set_azimuth": "Fenster-Azimut",
-			"slat_depth": "Lamellenstärke",
-			"slat_distance": "Lamellenabstand",
-			"default_percentage": "Standardposition",
-			"min_position": "Mindestposition",
-			"max_position": "Maximale Position",
-			"enable_min_position": "Minimale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
-			"enable_max_position": "Maximale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
-			"fov_left": "Sichtfeld links",
-			"fov_right": "Sichtfeld rechts",
-			"group": "Abdeck-Entitäten",
-			"inverse_state": "Zustand umkehren (benötigt für einige Abdeckungen, die den HA-Richtlinien nicht folgen)",
-			"sunset_position": "Sonnenuntergangsposition",
-			"sunset_offset": "Sonnenuntergangs-Offset",
-			"sunrise_offset": "Sonnenaufgangs-Offset",
-			"climate_mode": "Klimamodus",
-			"tilt_mode": "Bewegungsart",
-			"blind_spot": "Blinde Zone einrichten",
-			"min_elevation": "Minimale Elevation der Sonne",
-			"max_elevation": "Maximale Elevation der Sonne",
-			"interp": "Benutzerdefinierte Öffnungs-/Schließpositionen für Meine Abdeckung einstellen, wenn diese nicht vollständig bei 0-100% funktioniert"
-		  },
-		  "data_description": {
-			"set_azimuth": "Azimut angeben",
-			"slat_depth": "Tiefe jeder einzelnen Lamelle in Zentimetern",
-			"slat_distance": "Vertikaler Abstand zwischen zwei Lamellen in Zentimetern",
-			"default_percentage": "Standardposition der Abdeckung als Prozentsatz",
-			"min_position": "Minimale Position",
-			"max_position": "Maximale verstellbare Abdeckposition als Prozentsatz",
-			"fov_left": "Grad, die vom linken Fensterzentrum berücksichtigt werden",
-			"fov_right": "Grad, die vom rechten Fensterzentrum berücksichtigt werden",
-			"group": "Entitäten auswählen, die über die Integration gesteuert werden sollen",
-			"sunset_position": "Position, die nach Sonnenuntergang eingenommen wird",
-			"sunset_offset": "Offset (±) von der Sonnenuntergangszeit in Minuten",
-			"sunrise_offset": "Offset (±) von der Sonnenaufgangszeit in Minuten",
-			"climate_mode": "Variablen für den Klimamodus konfigurieren",
-			"tilt_mode": "Bewegungsart auswählen"
-		  },
-		  "description": "Füge Konfigurationsvariablen zum Sensor hinzu",
-		  "title": "Kippbare Abdeckung"
+		"description": "Füge Konfigurationsvariablen zum Sensor hinzu",
+		"title": "Horizontale Abdeckung"
+	  },
+	  "tilt": {
+		"data": {
+          "set_azimuth": "Fenster-Azimut",
+          "slat_depth": "Lamellenstärke",
+          "slat_distance": "Lamellenabstand",
+          "default_percentage": "Standardposition",
+          "min_position": "Mindestposition",
+          "max_position": "Maximale Position",
+          "enable_min_position": "Minimale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "enable_max_position": "Maximale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "fov_left": "Sichtfeld links",
+          "fov_right": "Sichtfeld rechts",
+          "group": "Abdeck-Entitäten",
+          "inverse_state": "Zustand umkehren (benötigt für einige Abdeckungen, die den HA-Richtlinien nicht folgen)",
+          "sunset_position": "Sonnenuntergangsposition",
+          "sunset_offset": "Sonnenuntergangs-Offset",
+          "sunrise_offset": "Sonnenaufgangs-Offset",
+          "climate_mode": "Klimamodus",
+          "tilt_mode": "Bewegungsart",
+          "blind_spot": "Blinde Zone einrichten",
+          "min_elevation": "Minimale Elevation der Sonne",
+          "max_elevation": "Maximale Elevation der Sonne",
+          "interp": "Benutzerdefinierte Öffnungs-/Schließpositionen für Meine Abdeckung einstellen, wenn diese nicht vollständig bei 0-100% funktioniert"
 		},
-		"blind_spot": {
-		  "data": {
-			"blind_spot_left": "Start der blinden Zone links",
-			"blind_spot_right": "Ende der blinden Zone rechts",
-			"blind_spot_elevation": "Elevationshöhe der blinden Zone"
-		  },
-		  "data_description": {
-			"blind_spot_left": "Linke Kante der blinden Zone",
-			"blind_spot_right": "Rechte Kante der blinden Zone",
-			"blind_spot_elevation": "Alle Werte, die gleich oder kleiner sind, gelten als innerhalb der blinden Zone. Nützlich, wenn die Sonne über ein Objekt in der blinden Zone scheinen kann"
-		  },
-		  "title": "Blinde Zone",
-		  "description": "Blinde Zone für die Abdeckung einrichten. Diese Werte sind relative Gradwerte zur Breite des Sichtfelds, wobei 0 die linkeste Position darstellt, die vom Parameter 'FOV links' des Sichtfeldes genommen wird."
+		"data_description": {
+          "set_azimuth": "Azimut angeben",
+          "slat_depth": "Tiefe jeder einzelnen Lamelle in Zentimetern",
+          "slat_distance": "Vertikaler Abstand zwischen zwei Lamellen in Zentimetern",
+          "default_percentage": "Standardposition der Abdeckung als Prozentsatz",
+          "min_position": "Minimale Position",
+          "max_position": "Maximale verstellbare Abdeckposition als Prozentsatz",
+          "fov_left": "Grad, die vom linken Fensterzentrum berücksichtigt werden",
+          "fov_right": "Grad, die vom rechten Fensterzentrum berücksichtigt werden",
+          "group": "Entitäten auswählen, die über die Integration gesteuert werden sollen",
+          "sunset_position": "Position, die nach Sonnenuntergang eingenommen wird",
+          "sunset_offset": "Offset (±) von der Sonnenuntergangszeit in Minuten",
+          "sunrise_offset": "Offset (±) von der Sonnenaufgangszeit in Minuten",
+          "climate_mode": "Variablen für den Klimamodus konfigurieren",
+          "tilt_mode": "Bewegungsart auswählen"
 		},
-		"interp": {
-		  "data": {
-			"interp_start": "Wert, bei dem die Öffnung beginnt",
-			"interp_end": "Wert, bei dem das Schließen beginnt",
-			"interp_list": "Liste der Interpolationen",
-			"interp_list_new": "Benutzerdefinierte Interpolationsliste"
-		  },
-		  "data_description": {
-			"interp_list": "Liste der Interpolationswerte, bei denen 0 vollständig geschlossen und 100 vollständig offen ist",
-			"interp_list_new": "Benutzerdefinierter Bereich von Interpolationswerten, wobei der Beginn geschlossen und das Ende offen darstellen sollte"
-		  },
-		  "title": "Bereichsanpassung",
-		  "description": "Passen Sie die Werte an, bei denen Ihre Abdeckung effektiv öffnet oder schließt. Ideal für Abdeckungen, die nicht vollständig bei 0% öffnen oder bei 100% schließen. \n Die ersten beiden Schieberegler sind für eine 2-Punkte-Anpassung, die Listenauswahl ist für eine Mehrpunkt-Anpassung."																																																														  
+		"description": "Füge Konfigurationsvariablen zum Sensor hinzu",
+		"title": "Kippbare Abdeckung"
+	  },
+	  "blind_spot": {
+		"data": {
+          "blind_spot_left": "Start der blinden Zone links",
+          "blind_spot_right": "Ende der blinden Zone rechts",
+          "blind_spot_elevation": "Elevationshöhe der blinden Zone"
+		},
+		"data_description": {
+          "blind_spot_left": "Linke Kante der blinden Zone",
+          "blind_spot_right": "Rechte Kante der blinden Zone",
+          "blind_spot_elevation": "Alle Werte, die gleich oder kleiner sind, gelten als innerhalb der blinden Zone. Nützlich, wenn die Sonne über ein Objekt in der blinden Zone scheinen kann"
+		},
+		"title": "Blinde Zone",
+		"description": "Blinde Zone für die Abdeckung einrichten. Diese Werte sind relative Gradwerte zur Breite des Sichtfelds, wobei 0 die linkeste Position darstellt, die vom Parameter 'FOV links' des Sichtfeldes genommen wird."
+	  },
+	  "interp": {
+		"data": {
+          "interp_start": "Wert, bei dem die Öffnung beginnt",
+          "interp_end": "Wert, bei dem das Schließen beginnt",
+          "interp_list": "Liste der Interpolationen",
+          "interp_list_new": "Benutzerdefinierte Interpolationsliste"
+		},
+		"data_description": {
+          "interp_list": "Liste der Interpolationswerte, bei denen 0 vollständig geschlossen und 100 vollständig offen ist",
+          "interp_list_new": "Benutzerdefinierter Bereich von Interpolationswerten, wobei der Beginn geschlossen und das Ende offen darstellen sollte"
+		},
+		"title": "Bereichsanpassung",
+		"description": "Passen Sie die Werte an, bei denen Ihre Abdeckung effektiv öffnet oder schließt. Ideal für Abdeckungen, die nicht vollständig bei 0% öffnen oder bei 100% schließen. \n Die ersten beiden Schieberegler sind für eine 2-Punkte-Anpassung, die Listenauswahl ist für eine Mehrpunkt-Anpassung."
       }
     }
   },
   "selector": {
-   "mode": {
-     "options": {
-       "cover_blind": "Vertikale Jalousie",
-       "cover_awning": "Horizontale Markise",
-       "cover_tilt": "Kippbare Jalousie"
-     }
-   },
-   "tilt_mode": {
-     "options": {
-       "mode1": "Einzelrichtung (0% = geschlossen / 100% = offen)",
-       "mode2": "Bidirektional (0% = geschlossen / 50% = offen / 100% = geschlossen)"
-     }
-   }
+    "mode": {
+      "options": {
+        "cover_blind": "Vertikale Jalousie",
+        "cover_awning": "Horizontale Markise",
+        "cover_tilt": "Kippbare Jalousie"
+      }
+    },
+    "tilt_mode": {
+      "options": {
+        "mode1": "Einzelrichtung (0% = geschlossen / 100% = offen)",
+        "mode2": "Bidirektional (0% = geschlossen / 50% = offen / 100% = geschlossen)"
+      }
+    }
   }
 }
