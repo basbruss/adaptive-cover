@@ -53,8 +53,8 @@
           "sunrise_offset": "Versatz zum Sonnenaufgang",
           "climate_mode": "Klima-Modus",
           "blind_spot": "Blindbereich einrichten",
-          "min_elevation": "Minimale Sonnenhöhe",
-          "max_elevation": "Maximale Sonnenhöhe",
+          "min_elevation": "Minimale Sonnenhöhe (Elevation)",
+          "max_elevation": "Maximale Sonnenhöhe (Elevation)",
           "interp": "Benutzerdefinierte Öffnungs-/Schließpositionen für die Abdeckung festlegen, falls diese nicht vollständig zwischen 0-100 % arbeitet"
         },
         "data_description": {
@@ -133,8 +133,8 @@
           "sunrise_offset": "Sonnenaufgangsversatz",
           "climate_mode": "Klima-Modus",
           "blind_spot": "Blindenbereich einrichten",
-          "min_elevation": "Minimale Sonnenhöhe",
-          "max_elevation": "Maximale Sonnenhöhe",
+          "min_elevation": "Minimale Sonnenhöhe (Elevation)",
+          "max_elevation": "Maximale Sonnenhöhe (Elevation)",
           "interp": "Benutzerdefinierte Öffnungs-/Schließpositionen für Meine Abdeckung festlegen, falls diese nicht vollständig bei 0-100% funktioniert"
         },
         "data_description": {
@@ -177,8 +177,8 @@
           "climate_mode": "Klima-Modus",
           "tilt_mode": "Bewegungsart",
           "blind_spot": "Blindenbereich einrichten",
-          "min_elevation": "Minimale Sonnenhöhe",
-          "max_elevation": "Maximale Sonnenhöhe",
+          "min_elevation": "Minimale Sonnenhöhe (Elevation)",
+          "max_elevation": "Maximale Sonnenhöhe (Elevation)",
           "interp": "Benutzerdefinierte Öffnungs-/Schließpositionen für Meine Abdeckung festlegen, falls diese nicht vollständig bei 0-100% funktioniert"
         },
         "data_description": {
@@ -286,8 +286,8 @@
           "sunrise_offset": "Versatz zum Sonnenaufgang",
           "climate_mode": "Klima-Modus",
           "blind_spot": "Blindenbereich einrichten",
-          "min_elevation": "Minimale Sonnenhöhe",
-          "max_elevation": "Maximale Sonnenhöhe",
+          "min_elevation": "Minimale Sonnenhöhe (Elevation)",
+          "max_elevation": "Maximale Sonnenhöhe (Elevation)",
           "interp": "Benutzerdefinierte Öffnungs-/Schließpositionen festlegen, falls die Jalousie nicht vollständig bei 0-100% arbeitet"
         },
         "data_description": {
