@@ -72,7 +72,7 @@
     		  "sunrise_offset": "Décalage (±) par rapport à l'heure du lever du soleil en minutes",
     		  "climate_mode": "Configurer les variables pour le mode climatique"
         },
-        "description": "Ajouter des variables de configuration au capteur"",
+        "description": "Ajouter des variables de configuration au capteur",
         "title": "Volet Vertical"
       },
       "climate": {
