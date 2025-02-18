@@ -438,12 +438,13 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
 
     distance: float
     h_win: float
+    p_win: float
 
     def calculate_position(self) -> float:
         """Calculate blind height."""
         # calculate blind height
         blind_height = np.clip(
-            (self.distance / cos(rad(self.gamma))) * tan(rad(self.sol_elev)),
+            ((self.distance / cos(rad(self.gamma))) * tan(rad(self.sol_elev))) - self.p_win,
             0,
             self.h_win,
         )

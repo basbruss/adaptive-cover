@@ -52,6 +52,7 @@ from .const import (
     CONF_MIN_ELEVATION,
     CONF_MODE,
     CONF_OUTSIDETEMP_ENTITY,
+    CONF_POSITION_WIN,
     CONF_PRESENCE_ENTITY,
     CONF_RETURN_SUNSET,
     CONF_SENSOR_TYPE,
@@ -166,6 +167,11 @@ VERTICAL_OPTIONS = vol.Schema(
         vol.Required(CONF_HEIGHT_WIN, default=2.1): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.1, max=6, step=0.01, mode="slider", unit_of_measurement="m"
+            )
+        ),
+        vol.Required(CONF_POSITION_WIN, default=1.0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=10, step=0.01, mode="slider", unit_of_measurement="m"
             )
         ),
         vol.Required(CONF_DISTANCE, default=0.5): selector.NumberSelector(
@@ -572,6 +578,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_MODE: self.mode,
                 CONF_AZIMUTH: self.config.get(CONF_AZIMUTH),
                 CONF_HEIGHT_WIN: self.config.get(CONF_HEIGHT_WIN),
+                CONF_POSITION_WIN: self.config.get(CONF_POSITION_WIN),
                 CONF_DISTANCE: self.config.get(CONF_DISTANCE),
                 CONF_DEFAULT_HEIGHT: self.config.get(CONF_DEFAULT_HEIGHT),
                 CONF_MAX_POSITION: self.config.get(CONF_MAX_POSITION),
