@@ -38,6 +38,7 @@
         "data": {
           "set_azimuth": "Window Azimuth",
           "window_height": "Window Height",
+          "window_position": "Window Position",
           "distance_shaded_area": "Shaded area",
           "default_percentage": "Default Position",
           "max_position": "Maximum Position",
@@ -258,6 +259,7 @@
         "data": {
           "set_azimuth": "Window Azimuth",
           "window_height": "Window Height",
+          "window_position": "Window Position",
           "distance_shaded_area": "Shaded area",
           "default_percentage": "Default Position",
           "max_position": "Maximum Position",

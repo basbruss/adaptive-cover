@@ -191,7 +191,8 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 | Variables         | Default | Range | Description                                                                                 |
 | ----------------- | ------- | ----- | ------------------------------------------------------------------------------------------- |
 | Window Height     | 2.1     | 0.1-6 | Length of fully extended cover/window                                                       |
-| Workarea Distance | 0.5     | 0.1-2 | The distance to the workarea on equal height to the bottom of the cover when fully extended |
+| Window Position   | 1.0     | 0.1-6 | The vertical distance from the workarea to the base of the cover when fully extended        |
+| Workarea Distance | 0.5     | 0.1-2 | The horizontal distance from the workarea to the cover                                      |
 
 ### Horizontal
 
