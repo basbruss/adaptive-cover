@@ -108,7 +108,7 @@
       "weather": {
         "data": { "weather_state": "Weather Conditions" },
         "data_description": {
-          "weather_state": "Choose the weather conditions that enable automatic window control."
+          "weather_state": "Choose weather conditions that indicate the possibility of direct sunlight."
         },
         "title": "Weather Conditions"
       },
@@ -341,7 +341,7 @@
       "weather": {
         "data": { "weather_state": "Weather Conditions" },
         "data_description": {
-          "weather_state": "Choose the weather conditions that enable automatic window control."
+          "weather_state": "Choose weather conditions that indicate the possibility of direct sunlight."
         },
         "title": "Weather Conditions"
       },
