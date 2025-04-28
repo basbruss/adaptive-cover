@@ -173,7 +173,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         """Config entry first refresh."""
         self.first_refresh = True
         await super().async_config_entry_first_refresh()
-        _LOGGER.debug("Config entry first refresh")
+        self.logger.debug("Config entry first refresh")
 
     async def async_timed_refresh(self, event) -> None:
         """Control state at end time."""
@@ -185,16 +185,16 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         time_check = dt.datetime.now() - get_datetime_from_str(time)
         if time is not None and (time_check <= dt.timedelta(seconds=1)):
             self.timed_refresh = True
-            _LOGGER.debug("Timed refresh triggered")
+            self.logger.debug("Timed refresh triggered")
             await self.async_refresh()
         else:
-            _LOGGER.debug("Time not equal to end time")
+            self.logger.debug("Timed refresh, but: not equal to end time")
 
     async def async_check_entity_state_change(
         self, event: Event[EventStateChangedData]
     ) -> None:
         """Fetch and process state change event."""
-        _LOGGER.debug("Entity state change")
+        self.logger.debug("Entity state change")
         self.state_change = True
         await self.async_refresh()
 
@@ -202,10 +202,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self, event: Event[EventStateChangedData]
     ) -> None:
         """Fetch and process state change event."""
-        _LOGGER.debug("Cover state change")
+        self.logger.debug("Cover state change")
         data = event.data
         if data["old_state"] is None:
-            _LOGGER.debug("Old state is None")
+            self.logger.debug("Old state is None")
             return
         self.state_change_data = StateChangedData(
             data["entity_id"], data["old_state"], data["new_state"]
@@ -215,18 +215,18 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.process_entity_state_change()
             await self.async_refresh()
         else:
-            _LOGGER.debug("Old state is unknown, not processing")
+            self.logger.debug("Old state is unknown, not processing")
 
     def process_entity_state_change(self):
         """Process state change event."""
         event = self.state_change_data
-        _LOGGER.debug("Processing state change event: %s", event)
+        self.logger.debug("Processing state change event: %s", event)
         entity_id = event.entity_id
         if self.ignore_intermediate_states and event.new_state.state in [
             "opening",
             "closing",
         ]:
-            _LOGGER.debug("Ignoring intermediate state change for %s", entity_id)
+            self.logger.debug("Ignoring intermediate state change for %s", entity_id)
             return
         if self.wait_for_target.get(entity_id):
             position = event.new_state.attributes.get(
@@ -236,8 +236,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             )
             if position == self.target_call.get(entity_id):
                 self.wait_for_target[entity_id] = False
-                _LOGGER.debug("Position %s reached for %s", position, entity_id)
-        _LOGGER.debug("Wait for target: %s", self.wait_for_target)
+                self.logger.debug("Position %s reached for %s", position, entity_id)
+        self.logger.debug("Wait for target: %s", self.wait_for_target)
 
     @callback
     def _async_cancel_update_listener(self) -> None:
@@ -248,9 +248,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def async_timed_end_time(self) -> None:
         """Control state at end time."""
-        _LOGGER.debug("Scheduling end time update at %s", self._end_time)
+        self.logger.debug("Scheduling end time update at %s", self._end_time)
         self._async_cancel_update_listener()
-        _LOGGER.debug(
+        self.logger.debug(
             "End time: %s, Track end time: %s, Scheduled time: %s, Condition: %s",
             self._end_time,
             self._track_end_time,
@@ -263,7 +263,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._scheduled_time = self._end_time
 
     async def _async_update_data(self) -> AdaptiveCoverData:
-        _LOGGER.debug("Updating data")
+        self.logger.debug("Updating data")
         if self.first_refresh:
             self._cached_options = self.config_entry.options
 
@@ -312,12 +312,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             or self._sun_start_time is None
             or dt.datetime.now(pytz.UTC).date() != self._sun_start_time.date()
         ):
-            _LOGGER.debug("Calculating solar times")
+            self.logger.debug("Calculating solar times")
             loop = asyncio.get_event_loop()
             start, end = await loop.run_in_executor(None, normal_cover.solar_times)
             self._sun_start_time = start
             self._sun_end_time = end
-            _LOGGER.debug("Sun start time: %s, Sun end time: %s", start, end)
+            self.logger.debug("Sun start time: %s, Sun end time: %s", start, end)
         else:
             start, end = self._sun_start_time, self._sun_end_time
         return AdaptiveCoverData(
@@ -350,9 +350,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             for cover in self.entities:
                 await self.async_handle_call_service(cover, state, options)
         else:
-            _LOGGER.debug("State change but control toggle is off")
+            self.logger.debug("State change but control toggle is off")
         self.state_change = False
-        _LOGGER.debug("State change handled")
+        self.logger.debug("State change handled")
 
     async def async_handle_cover_state_change(self, state: int):
         """Handle state change from assigned covers."""
@@ -366,7 +366,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 self.manual_threshold,
             )
         self.cover_state_change = False
-        _LOGGER.debug("Cover state change handled")
+        self.logger.debug("Cover state change handled")
 
     async def async_handle_first_refresh(self, state: int, options):
         """Handle first refresh."""
@@ -379,9 +379,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 ):
                     await self.async_set_position(cover, state)
         else:
-            _LOGGER.debug("First refresh but control toggle is off")
+            self.logger.debug("First refresh but control toggle is off")
         self.first_refresh = False
-        _LOGGER.debug("First refresh handled")
+        self.logger.debug("First refresh handled")
 
     async def async_handle_timed_refresh(self, options):
         """Handle timed refresh."""
@@ -396,9 +396,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     ),
                 )
         else:
-            _LOGGER.debug("Timed refresh but control toggle is off")
+            self.logger.debug("Timed refresh but control toggle is off")
         self.timed_refresh = False
-        _LOGGER.debug("Timed refresh handled")
+        self.logger.debug("Timed refresh handled")
 
     async def async_handle_call_service(self, entity, state: int, options):
         """Handle call service."""
@@ -429,12 +429,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
             self.wait_for_target[entity] = True
             self.target_call[entity] = state
-            _LOGGER.debug(
+            self.logger.debug(
                 "Set wait for target %s and target call %s",
                 self.wait_for_target,
                 self.target_call,
             )
-            _LOGGER.debug("Run %s with data %s", service, service_data)
+            self.logger.debug("Run %s with data %s", service, service_data)
             await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
 
     def _update_options(self, options):
@@ -495,7 +495,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     def check_adaptive_time(self):
         """Check if time is within start and end times."""
         if self._start_time and self._end_time and self._start_time > self._end_time:
-            _LOGGER.error("Start time is after end time")
+            self.logger.error("Start time is after end time")
         return self.before_end_time and self.after_start_time
 
     @property
@@ -506,7 +506,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             time = get_datetime_from_str(
                 get_safe_state(self.hass, self.start_time_entity)
             )
-            _LOGGER.debug(
+            self.logger.debug(
                 "Start time: %s, now: %s, now >= time: %s ", time, now, now >= time
             )
             self._start_time = time
@@ -514,7 +514,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if self.start_time is not None:
             time = get_datetime_from_str(self.start_time)
 
-            _LOGGER.debug(
+            self.logger.debug(
                 "Start time: %s, now: %s, now >= time: %s", time, now, now >= time
             )
             self._start_time
@@ -540,7 +540,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         """Check if time is before end time."""
         if self._end_time is not None:
             now = dt.datetime.now()
-            _LOGGER.debug(
+            self.logger.debug(
                 "End time: %s, now: %s, now < time: %s",
                 self._end_time,
                 now,
@@ -560,7 +560,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         position = self._get_current_position(entity)
         if position is not None:
             return position != state
-        _LOGGER.debug("Cover is already at position %s", state)
+        self.logger.debug("Cover is already at position %s", state)
         return False
 
     def check_position_delta(self, entity, state: int, options):
@@ -568,7 +568,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         position = self._get_current_position(entity)
         if position is not None:
             condition = abs(position - state) >= self.min_change
-            _LOGGER.debug(
+            self.logger.debug(
                 "Entity: %s,  position: %s, state: %s, delta position: %s, min_change: %s, condition: %s",
                 entity,
                 position,
@@ -593,7 +593,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         last_updated = get_last_updated(entity, self.hass)
         if last_updated is not None:
             condition = now - last_updated >= dt.timedelta(minutes=self.time_threshold)
-            _LOGGER.debug(
+            self.logger.debug(
                 "Entity: %s, time delta: %s, threshold: %s, condition: %s",
                 entity,
                 now - last_updated,
@@ -701,14 +701,14 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             state = self.interpolate_states(state)
 
         if self._inverse_state and self._use_interpolation:
-            _LOGGER.info(
+            self.logger.info(
                 "Inverse state is not supported with interpolation, you can inverse the state by arranging the list from high to low"
             )
 
         if self._inverse_state and not self._use_interpolation:
             state = inverse_state(state)
 
-        _LOGGER.debug("Calculated position: %s", state)
+        self.logger.debug("Final position to use: %s", state)
         return state
 
     def interpolate_states(self, state):
@@ -830,13 +830,13 @@ class AdaptiveCoverManager:
                 manual_threshold is not None
                 and abs(our_state - new_position) < manual_threshold
             ):
-                _LOGGER.debug(
+                self.logger.debug(
                     "Position change is less than threshold %s for %s",
                     manual_threshold,
                     entity_id,
                 )
                 return
-            _LOGGER.debug(
+            self.logger.debug(
                 "Set manual control for %s, for at least %s seconds, reset_allowed: %s",
                 entity_id,
                 self.reset_duration.total_seconds(),
@@ -850,15 +850,15 @@ class AdaptiveCoverManager:
         if entity_id not in self.manual_control_time or allow_reset:
             last_updated = new_state.last_updated
             self.manual_control_time[entity_id] = last_updated
-            _LOGGER.debug(
-                "Updating last updated to %s for %s. Allow reset:%s",
+            self.logger.debug(
+                "Updating last updated for manual control to %s for %s. Allow reset:%s",
                 last_updated,
                 entity_id,
                 allow_reset,
             )
         elif not allow_reset:
-            _LOGGER.debug(
-                "Already time specified for %s, reset is not allowed by user setting:%s",
+            self.logger.debug(
+                "Already manual control time specified for %s, reset is not allowed by user setting:%s",
                 entity_id,
                 allow_reset,
             )
@@ -873,7 +873,7 @@ class AdaptiveCoverManager:
         manual_control_time_copy = dict(self.manual_control_time)
         for entity_id, last_updated in manual_control_time_copy.items():
             if current_time - last_updated > self.reset_duration:
-                _LOGGER.debug(
+                self.logger.debug(
                     "Resetting manual override for %s, because duration has elapsed",
                     entity_id,
                 )
@@ -883,7 +883,7 @@ class AdaptiveCoverManager:
         """Reset manual control for a cover."""
         self.manual_control[entity_id] = False
         self.manual_control_time.pop(entity_id, None)
-        _LOGGER.debug("Reset manual override for %s", entity_id)
+        self.logger.debug("Reset manual override for %s", entity_id)
 
     def is_cover_manual(self, entity_id):
         """Check if a cover is under manual control."""
