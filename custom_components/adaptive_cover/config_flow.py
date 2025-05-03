@@ -55,6 +55,7 @@ from .const import (
     CONF_PRESENCE_ENTITY,
     CONF_RETURN_SUNSET,
     CONF_SENSOR_TYPE,
+    CONF_SHADED_HEIGHT_DELTA,
     CONF_START_ENTITY,
     CONF_START_TIME,
     CONF_SUNRISE_OFFSET,
@@ -171,6 +172,11 @@ VERTICAL_OPTIONS = vol.Schema(
         vol.Required(CONF_DISTANCE, default=0.5): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.1, max=2, step=0.1, mode="slider", unit_of_measurement="m"
+            )
+        ),
+        vol.Required(CONF_SHADED_HEIGHT_DELTA, default=0.0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=-6, max=6, step=0.1, mode="slider", unit_of_measurement="m"
             )
         ),
     }
@@ -580,6 +586,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_FOV_RIGHT: self.config.get(CONF_FOV_RIGHT),
                 CONF_ENTITIES: self.config.get(CONF_ENTITIES),
                 CONF_INVERSE_STATE: self.config.get(CONF_INVERSE_STATE),
+                CONF_SHADED_HEIGHT_DELTA: self.config.get(CONF_SHADED_HEIGHT_DELTA),
                 CONF_SUNSET_POS: self.config.get(CONF_SUNSET_POS),
                 CONF_SUNSET_OFFSET: self.config.get(CONF_SUNSET_OFFSET),
                 CONF_SUNRISE_OFFSET: self.config.get(CONF_SUNRISE_OFFSET),
