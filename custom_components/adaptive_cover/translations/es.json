@@ -4,14 +4,14 @@
     "step": {
       "user": {
         "data": {
-          "name": "Name",
-          "blueprint": "Add blueprint to HomeAssistant",
-          "mode": "Type of blind"
+          "name": "Nombre",
+          "blueprint": "Añadir blueprint a HomeAssistant",
+          "mode": "Tipo de persiana"
         }
       },
       "automation": {
         "data": {
-          "delta_position": "Minimum position adjustment",
+          "delta_position": "Ajuste de posición mínima",
           "delta_time": "Minimum interval between position changes",
           "start_time": "Starting time",
           "start_entity": "Entity indicating starting time",
