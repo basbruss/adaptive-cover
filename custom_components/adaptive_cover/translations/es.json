@@ -17,11 +17,11 @@
           "start_entity": "Entidad para la hora de cokmienzo",
           "manual_override_duration": "Duración de la anulación manual",
           "manual_override_reset": "Duración del reseteo de la anulación manual",
-          "end_time": "End time",
-          "end_entity": "Entity indicating ending time",
-          "manual_threshold": "Manual override threshold",
-          "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
-          "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
+          "end_time": "Hora de finalización",
+          "end_entity": "Entidad para la hora de finalización",
+          "manual_threshold": "Umbral de la anulación manual",
+          "manual_ignore_intermediate": "Ignora las posiciones intermedias durante la anulación manual (apertura y cierre)",
+          "return_sunset": "Siempre ajusta la posición a la por defecto al ocaso en la hora de finalización; Útil si la hora de finalización es antes del ocaso"
         },
         "data_description": {
           "delta_position": "Minimum change in position required before adjusting the cover's position",
