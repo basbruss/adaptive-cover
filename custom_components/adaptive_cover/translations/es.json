@@ -1,1 +1,481 @@
-
+{
+  "title": "Adaptive Cover",
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "name": "Name",
+          "blueprint": "Add blueprint to HomeAssistant",
+          "mode": "Type of blind"
+        }
+      },
+      "automation": {
+        "data": {
+          "delta_position": "Minimum position adjustment",
+          "delta_time": "Minimum interval between position changes",
+          "start_time": "Starting time",
+          "start_entity": "Entity indicating starting time",
+          "manual_override_duration": "Duration of manual override",
+          "manual_override_reset": "Reset Manual override duration",
+          "end_time": "End time",
+          "end_entity": "Entity indicating ending time",
+          "manual_threshold": "Manual override threshold",
+          "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
+          "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
+        },
+        "data_description": {
+          "delta_position": "Minimum change in position required before adjusting the cover's position",
+          "delta_time": "Minimum time interval between position changes; minimum is 2 minutes",
+          "start_time": "Starting time for each day; before this time, the cover will remain stationary",
+          "start_entity": "Entity representing starting time state, overriding the fixed start time set above. Useful for automating the start time with an entity",
+          "manual_override_duration": "The duration of manual control before resetting to automatic control",
+          "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment",
+          "end_time": "Ending time for each day; after this time, the cover will remain stationary",
+          "end_entity": "Entity representing ending time state, overriding the fixed end time set above. Useful for automating the end time with an entity"
+        }
+      },
+      "vertical": {
+        "data": {
+          "set_azimuth": "Window Azimuth",
+          "window_height": "Window Height",
+          "distance_shaded_area": "Shaded area",
+          "default_percentage": "Default Position",
+          "min_position": "Minimum Position",
+          "max_position": "Maximum Position",
+          "enable_min_position": "Only force the minimum position when the sun is in front of the window",
+          "enable_max_position": "Only force the maximum position when the sun is in front of the window",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset",
+          "sunrise_offset": "Sunrise Offset",
+          "climate_mode": "Climate Mode",
+          "blind_spot": "Setup Blindspot",
+          "min_elevation": "Minimum Elevation of the sun",
+          "max_elevation": "Maximum Elevation of the sun",
+          "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
+        },
+        "data_description": {
+          "set_azimuth": "Adjust Azimuth",
+          "window_height": "Specify window height in meters",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "default_percentage": "Default cover position as a percentage",
+          "min_position": "Minimum adjustable cover position as a percentage",
+          "max_position": "Maximum adjustable cover position as a percentage",
+          "fov_left": "Field of view angle to the left of the window center",
+          "fov_right": "Field of view angle to the right of the window center",
+          "group": "Select entities to control via integration",
+          "sunset_position": "Position to switch to after sunset",
+          "sunset_offset": "Offset (±) from sunset time in minutes",
+          "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "climate_mode": "Configure variables for climate mode"
+        },
+        "description": "Add configuration variables to the sensor",
+        "title": "Vertical cover"
+      },
+      "climate": {
+        "data": {
+          "temp_entity": "Inside temperature entity",
+          "presence_entity": "Presence entity (optional)",
+          "weather_entity": "Weather entity (optional)",
+          "outside_temp": "Outside temperature sensor (optional)",
+          "temp_low": "Low temperature threshold",
+          "temp_high": "High temperature threshold",
+          "transparent_blind": "Transparent blind",
+          "lux_entity": "Lux sensor (optional)",
+          "lux_threshold": "Lux threshold",
+          "irradiance_entity": "Irradiance sensor (optional)",
+          "irradiance_threshold": "Irradiance threshold",
+          "outside_threshold": "Minimum outside temperature for summer mode"
+        },
+        "data_description": {
+          "presence_entity": "Entity representing room or home presence status",
+          "weather_entity": "Monitors weather conditions, and outside temperature",
+          "outside_temp": "Overrides outside temperature from weather entity if both are set",
+          "temp_low": "Minimum comfortable temperature",
+          "temp_high": "Maximum comfortable temperature",
+          "transparent_blind": "The blind is transparent and should always close fully when summer mode is active",
+          "lux_entity": "Use lux sensor to determine if cover should reduce glare in presence mode",
+          "lux_threshold": "Threshold for lux sensor, above this value glare should be reduced",
+          "irradiance_entity": "Use irradiance sensor to determine if cover should reduce glare in presence mode",
+          "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced"
+        },
+        "description": "Add additional climate configuration variables.",
+        "title": "Climate settings"
+      },
+      "weather": {
+        "data": { "weather_state": "Weather Conditions" },
+        "data_description": {
+          "weather_state": "Choose the weather conditions that enable automatic window control."
+        },
+        "title": "Weather Conditions"
+      },
+      "horizontal": {
+        "data": {
+          "set_azimuth": "Window Azimuth",
+          "length_awning": "Awning Span Length",
+          "window_height": "Awning Height",
+          "angle": "Awning Angle",
+          "distance_shaded_area": "Shaded area",
+          "default_percentage": "Default Position",
+          "min_position": "Minimum Position",
+          "max_position": "Maximum Position",
+          "enable_min_position": "Only force the minimum position when the sun is in front of the window",
+          "enable_max_position": "Only force the maximum position when the sun is in front of the window",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset",
+          "sunrise_offset": "Sunrise Offset",
+          "climate_mode": "Climate Mode",
+          "blind_spot": "Setup Blindspot",
+          "min_elevation": "Minimum Elevation of the sun",
+          "max_elevation": "Maximum Elevation of the sun",
+          "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
+        },
+        "data_description": {
+          "set_azimuth": "Specify the Azimuth",
+          "window_height": "Adjust the height of the awning from the level of the workarea",
+          "length_awning": "Total span length in meters",
+          "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "default_percentage": "Default cover position as a percentage",
+          "min_position": "Minimum adjustable cover position as a percentage",
+          "max_position": "Maximum adjustable cover position as a percentage",
+          "fov_left": "Field of view degrees to the left of the window center",
+          "fov_right": "Field of view degrees to the right of the window center",
+          "group": "Select entities to control via integration",
+          "sunset_position": "Position to switch to after sunset",
+          "sunset_offset": "Offset (±) from sunset time in minutes",
+          "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "climate_mode": "Configure variables for climate mode"
+        },
+        "description": "Add configuration variables to the sensor",
+        "title": "Horizontal cover"
+      },
+      "tilt": {
+        "data": {
+          "set_azimuth": "Window Azimuth",
+          "slat_depth": "Slat Depth",
+          "slat_distance": "Slat Spacing",
+          "default_percentage": "Default Position",
+          "min_position": "Minimum Position",
+          "max_position": "Maximum Position",
+          "enable_min_position": "Only force the minimum position when the sun is in front of the window",
+          "enable_max_position": "Only force the maximum position when the sun is in front of the window",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset",
+          "sunrise_offset": "Sunrise Offset",
+          "climate_mode": "Climate Mode",
+          "tilt_mode": "Type of movement",
+          "blind_spot": "Setup Blindspot",
+          "min_elevation": "Minimum Elevation of the sun",
+          "max_elevation": "Maximum Elevation of the sun",
+          "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
+        },
+        "data_description": {
+          "set_azimuth": "Specify the Azimuth",
+          "slat_depth": "Depth of each individual slat in centimeters",
+          "slat_distance": "Vertical distance between two slats in centimeters",
+          "default_percentage": "Default cover position as a percentage",
+          "min_position": "Minimum adjustable cover position as a percentage",
+          "max_position": "Maximum adjustable cover position as a percentage",
+          "fov_left": "Degrees to consider from the left side of the window center",
+          "fov_right": "Degrees to consider from the right side of the window center",
+          "group": "Select entities to control via integration",
+          "sunset_position": "Position to transition to after sunset",
+          "sunset_offset": "Offset (±) from sunset time in minutes",
+          "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "climate_mode": "Configure variables for climate mode",
+          "tilt_mode": "Choose the type of movement"
+        },
+        "description": "Add configuration variables to the sensor",
+        "title": "Tilted cover"
+      },
+      "blind_spot": {
+        "data": {
+          "blind_spot_left": "Start blindspot left",
+          "blind_spot_right": "End blindspot right",
+          "blind_spot_elevation": "Blindspot elevation"
+        },
+        "data_description": {
+          "blind_spot_left": "Left edge of the blindspot",
+          "blind_spot_right": "Right edge of the blindspot",
+          "blind_spot_elevation": "Any value equal or less is considered within the blindspot. Usefull if the sun can shine over the object in the blindspot"
+        },
+        "title": "Blindspot",
+        "description": "Setup blindspot for the cover. These values are relative degrees to the width of the field of view. Where 0 is the leftmost position taken from the field of view left parameter."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Value where opening starts",
+          "interp_end": "Value where closing starts",
+          "interp_list": "List of interpolation",
+          "interp_list_new": "Custom interpolation list"
+        },
+        "data_description": {
+          "interp_list": "List of interpolation values, where 0 is fully closed and 100 is fully open",
+          "interp_list_new": "Custom range of interpolation values, where the beginning should represent closed and the end open"
+        },
+        "title": "Range Adjustment",
+        "description": "Adjust the values at which your Cover effectively opens or closes. Ideal for Covers that don't fully open at 0% or close at 100%. \n The first two sliders are for a 2 point adjustment, the list options are for a multiple point adjustment"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "automation": "Modify Automation Configuration",
+          "blind": "Fine-tune Blind Settings",
+          "climate": "Edit Climate Configuration",
+          "weather": "Edit Weather Configuration",
+          "blind_spot": "Setup Blindspot",
+          "interp": "Range Adjustment"
+        }
+      },
+      "automation": {
+        "data": {
+          "delta_position": "Minimum position adjustment",
+          "delta_time": "Minimum interval between position changes",
+          "start_time": "Starting time",
+          "start_entity": "Entity indicating starting time",
+          "manual_override_duration": "Duration of manual override",
+          "manual_override_reset": "Reset Manual override duration",
+          "end_time": "End time",
+          "end_entity": "Entity indicating ending time",
+          "manual_threshold": "Manual override threshold",
+          "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
+          "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
+        },
+        "data_description": {
+          "delta_position": "Minimum change in position required before adjusting the cover's position",
+          "delta_time": "Minimum time interval between position changes; minimum is 2 minutes",
+          "start_time": "Starting time for each day; before this time, the cover will remain stationary",
+          "start_entity": "Entity representing starting time state, overriding the fixed start time set above. Useful for automating the start time with an entity",
+          "manual_override_duration": "The duration of manual control before resetting to automatic control",
+          "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment",
+          "end_time": "Ending time for each day; after this time, the cover will remain stationary",
+          "end_entity": "Ensure that the position is consistently adjusted to the default sunset setting by the end time. This is particularly beneficial when the end time precedes the actual sunset."
+        }
+      },
+      "vertical": {
+        "data": {
+          "set_azimuth": "Window Azimuth",
+          "window_height": "Window Height",
+          "distance_shaded_area": "Shaded area",
+          "default_percentage": "Default Position",
+          "min_position": "Minimum Position",
+          "max_position": "Maximum Position",
+          "enable_min_position": "Only force the minimum position when the sun is in front of the window",
+          "enable_max_position": "Only force the maximum position when the sun is in front of the window",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset",
+          "sunrise_offset": "Sunrise Offset",
+          "climate_mode": "Climate Mode",
+          "blind_spot": "Setup Blindspot",
+          "min_elevation": "Minimum Elevation of the sun",
+          "max_elevation": "Maximum Elevation of the sun",
+          "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
+        },
+        "data_description": {
+          "set_azimuth": "Adjust Azimuth",
+          "window_height": "Specify window height in meters",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "default_percentage": "Default cover position as a percentage",
+          "min_position": "Minimum adjustable cover position as a percentage",
+          "max_position": "Maximum adjustable cover position as a percentage",
+          "fov_left": "Field of view angle to the left of the window center",
+          "fov_right": "Field of view angle to the right of the window center",
+          "group": "Select entities to control via integration",
+          "sunset_position": "Position to switch to after sunset",
+          "sunset_offset": "Offset (±) from sunset time in minutes",
+          "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "climate_mode": "Configure variables for climate mode"
+        },
+        "description": "Add configuration variables to the sensor",
+        "title": "Vertical cover"
+      },
+      "climate": {
+        "data": {
+          "temp_entity": "Inside temperature entity",
+          "presence_entity": "Presence entity (optional)",
+          "weather_entity": "Weather entity (optional)",
+          "outside_temp": "Outside temperature sensor (optional)",
+          "temp_low": "Low temperature threshold",
+          "temp_high": "High temperature threshold",
+          "transparent_blind": "Transparent blind",
+          "lux_entity": "Lux sensor (optional)",
+          "lux_threshold": "Lux threshold",
+          "irradiance_entity": "Irradiance sensor (optional)",
+          "irradiance_threshold": "Irradiance threshold",
+          "outside_threshold": "Minimum outside temperature for summer mode"
+        },
+        "data_description": {
+          "presence_entity": "Entity representing room or home presence status",
+          "weather_entity": "Monitors weather conditions, and outside temperature",
+          "outside_temp": "Overrides outside temperature from weather entity if both are set",
+          "temp_low": "Minimum comfortable temperature",
+          "temp_high": "Maximum comfortable temperature",
+          "transparent_blind": "The blind is transparent and should always close fully when summer mode is active",
+          "lux_entity": "Use lux sensor to determine if cover should reduce glare in presence mode",
+          "lux_threshold": "Threshold for lux sensor, above this value glare should be reduced",
+          "irradiance_entity": "Use irradiance sensor to determine if cover should reduce glare in presence mode",
+          "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced"
+        },
+        "description": "Add additional climate configuration variables.",
+        "title": "Climate settings"
+      },
+      "weather": {
+        "data": { "weather_state": "Weather Conditions" },
+        "data_description": {
+          "weather_state": "Choose the weather conditions that enable automatic window control."
+        },
+        "title": "Weather Conditions"
+      },
+      "horizontal": {
+        "data": {
+          "set_azimuth": "Window Azimuth",
+          "length_awning": "Awning Span Length",
+          "window_height": "Awning Height",
+          "angle": "Awning Angle",
+          "distance_shaded_area": "Shaded area",
+          "default_percentage": "Default Position",
+          "min_position": "Minimum Position",
+          "max_position": "Maximum Position",
+          "enable_min_position": "Only force the minimum position when the sun is in front of the window",
+          "enable_max_position": "Only force the maximum position when the sun is in front of the window",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset",
+          "sunrise_offset": "Sunrise Offset",
+          "climate_mode": "Climate Mode",
+          "blind_spot": "Setup Blindspot",
+          "min_elevation": "Minimum Elevation of the sun",
+          "max_elevation": "Maximum Elevation of the sun",
+          "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
+        },
+        "data_description": {
+          "set_azimuth": "Specify the Azimuth",
+          "window_height": "Adjust the height of the awning from the level of the workarea",
+          "length_awning": "Total span length in meters",
+          "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "default_percentage": "Default cover position as a percentage",
+          "min_position": "Minimum adjustable cover position as a percentage",
+          "max_position": "Maximum adjustable cover position as a percentage",
+          "fov_left": "Field of view degrees to the left of the window center",
+          "fov_right": "Field of view degrees to the right of the window center",
+          "group": "Select entities to control via integration",
+          "sunset_position": "Position to switch to after sunset",
+          "sunset_offset": "Offset (±) from sunset time in minutes",
+          "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "climate_mode": "Configure variables for climate mode"
+        },
+        "description": "Add configuration variables to the sensor",
+        "title": "Horizontal cover"
+      },
+      "tilt": {
+        "data": {
+          "set_azimuth": "Window Azimuth",
+          "slat_depth": "Slat Depth",
+          "slat_distance": "Slat Spacing",
+          "default_percentage": "Default Position",
+          "min_position": "Minimum Position",
+          "max_position": "Maximum Position",
+          "enable_min_position": "Only force the minimum position when the sun is in front of the window",
+          "enable_max_position": "Only force the maximum position when the sun is in front of the window",
+          "fov_left": "Field of view left",
+          "fov_right": "Field of view right",
+          "group": "Cover Entities",
+          "inverse_state": "Inverse the state (needed for some covers that don't follow HA guidelines)",
+          "sunset_position": "Sunset Position",
+          "sunset_offset": "Sunset Offset",
+          "sunrise_offset": "Sunrise Offset",
+          "climate_mode": "Climate Mode",
+          "tilt_mode": "Type of movement",
+          "blind_spot": "Setup Blindspot",
+          "min_elevation": "Minimum Elevation of the sun",
+          "max_elevation": "Maximum Elevation of the sun",
+          "interp": "Set custom open/close positions for My Cover, if it doesn't fully operate at 0-100%"
+        },
+        "data_description": {
+          "set_azimuth": "Specify the Azimuth",
+          "slat_depth": "Depth of each individual slat in centimeters",
+          "slat_distance": "Vertical distance between two slats in centimeters",
+          "default_percentage": "Default cover position as a percentage",
+          "min_position": "Minimum Position",
+          "max_position": "Maximum adjustable cover position as a percentage",
+          "fov_left": "Degrees to consider from the left side of the window center",
+          "fov_right": "Degrees to consider from the right side of the window center",
+          "group": "Select entities to control via integration",
+          "sunset_position": "Position to transition to after sunset",
+          "sunset_offset": "Offset (±) from sunset time in minutes",
+          "sunrise_offset": "Offset (±) from sunrise time in minutes",
+          "climate_mode": "Configure variables for climate mode",
+          "tilt_mode": "Choose the type of movement"
+        },
+        "description": "Add configuration variables to the sensor",
+        "title": "Tilted cover"
+      },
+      "blind_spot": {
+        "data": {
+          "blind_spot_left": "Start blindspot left",
+          "blind_spot_right": "End blindspot right",
+          "blind_spot_elevation": "Blindspot elevation"
+        },
+        "data_description": {
+          "blind_spot_left": "Left edge of the blindspot",
+          "blind_spot_right": "Right edge of the blindspot",
+          "blind_spot_elevation": "Any value equal or less is considered within the blindspot. Usefull if the sun can shine over the object in the blindspot"
+        },
+        "title": "Blindspot",
+        "description": "Setup blindspot for the cover. These values are relative degrees to the width of the field of view. Where 0 is the leftmost position taken from the field of view left parameter."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Value where opening starts",
+          "interp_end": "Value where closing starts",
+          "interp_list": "List of interpolation",
+          "interp_list_new": "Custom interpolation list"
+        },
+        "data_description": {
+          "interp_list": "List of interpolation values, where 0 is fully closed and 100 is fully open",
+          "interp_list_new": "Custom range of interpolation values, where the beginning should represent closed and the end open"
+        },
+        "title": "Range Adjustment",
+        "description": "Adjust the values at which your Cover effectively opens or closes. Ideal for Covers that don't fully open at 0% or close at 100%. \n The first two sliders are for a 2 point adjustment, the list options are for a multiple point adjustment"
+      }
+    }
+  },
+  "selector": {
+    "mode": {
+      "options": {
+        "cover_blind": "Vertical blind",
+        "cover_awning": "Horizontal blind",
+        "cover_tilt": "Tilted blind"
+      }
+    },
+    "tilt_mode": {
+      "options": {
+        "mode1": "single direction (0% = closed / 100% = open)",
+        "mode2": "bi-directional (0% = closed / 50% = open / 100% = closed)"
+      }
+    }
+  }
+}
