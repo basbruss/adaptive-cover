@@ -12,11 +12,11 @@
       "automation": {
         "data": {
           "delta_position": "Ajuste de posición mínima",
-          "delta_time": "Minimum interval between position changes",
-          "start_time": "Starting time",
-          "start_entity": "Entity indicating starting time",
-          "manual_override_duration": "Duration of manual override",
-          "manual_override_reset": "Reset Manual override duration",
+          "delta_time": "Intervalo mínimo entre cambios de posición",
+          "start_time": "Hora de comienzo",
+          "start_entity": "Entidad para la hora de cokmienzo",
+          "manual_override_duration": "Duración de la anulación manual",
+          "manual_override_reset": "Duración del reseteo de la anulación manual",
           "end_time": "End time",
           "end_entity": "Entity indicating ending time",
           "manual_threshold": "Manual override threshold",
