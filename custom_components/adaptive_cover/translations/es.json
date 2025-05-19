@@ -24,9 +24,9 @@
           "return_sunset": "Siempre ajusta la posición a la por defecto al ocaso en la hora de finalización; Útil si la hora de finalización es antes del ocaso"
         },
         "data_description": {
-          "delta_position": "Minimum change in position required before adjusting the cover's position",
-          "delta_time": "Minimum time interval between position changes; minimum is 2 minutes",
-          "start_time": "Starting time for each day; before this time, the cover will remain stationary",
+          "delta_position": "Cambio mínimo de la posición requerido antes de aplicar cambios en la persiana",
+          "delta_time": "Intervalo mínimo de tiempo requerido entre cambios de posición; mínimo 2 minutos",
+          "start_time": "Hora de inicio para cada día; antes de esta hora, la persiana permanecerá estacionaria",
           "start_entity": "Entity representing starting time state, overriding the fixed start time set above. Useful for automating the start time with an entity",
           "manual_override_duration": "The duration of manual control before resetting to automatic control",
           "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment",
