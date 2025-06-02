@@ -865,6 +865,12 @@ class AdaptiveCoverManager:
                 )
                 return
             self.logger.debug(
+                "Manual change detected for %s. Our state: %s, new state: %s",
+                entity_id,
+                our_state,
+                new_position,
+            )
+            self.logger.debug(
                 "Set manual control for %s, for at least %s seconds, reset_allowed: %s",
                 entity_id,
                 self.reset_duration.total_seconds(),
