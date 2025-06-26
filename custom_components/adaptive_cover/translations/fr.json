@@ -1,0 +1,481 @@
+{
+  "title": "Adaptive Cover",
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "name": "Nom",
+          "blueprint": "Ajout du blueprint à HomeAssistant",
+          "mode": "Type de Volet"
+        }
+      },
+      "automation": {
+        "data": {
+          "delta_position": "Ecart minimal de deplacement",
+          "delta_time": "Intervalle de temps minimum entre 2 mouvements",
+          "start_time": "Heure de debut",
+          "start_entity": "Entité pour l'heure de début",
+          "manual_override_duration": "Durée du mode manuel",
+          "manual_override_reset": "Réinitialiser la durée de la commande manuelle",
+          "end_time": "Fin de periode",
+          "end_entity": "Entité indiquant la fin de periode",
+          "manual_threshold": "Seuil de detection pour le mode manuel",
+          "manual_ignore_intermediate": "Ignore les postions intermediares durant le mode manuel (ouverture & fermeture)",
+          "return_sunset": "Toujours ajuster la position en fonction du coucher de soleil à la fin ; utile si l'heure de fin est antérieure au coucher du soleil réel"
+        },
+        "data_description": {
+          "delta_position": "Changement de position minimum requis avant d'ajuster la position du volet",
+          "delta_time": "Intervalle de temps minimum entre 2 changements de position ; le minimum est de 2 minutes",
+          "start_time": "Heure de début pour chaque jour ; avant cette heure, le volet restera statique",
+          "start_entity": "Entité représentant l'état de l'heure de début, remplaçant l'heure de début fixe définie ci-dessus. Utile pour automatiser l'heure de début avec une entité",
+          "manual_override_duration": "Durée du contrôle manuel avant de revenir au contrôle automatique",
+          "manual_override_reset": "Option permettant de réinitialiser la durée du remplacement manuel après chaque ajustement manuel ; si elle est désactivée, la durée ne s'applique qu'au premier ajustement manuel",
+          "end_time": "Heure de fin pour chaque jour ; après cette heure, le volet restera stationnaire",
+          "end_entity": "Entité représentant l'état de l'heure de fin, remplaçant l'heure de fin fixe définie ci-dessus. Utile pour automatiser l'heure de fin avec une entité"
+        }
+      },
+      "vertical": {
+          "data": {
+            "set_azimuth": "Azimut de la fenêtre",
+            "window_height": "Hauteur de la fenêtre",
+            "distance_shaded_area": "Zone ombrée",
+            "default_percentage": "Position par défaut",
+            "min_position": "Position minimale",
+            "max_position": "Position maximale",
+            "enable_min_position": "Forcer la position minimale uniquement lorsque le soleil est devant la fenêtre",
+            "enable_max_position": "Forcer la position maximale uniquement lorsque le soleil est devant la fenêtre",
+            "fov_left": "Angle du champ de vision gauche",
+            "fov_right": "Angle du champ de vision droit",
+            "group": "Entités de Volets",
+            "inverse_state": "Inverser l'état (nécessaire pour certaines couvertures qui ne suivent pas les directives HA)",
+            "sunset_position": "Position du coucher de soleil",
+            "sunset_offset": "Décalage du coucher de soleil",
+            "sunrise_offset": "Décalage du lever du soleil",
+            "climate_mode": "Mode climatique",
+            "blind_spot": "Configurer l'angle mort",
+            "min_elevation": "Élévation minimale du soleil",
+            "max_elevation": "Élévation maximale du soleil",
+            "interp": "Définir des positions d'ouverture/fermeture personnalisées pour mon Volet, si il ne fonctionne pas complètement à 0-100%"
+          },
+          "data_description": {
+            "set_azimuth": "Ajuster l'azimut",
+            "window_height": "Spécifier la hauteur de la fenêtre en mètres",
+            "distance_shaded_area": "Distance entre le volet et la zone à ombrager en bas en mètres",
+            "default_percentage": "Position du volet par défaut en journée en pourcentage",
+            "min_position": "Position de volet réglable minimale en pourcentage",
+            "max_position": "Position du volet réglable maximale en pourcentage",
+            "fov_left": "Angle du champ de vision à gauche du centre de la fenêtre",
+            "fov_right": "Angle de champ de vision à droite du centre de la fenêtre",
+            "group": "Sélectionner les entités à contrôler via l'intégration",
+            "sunset_position": "Position vers laquelle basculer après le coucher du soleil",
+            "sunset_offset": "Décalage (±) par rapport à l'heure du coucher du soleil en minutes",
+            "sunrise_offset": "Décalage (±) par rapport à l'heure du lever du soleil en minutes",
+            "climate_mode": "Configurer les variables pour le mode climatique"
+          },
+        "description": "Ajouter des variables de configuration au capteur",
+        "title": "Volet Vertical"
+      },
+      "climate": {
+        "data": {
+    		  "temp_entity": "Entité de température intérieure",
+    		  "presence_entity": "Entité de présence (optionnelle)",
+    		  "weather_entity": "Entité météo (optionnelle)",
+    		  "outside_temp": "Capteur de température extérieure (optionnel)",
+    		  "temp_low": "Seuil de température basse",
+    		  "temp_high": "Seuil de température haute",
+    		  "transparent_blind": "Store transparent",
+    		  "lux_entity": "Capteur de luminosité (lux) (optionnel)",
+    		  "lux_threshold": "Seuil de luminosité (lux)",
+    		  "irradiance_entity": "Capteur d'irradiance (optionnel)",
+    		  "irradiance_threshold": "Seuil du capteur d'irradiance",
+    		  "outside_threshold": "Température extérieure minimale pour le mode été"
+        },
+        "data_description": {
+    		  "presence_entity": "Entité représentant l'état de présence dans une pièce ou de la maison",
+    		  "weather_entity": "Surveille les conditions météorologiques et la température extérieure",
+    		  "outside_temp": "Remplace la température extérieure de l'entité météo si les deux sont définies",
+    		  "temp_low": "Température minimale de confort",
+    		  "temp_high": "Température maximale de confort",
+    		  "transparent_blind": "Le store est transparent et doit toujours se fermer complètement lorsque le mode été est actif",
+    		  "lux_entity": "Utilisez le capteur de luminosité pour déterminer si le couvercle doit réduire l'éblouissement en mode présence",
+    		  "lux_threshold": "Seuil pour le capteur de luminosité, au-dessus de cette valeur, l'éblouissement doit être réduit",
+    		  "irradiance_entity": "Utilisez le capteur d'irradiance pour déterminer si le volet doit réduire l'éblouissement en mode présence",
+    		  "irradiance_threshold": "Seuil pour le capteur d'irradiance, au-dessus de cette valeur, l'éblouissement doit être réduit"
+        },
+        "description": "Ajouter des variables de configuration climatique supplémentaires.",
+        "title": "Paramètres climatiques"
+      },
+      "weather": {
+        "data": { "weather_state": "Conditions météorologiques" },
+        "data_description": {
+          "weather_state": "Choisissez les conditions météorologiques qui permettent le contrôle automatique des fenêtres."
+        },
+        "title": "Conditions météorologiques"
+      },
+      "horizontal": {
+          "data": {
+            "set_azimuth": "Azimut de la fenêtre",
+            "length_awning": "Longueur de l'envergure du auvent",
+            "window_height": "Hauteur du auvent",
+            "angle": "Angle du auvent",
+            "distance_shaded_area": "Zone ombrée",
+            "default_percentage": "Position par défaut",
+            "min_position": "Position minimale",
+            "max_position": "Position maximale",
+            "enable_min_position": "Forcer la position minimale uniquement lorsque le soleil est devant la fenêtre",
+            "enable_max_position": "Forcer la position maximale uniquement lorsque le soleil est devant la fenêtre",
+            "fov_left": "Champ de vision gauche",
+            "fov_right": "Champ de vision droit",
+            "group": "Entités Volet",
+            "inverse_state": "Inverser l'état (nécessaire pour certaines couvertures qui ne suivent pas les directives HA)",
+            "sunset_position": "Position du coucher de soleil",
+            "sunset_offset": "Décalage du coucher du soleil",
+            "sunrise_offset": "Décalage du lever du soleil",
+            "climate_mode": "Mode climatique",
+            "blind_spot": "Configurer l'angle mort",
+            "min_elevation": "Élévation minimale du soleil",
+            "max_elevation": "Élévation maximale du soleil",
+            "interp": "Définir des positions d'ouverture/fermeture personnalisées pour mon Volet, si elle ne fonctionne pas complètement à 0-100%"
+          },
+          "data_description": {
+            "set_azimuth": "Spécifiez l'azimut",
+            "window_height": "Ajustez la hauteur du auvent à partir du niveau de la zone de travail",
+            "length_awning": "Longueur totale du auvent en mètres",
+            "angle": "Angle du auvent fixé mesuré perpendiculairement du mur au sol",
+            "distance_shaded_area": "Distance entre la couverture et la zone ombragée en mètres",
+            "default_percentage": "Position du volet par défaut en pourcentage",
+            "min_position": "Position minimale du volet en pourcentage",
+            "max_position": "Position maximale du volet en pourcentage",
+            "fov_left": "Degrés du champ de vision à gauche du centre de la fenêtre",
+            "fov_right": "Degrés du champ de vision à droite du centre de la fenêtre",
+            "group": "Sélectionnez les entités à contrôler via l'intégration",
+            "sunset_position": "Position à laquelle basculer après le coucher du soleil",
+            "sunset_offset": "Décalage (±) par rapport à l'heure du coucher du soleil en minutes",
+            "sunrise_offset": "Décalage (±) par rapport à l'heure du lever du soleil en minutes",
+            "climate_mode": "Configurer les variables pour le mode climatique"
+          },
+          "description": "Ajouter des variables de configuration au capteur",
+          "title": "Store banne"
+        },
+      "tilt": {
+        "data": {
+            "set_azimuth": "Azimut de la fenêtre",
+            "slat_depth": "Profondeur des lamelles",
+            "slat_distance": "Espacement des lamelles",
+            "default_percentage": "Position par défaut",
+            "min_position": "Position minimale",
+            "max_position": "Position maximale",
+            "enable_min_position": "Forcer la position minimale uniquement lorsque le soleil est devant la fenêtre",
+            "enable_max_position": "Forcer la position maximale uniquement lorsque le soleil est devant la fenêtre",
+            "fov_left": "Champ de vision gauche",
+            "fov_right": "Champ de vision droit",
+            "group": "Entités de volets",
+            "inverse_state": "Inverser l'état (nécessaire pour certaines couvertures qui ne suivent pas les directives HA)",
+            "sunset_position": "Position du coucher du soleil",
+            "sunset_offset": "Décalage du coucher du soleil",
+            "sunrise_offset": "Lever du soleil Offset",
+            "climate_mode": "Mode climatique",
+            "tilt_mode": "Type de mouvement",
+            "blind_spot": "Configurer l'angle mort",
+            "min_elevation": "Élévation minimale du soleil",
+            "max_elevation": "Élévation maximale du soleil",
+            "interp": "Définir des positions d'ouverture/fermeture personnalisées pour My Cover, si elle ne fonctionne pas complètement à 0-100%"
+          },
+        "data_description": {
+            "set_azimuth": "Spécifiez l'azimut",
+            "slat_depth": "Profondeur de chaque lame individuelle en centimètres",
+            "slat_distance": "Distance verticale entre deux lames en centimètres",
+            "default_percentage": "Position de couverture par défaut en pourcentage",
+            "min_position": "Position de couverture réglable minimale en pourcentage",
+            "max_position": "Position de couverture réglable maximale en pourcentage",
+            "fov_left": "Degrés à prendre en compte à partir du côté gauche du centre de la fenêtre",
+            "fov_right": "Degrés à prendre en compte à partir du côté droit du centre de la fenêtre",
+            "group": "Sélectionnez les entités à contrôler via l'intégration",
+            "sunset_position": "Position vers laquelle effectuer la transition après le coucher du soleil",
+            "sunset_offset": "Décalage (±) par rapport à l'heure du coucher du soleil en minutes",
+            "sunrise_offset": "Décalage (±) par rapport à l'heure du lever du soleil en minutes",
+            "climate_mode": "Configurer les variables pour le mode climatique",
+            "tilt_mode": "Choisir le type de mouvement"
+          },
+          "description": "Ajouter des variables de configuration au capteur",
+          "title": "Persiennes"
+        },
+      "blind_spot": {
+        "data": {
+    		  "blind_spot_left": "Début angle mort gauche",
+    		  "blind_spot_right": "Fin angle mort droit",
+    		  "blind_spot_elevation": "Élévation angle mort"
+        },
+        "data_description": {
+    		  "blind_spot_left": "Bord gauche de l'angle mort",
+    		  "blind_spot_right": "Bord droit de l'angle mort",
+    		  "blind_spot_elevation": "Toute valeur égale ou inférieure est prise en compte dans l'angle mort. Utile si le soleil peut briller sur l'objet dans l'angle mort"
+        },
+        "title": "Angle Mort",
+        "description": "Configurez l'angle mort pour lE VOLET. Ces valeurs sont des degrés relatifs à la largeur du champ de vision. Où 0 est la position la plus à gauche prise à partir du paramètre gauche du champ de vision."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Valeur où commence l'ouverture",
+    		  "interp_end": "Valeur où commence la fermeture",
+    		  "interp_list": "Liste d'interpolation",
+    		  "interp_list_new": "Liste d'interpolation personnalisée"
+        },
+        "data_description": {
+          "interp_list": "Liste de valeurs d'interpolation, où 0 est complètement fermé et 100 est complètement ouvert",
+		      "interp_list_new": "Plage personnalisée de valeurs d'interpolation, où le début doit représenter fermé et la fin ouverte"
+        },
+        "title": "Réglage de la plage",
+		    "description": "Ajustez les valeurs auxquelles votre Vvolet s'ouvre ou se ferme efficacement. Idéal pour les volets qui ne s'ouvrent pas complètement à 0 % ou ne se ferment pas à 100 %. \n Les deux premiers curseurs sont destinés à un réglage à 2 points, les options de liste sont destinées à un réglage à plusieurs points"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "automation": "Modifier la configuration de l'automatisation",
+    		  "blind": "Régler avec précision les paramètres des stores",
+    		  "climate": "Modifier la configuration climatique",
+    		  "weather": "Modifier la configuration météo",
+    		  "blind_spot": "Configurer l'angle mort",
+    		  "interp": "Réglage de la portée"
+        }
+      },
+      "automation": {
+        "data": {
+            "delta_position": "Ajustement de position minimum",
+            "delta_time": "Intervalle minimum entre les changements de position",
+            "start_time": "Heure de début",
+            "start_entity": "Entité indiquant l'heure de début",
+            "manual_override_duration": "Durée de la commande manuelle",
+            "manual_override_reset": "Réinitialiser la durée de la commande manuelle",
+            "end_time": "Heure de fin",
+            "end_entity": "Entité indiquant l'heure de fin",
+            "manual_threshold": "Seuil de commande manuelle",
+            "manual_ignore_intermediate": "Ignorer les positions intermédiaires pendant la commande manuelle (ouverture et fermeture)",
+            "return_sunset": "Toujours ajuster la position à la valeur par défaut du coucher du soleil à l'heure de fin ; utile si l'heure de fin est antérieure au coucher du soleil réel"
+          },
+        "data_description": {
+            "delta_position": "Changement de position minimum requis avant d'ajuster la position du capot",
+            "delta_time": "Intervalle de temps minimum entre les changements de position ; le minimum est de 2 minutes",
+            "start_time": "Heure de début pour chaque jour ; avant cette heure, le capot restera stationnaire",
+            "start_entity": "Entité représentant l'état de l'heure de début, remplaçant l'heure de début fixe définie ci-dessus. Utile pour automatiser l'heure de début avec une entité",
+            "manual_override_duration": "Durée du contrôle manuel avant la réinitialisation au contrôle automatique",
+            "manual_override_reset": "Option permettant de réinitialiser la durée de remplacement manuel après chaque réglage manuel ; si elle est désactivée, la durée ne s'applique qu'au premier réglage manuel",
+            "end_time": "Heure de fin pour chaque jour ; après cette heure, le capot restera stationnaire",
+            "end_entity": "Assurez-vous que la position est systématiquement ajustée au paramètre de coucher de soleil par défaut à l'heure de fin. Ceci est particulièrement utile lorsque l'heure de fin précède le coucher de soleil réel."
+          }
+      },
+      "vertical": {
+        "data": {
+            "set_azimuth": "Azimut de la fenêtre",
+            "window_height": "Hauteur de la fenêtre",
+            "distance_shaded_area": "Zone ombrée",
+            "default_percentage": "Position par défaut",
+            "min_position": "Position minimale",
+            "max_position": "Position maximale",
+            "enable_min_position": "Forcer la position minimale uniquement lorsque le soleil est devant la fenêtre",
+            "enable_max_position": "Forcer la position maximale uniquement lorsque le soleil est devant la fenêtre",
+            "fov_left": "Champ de vision gauche",
+            "fov_right": "Champ de vision droit",
+            "group": "Entités Volet",
+            "inverse_state": "Inverser l'état (nécessaire pour certaines couvertures qui ne suivent pas les directives HA)",
+            "sunset_position": "Position du coucher de soleil",
+            "sunset_offset": "Décalage du coucher de soleil",
+            "sunrise_offset": "Décalage du lever du soleil",
+            "climate_mode": "Mode climatique",
+            "blind_spot": "Configurer l'angle mort",
+            "min_elevation": "Élévation minimale du soleil",
+            "max_elevation": "Élévation maximale du soleil",
+            "interp": "Définir des positions d'ouverture/fermeture personnalisées pour My Cover, si elle ne fonctionne pas complètement à 0-100%"
+          },
+        "data_description": {
+          "set_azimuth": "Ajuster l'azimut",
+          "window_height": "Spécifier la hauteur de la fenêtre en mètres",
+          "distance_shaded_area": "Distance entre la couverture et la zone ombragée en mètres",
+          "default_percentage": "Position de couverture par défaut en pourcentage",
+          "min_position": "Position de couverture réglable minimale en pourcentage",
+          "max_position": "Position de couverture réglable maximale en pourcentage",
+          "fov_left": "Angle de champ de vision à gauche du centre de la fenêtre",
+          "fov_right": "Angle de champ de vision à droite du centre de la fenêtre",
+          "group": "Sélectionner les entités à contrôler via l'intégration",
+          "sunset_position": "Position vers laquelle basculer après le coucher du soleil",
+          "sunset_offset": "Décalage (±) par rapport à l'heure du coucher du soleil en minutes",
+          "sunrise_offset": "Décalage (±) par rapport à l'heure du lever du soleil en minutes",
+          "climate_mode": "Configurer les variables pour le mode climatique"
+        },
+        "description": "Ajouter des variables de configuration au capteur",
+        "title": "Volet verticale"
+        },
+        "climate": {
+          "data": {
+      		  "temp_entity": "Entité de température intérieure",
+      		  "presence_entity": "Entité de présence (optionnelle)",
+      		  "weather_entity": "Entité météo (optionnelle)",
+      		  "outside_temp": "Capteur de température extérieure (optionnel)",
+      		  "temp_low": "Seuil de température basse",
+      		  "temp_high": "Seuil de température haute",
+      		  "transparent_blind": "Store transparent",
+      		  "lux_entity": "Capteur de luminosité (lux) (optionnel)",
+      		  "lux_threshold": "Seuil de luminosité (lux)",
+      		  "irradiance_entity": "Capteur d'irradiance (optionnel)",
+      		  "irradiance_threshold": "Seuil d'irradiance",
+      		  "outside_threshold": "Température extérieure minimale pour le mode été"
+          },
+            "data_description": {
+              "presence_entity": "Entité représentant l'état de présence de la pièce ou de la maison",
+              "weather_entity": "Surveille les conditions météorologiques et la température extérieure",
+              "outside_temp": "Remplace la température extérieure de l'entité météo si les deux sont définies",
+              "temp_low": "Température minimale de confort",
+              "temp_high": "Température maximale de confort",
+              "transparent_blind": "Le store est transparent et doit toujours se fermer complètement lorsque le mode été est actif",
+              "lux_entity": "Utilisez le capteur de luminosité pour déterminer si le couvercle doit réduire l'éblouissement en mode présence",
+              "lux_threshold": "Seuil pour le capteur de luminosité, au-dessus de cette valeur, l'éblouissement doit être réduit",
+              "irradiance_entity": "Utilisez le capteur d'irradiance pour déterminer si le couvercle doit réduire l'éblouissement en mode présence",
+              "irradiance_threshold": "Seuil pour le capteur d'irradiance, au-dessus de cette valeur, l'éblouissement doit être réduit"
+            },
+            "description": "Ajouter des variables de configuration climatique supplémentaires.",
+            "title": "Paramètres climatiques"
+        },
+        "weather": {
+          "data": { "weather_state": "Conditions météorologiques" },
+          "data_description": {
+            "weather_state": "Choisissez les conditions météorologiques qui permettent le contrôle automatique des fenêtres."
+          },
+          "title": "Conditions météorologiques"
+        },
+        "horizontal": {
+          "data": {
+      		  "set_azimuth": "Azimut de la fenêtre",
+      		  "length_awning": "Longueur d'envergure du auvent",
+      		  "window_height": "Hauteur du auvent",
+      		  "angle": "Angle du auvent",
+      		  "distance_shaded_area": "Zone ombrée",
+      		  "default_percentage": "Position par défaut",
+      		  "min_position": "Position minimale",
+      		  "max_position": "Position maximale",
+      		  "enable_min_position": "Forcer la position minimale uniquement lorsque le soleil est devant la fenêtre",
+      		  "enable_max_position": "Forcer la position maximale uniquement lorsque le soleil est devant la fenêtre",
+      		  "fov_left": "Champ de vision gauche",
+      		  "fov_right": "Champ de vision droit",
+      		  "group": "Entités de couverture",
+      		  "inverse_state": "Inverser l'état (nécessaire pour certaines couvertures qui ne suivent pas les directives HA)",
+      		  "sunset_position": "Position du coucher de soleil",
+      		  "sunset_offset": "Décalage du coucher du soleil",
+      		  "sunrise_offset": "Décalage du lever du soleil",
+      		  "climate_mode": "Mode climatique",
+      		  "blind_spot": "Configurer l'angle mort",
+      		  "min_elevation": "Élévation minimale du soleil",
+      		  "max_elevation": "Élévation maximale du soleil",
+      		  "interp": "Définir des positions d'ouverture/fermeture personnalisées pour My Cover, si elle ne fonctionne pas complètement à 0-100%"
+          },
+          "data_description": {
+              "set_azimuth": "Spécifiez l'azimut",
+              "window_height": "Ajustez la hauteur du auvent à partir du niveau de la zone de travail",
+              "length_awning": "Longueur totale de la portée en mètres",
+              "angle": "Angle de l'auvent fixé mesuré perpendiculairement du mur au sol",
+              "distance_shaded_area": "Distance entre la couverture et la zone ombragée en mètres",
+              "default_percentage": "Position de couverture par défaut en pourcentage",
+              "min_position": "Position de couverture réglable minimale en pourcentage",
+              "max_position": "Position de couverture réglable maximale en pourcentage",
+              "fov_left": "Degrés du champ de vision à gauche du centre de la fenêtre",
+              "fov_right": "Degrés du champ de vision à droite du centre de la fenêtre",
+              "group": "Sélectionnez les entités à contrôler via l'intégration",
+              "sunset_position": "Position à laquelle basculer après le coucher du soleil",
+              "sunset_offset": "Décalage (±) par rapport à l'heure du coucher du soleil en minutes",
+              "sunrise_offset": "Décalage (±) par rapport à l'heure du lever du soleil en minutes",
+              "climate_mode": "Configurer les variables pour le mode climatique"
+            },
+          "description": "Add configuration variables to the sensor",
+          "title": "Store banne"
+        },
+        "tilt": {
+          "data": {
+              "set_azimuth": "Azimut de la fenêtre",
+              "slat_depth": "Profondeur des lamelles",
+              "slat_distance": "Espacement des lamelles",
+              "default_percentage": "Position par défaut",
+              "min_position": "Position minimale",
+              "max_position": "Position maximale",
+              "enable_min_position": "Forcer la position minimale uniquement lorsque le soleil est devant la fenêtre",
+              "enable_max_position": "Forcer la position maximale uniquement lorsque le soleil est devant la fenêtre",
+              "fov_left": "Champ de vision gauche",
+              "fov_right": "Champ de vision droit",
+              "group": "Entités de couverture",
+              "inverse_state": "Inverser l'état (nécessaire pour certaines couvertures qui ne suivent pas les directives HA)",
+              "sunset_position": "Position du coucher du soleil",
+              "sunset_offset": "Décalage du coucher du soleil",
+              "sunrise_offset": "Lever du soleil Offset",
+              "climate_mode": "Mode climatique",
+              "tilt_mode": "Type de mouvement",
+              "blind_spot": "Configurer l'angle mort",
+              "min_elevation": "Élévation minimale du soleil",
+              "max_elevation": "Élévation maximale du soleil",
+              "interp": "Définir des positions d'ouverture/fermeture personnalisées pour My Cover, si elle ne fonctionne pas complètement à 0-100%"
+            },
+          "data_description": {
+              "set_azimuth": "Spécifiez l'azimut",
+              "slat_depth": "Profondeur de chaque lame individuelle en centimètres",
+              "slat_distance": "Distance verticale entre deux lames en centimètres",
+              "default_percentage": "Position de couverture par défaut en pourcentage",
+              "min_position": "Position minimale",
+              "max_position": "Position de couverture réglable maximale en pourcentage",
+              "fov_left": "Degrés à prendre en compte à partir du côté gauche du centre de la fenêtre",
+              "fov_right": "Degrés à prendre en compte à partir du côté droit du centre de la fenêtre",
+              "group": "Sélectionnez les entités à contrôler via l'intégration",
+              "sunset_position": "Position vers laquelle effectuer la transition après le coucher du soleil",
+              "sunset_offset": "Décalage (±) par rapport à l'heure du coucher du soleil en minutes",
+              "sunrise_offset": "Décalage (±) par rapport à l'heure du lever du soleil en minutes",
+              "climate_mode": "Configurer les variables pour le mode climatique",
+              "tilt_mode": "Choisir le type de mouvement"
+            },
+            "description": "Ajouter des variables de configuration au capteur",
+            "title": "Persiennes"
+          },
+        "blind_spot": {
+            "data": {
+              "blind_spot_left": "Début angle mort gauche",
+              "blind_spot_right": "Fin angle mort droit",
+              "blind_spot_elevation": "Élévation angle mort"
+            },
+            "data_description": {
+              "blind_spot_left": "Bord gauche de l'angle mort",
+              "blind_spot_right": "Bord droit de l'angle mort",
+              "blind_spot_elevation": "Toute valeur égale ou inférieure est prise en compte dans l'angle mort. Utile si le soleil peut briller sur l'objet dans l'angle mort"
+            },
+            "title": "Blindspot",
+            "description": "Configurez l'angle mort pour le volet. Ces valeurs sont des degrés relatifs à la largeur du champ de vision. Où 0 est la position la plus à gauche prise à partir du paramètre gauche du champ de vision."
+          },
+        "interp": {
+            "data": {
+              "interp_start": "Valeur où commence l'ouverture",
+              "interp_end": "Valeur où commence la fermeture",
+              "interp_list": "Liste d'interpolation",
+              "interp_list_new": "Liste d'interpolation personnalisée"
+            },
+            "data_description": {
+              "interp_list": "Liste de valeurs d'interpolation, où 0 est complètement fermé et 100 est complètement ouvert",
+              "interp_list_new": "Plage personnalisée de valeurs d'interpolation, où le début doit représenter fermé et la fin ouverte"
+            },
+            "title": "Réglage de la plage",
+            "description": "Ajustez les valeurs auxquelles votre volet s'ouvre ou se ferme efficacement. Idéal pour les volets qui ne s'ouvrent pas complètement à 0 % ou ne se ferment pas à 100 %. \n Les deux premiers curseurs sont destinés à un réglage à 2 points, les options de liste sont destinées à un réglage à plusieurs points"
+          }
+      }
+    },
+    "selector": {
+      "mode": {
+        "options": {
+          "cover_blind": "Volet Vertical",
+          "cover_awning": "Store banne",
+          "cover_tilt": "Persiennes"
+        }
+      },
+      "tilt_mode": {
+        "options": {
+          "mode1": "sens unique (0% = fermé / 100% = ouvert)",
+          "mode2": "bidirectionnel (0% = fermé / 50% = ouvert / 100% = fermé)"
+        }
+      }
+    }
+  }
