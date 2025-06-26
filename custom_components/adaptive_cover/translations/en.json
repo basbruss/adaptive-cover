@@ -38,7 +38,7 @@
         "data": {
           "set_azimuth": "Window Azimuth",
           "window_height": "Window Height",
-          "distance_shaded_area": "Shaded area",
+          "distance_shaded_area": "Glare Zone",
           "default_percentage": "Default Position",
           "min_position": "Minimum Position",
           "max_position": "Maximum Position",
@@ -60,7 +60,7 @@
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
           "window_height": "Specify window height in meters",
-          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "distance_shaded_area": "Objects within this distance from the cover recieve direct sunlight. Distance measured horizontally from the bottom of the cover when the cover is fully extended.",
           "default_percentage": "Default cover position as a percentage",
           "min_position": "Minimum adjustable cover position as a percentage",
           "max_position": "Maximum adjustable cover position as a percentage",
@@ -108,7 +108,7 @@
       "weather": {
         "data": { "weather_state": "Weather Conditions" },
         "data_description": {
-          "weather_state": "Choose the weather conditions that enable automatic window control."
+          "weather_state": "Choose weather conditions that indicate the possibility of direct sunlight."
         },
         "title": "Weather Conditions"
       },
@@ -118,7 +118,7 @@
           "length_awning": "Awning Span Length",
           "window_height": "Awning Height",
           "angle": "Awning Angle",
-          "distance_shaded_area": "Shaded area",
+          "distance_shaded_area": "Glare Zone",
           "default_percentage": "Default Position",
           "min_position": "Minimum Position",
           "max_position": "Maximum Position",
@@ -142,7 +142,7 @@
           "window_height": "Adjust the height of the awning from the level of the workarea",
           "length_awning": "Total span length in meters",
           "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
-          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "distance_shaded_area": "Objects within this distance from the cover recieve direct sunlight",
           "default_percentage": "Default cover position as a percentage",
           "min_position": "Minimum adjustable cover position as a percentage",
           "max_position": "Maximum adjustable cover position as a percentage",
@@ -271,7 +271,7 @@
         "data": {
           "set_azimuth": "Window Azimuth",
           "window_height": "Window Height",
-          "distance_shaded_area": "Shaded area",
+          "distance_shaded_area": "Glare Zone",
           "default_percentage": "Default Position",
           "min_position": "Minimum Position",
           "max_position": "Maximum Position",
@@ -293,7 +293,7 @@
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
           "window_height": "Specify window height in meters",
-          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "distance_shaded_area": "Objects within this distance from the cover recieve direct sunlight. Distance measured horizontally from the bottom of the cover when the cover is fully extended.",
           "default_percentage": "Default cover position as a percentage",
           "min_position": "Minimum adjustable cover position as a percentage",
           "max_position": "Maximum adjustable cover position as a percentage",
@@ -341,7 +341,7 @@
       "weather": {
         "data": { "weather_state": "Weather Conditions" },
         "data_description": {
-          "weather_state": "Choose the weather conditions that enable automatic window control."
+          "weather_state": "Choose weather conditions that indicate the possibility of direct sunlight."
         },
         "title": "Weather Conditions"
       },
@@ -351,7 +351,7 @@
           "length_awning": "Awning Span Length",
           "window_height": "Awning Height",
           "angle": "Awning Angle",
-          "distance_shaded_area": "Shaded area",
+          "distance_shaded_area": "Glare Zone",
           "default_percentage": "Default Position",
           "min_position": "Minimum Position",
           "max_position": "Maximum Position",
@@ -375,7 +375,7 @@
           "window_height": "Adjust the height of the awning from the level of the workarea",
           "length_awning": "Total span length in meters",
           "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
-          "distance_shaded_area": "Distance from cover to shaded area in meters",
+          "distance_shaded_area": "Objects within this distance from the cover recieve direct sunlight",
           "default_percentage": "Default cover position as a percentage",
           "min_position": "Minimum adjustable cover position as a percentage",
           "max_position": "Maximum adjustable cover position as a percentage",
