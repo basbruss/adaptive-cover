@@ -212,15 +212,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self.logger.debug("Old state is None")
             return
         if data["new_state"] is None:
-            _LOGGER.debug("New state is None")
+             self.logger.debug("New state is None")
             return
         self.state_change_data = StateChangedData(
             data["entity_id"], data["old_state"], data["new_state"]
         )
         if self.state_change_data.old_state.state in ["unknown", "unavailable"]:
-            _LOGGER.debug("Old state is unknown, not processing")
+            self.logger.debug("Old state is unknown, not processing")
         elif self.state_change_data.new_state.state in ["unknown", "unavailable"]:
-            _LOGGER.debug("New state is unknown, not processing")
+            self.logger.debug("New state is unknown, not processing")
         else:
             self.cover_state_change = True
             self.process_entity_state_change()
