@@ -1,0 +1,481 @@
+{
+  "title": "Adaptive Abdeckung",
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "name": "Name",
+          "blueprint": "Blueprint zu HomeAssistant hinzufügen",
+          "mode": "Typ der Abdeckung"
+        }
+      },
+      "automation": {
+        "data": {
+          "delta_position": "Minimale Positionsanpassung",
+          "delta_time": "Minimales Intervall zwischen Positionsänderungen",
+          "start_time": "Startzeit",
+          "start_entity": "Entität zur Angabe der Startzeit",
+          "manual_override_duration": "Dauer der manuellen Steuerung",
+          "manual_override_reset": "Manuelle Steuerungsdauer zurücksetzen",
+          "end_time": "Endzeit",
+          "end_entity": "Entität zur Angabe der Endzeit",
+          "manual_threshold": "Schwellenwert für manuelle Steuerung",
+          "manual_ignore_intermediate": "Zwischenpositionen während der manuellen Steuerung ignorieren (Öffnen und Schließen)",
+          "return_sunset": "Position zum Sonnenuntergangs-Standardwert anpassen, wenn die Endzeit vor dem tatsächlichen Sonnenuntergang liegt"
+        },
+        "data_description": {
+          "delta_position": "Minimale Positionsänderung, die erforderlich ist, bevor die Abdeckung angepasst wird",
+          "delta_time": "Mindestzeitintervall zwischen Positionsänderungen; mindestens 2 Minuten",
+          "start_time": "Startzeit für jeden Tag; vor dieser Zeit bleibt die Abdeckung unbewegt",
+          "start_entity": "Entität, die den Startzeitstatus angibt und die feste Startzeit überschreibt. Nützlich zur Automatisierung der Startzeit mit einer Entität",
+          "manual_override_duration": "Dauer der manuellen Steuerung, bevor zur automatischen Steuerung zurückgekehrt wird",
+          "manual_override_reset": "Option, um die manuelle Steuerungsdauer nach jeder manuellen Anpassung zurückzusetzen. Falls deaktiviert, gilt die Dauer nur für die erste manuelle Anpassung",
+          "end_time": "Endzeit für jeden Tag; nach dieser Zeit bleibt die Abdeckung unbewegt",
+          "end_entity": "Entität, die den Endzeitstatus angibt und die feste Endzeit überschreibt. Nützlich zur Automatisierung der Endzeit mit einer Entität"
+        }
+      },
+      "vertical": {
+        "data": {
+          "set_azimuth": "Fenster-Azimut",
+          "window_height": "Fensterhöhe",
+          "distance_shaded_area": "Beschattete Fläche",
+          "default_percentage": "Standardposition",
+          "min_position": "Minimale Position",
+          "max_position": "Maximale Position",
+          "enable_min_position": "Minimale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "enable_max_position": "Maximale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "fov_left": "Sichtfeld links",
+          "fov_right": "Sichtfeld rechts",
+          "group": "Abdeckungs-Entitäten",
+          "inverse_state": "Status umkehren (erforderlich für einige Abdeckungen, die nicht den HA-Richtlinien folgen)",
+          "sunset_position": "Position zum Sonnenuntergang",
+          "sunset_offset": "Versatz zum Sonnenuntergang",
+          "sunrise_offset": "Versatz zum Sonnenaufgang",
+          "climate_mode": "Klima-Modus",
+          "blind_spot": "Blindbereich einrichten",
+          "min_elevation": "Minimale Sonnenhöhe (Elevation)",
+          "max_elevation": "Maximale Sonnenhöhe (Elevation)",
+          "interp": "Benutzerdefinierte Öffnungs-/Schließpositionen für die Abdeckung festlegen, falls diese nicht vollständig zwischen 0-100 % arbeitet"
+        },
+        "data_description": {
+          "set_azimuth": "Azimut anpassen",
+          "window_height": "Fensterhöhe in Metern angeben",
+          "distance_shaded_area": "Abstand von der Abdeckung zur beschatteten Fläche in Metern",
+          "default_percentage": "Standardposition der Abdeckung in Prozent",
+          "min_position": "Minimale einstellbare Abdeckungsposition in Prozent",
+          "max_position": "Maximale einstellbare Abdeckungsposition in Prozent",
+          "fov_left": "Sichtfeldwinkel nach links vom Fenstermittelpunkt",
+          "fov_right": "Sichtfeldwinkel nach rechts vom Fenstermittelpunkt",
+          "group": "Entitäten zur Steuerung über die Integration auswählen",
+          "sunset_position": "Position nach Sonnenuntergang wechseln",
+          "sunset_offset": "Versatz (±) zur Sonnenuntergangszeit in Minuten",
+          "sunrise_offset": "Versatz (±) zur Sonnenaufgangszeit in Minuten",
+          "climate_mode": "Variablen für den Klima-Modus konfigurieren"
+        },
+        "description": "Füge Konfigurationsvariablen zum Sensor hinzu",
+        "title": "Vertikale Abdeckung"
+      },
+	  "climate": {
+        "data": {
+          "temp_entity": "Innenraum-Temperatur-Entität",
+          "presence_entity": "Präsenz-Entität (optional)",
+          "weather_entity": "Wetter-Entität (optional)",
+          "outside_temp": "Außentemperatur-Sensor (optional)",
+          "temp_low": "Niedrige Temperaturgrenze",
+          "temp_high": "Hohe Temperaturgrenze",
+          "transparent_blind": "Transparente Jalousie",
+          "lux_entity": "Lux-Sensor (optional)",
+          "lux_threshold": "Lux-Schwellenwert",
+          "irradiance_entity": "Strahlungssensor (optional)",
+          "irradiance_threshold": "Strahlungsschwellenwert",
+          "outside_threshold": "Minimale Außentemperatur für den Sommermodus"
+        },
+        "data_description": {
+          "presence_entity": "Entität zur Darstellung des Präsenzstatus im Raum oder Zuhause",
+          "weather_entity": "Überwacht Wetterbedingungen und Außentemperatur",
+          "outside_temp": "Überschreibt die Außentemperatur der Wetter-Entität, falls beide gesetzt sind",
+          "temp_low": "Minimale Komforttemperatur",
+          "temp_high": "Maximale Komforttemperatur",
+          "transparent_blind": "Die Jalousie ist transparent und sollte im Sommermodus immer vollständig geschlossen sein",
+          "lux_entity": "Verwendet den Lux-Sensor, um zu bestimmen, ob die Abdeckung zur Reduzierung der Blendung im Präsenzmodus abgesenkt werden soll",
+          "lux_threshold": "Schwellenwert für den Lux-Sensor; oberhalb dieses Werts sollte Blendung reduziert werden",
+          "irradiance_entity": "Verwendet den Strahlungssensor, um zu bestimmen, ob die Abdeckung zur Reduzierung der Blendung im Präsenzmodus abgesenkt werden soll",
+          "irradiance_threshold": "Schwellenwert für den Strahlungssensor; oberhalb dieses Werts sollte Blendung reduziert werden"
+        },
+        "description": "Zusätzliche Konfigurationsvariablen für das Klima hinzufügen.",
+        "title": "Klimaeinstellungen"
+      },
+      "weather": {
+        "data": { "weather_state": "Wetterbedingungen" },
+        "data_description": {
+          "weather_state": "Wählen Sie die Wetterbedingungen, die die automatische Fenstersteuerung aktivieren."
+        },
+        "title": "Wetterbedingungen"
+      },
+      "horizontal": {
+        "data": {
+          "set_azimuth": "Fenster-Azimut",
+          "length_awning": "Markisen-Spannweite",
+          "window_height": "Markisenhöhe",
+          "angle": "Markisenwinkel",
+          "distance_shaded_area": "Beschattete Fläche",
+          "default_percentage": "Standardposition",
+          "min_position": "Minimale Position",
+          "max_position": "Maximale Position",
+          "enable_min_position": "Die minimale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "enable_max_position": "Die maximale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "fov_left": "Sichtfeld links",
+          "fov_right": "Sichtfeld rechts",
+          "group": "Abdeckungs-Entitäten",
+          "inverse_state": "Status umkehren (erforderlich für einige Abdeckungen, die nicht den HA-Richtlinien folgen)",
+          "sunset_position": "Sonnenuntergangsposition",
+          "sunset_offset": "Sonnenuntergangsversatz",
+          "sunrise_offset": "Sonnenaufgangsversatz",
+          "climate_mode": "Klima-Modus",
+          "blind_spot": "Blindenbereich einrichten",
+          "min_elevation": "Minimale Sonnenhöhe (Elevation)",
+          "max_elevation": "Maximale Sonnenhöhe (Elevation)",
+          "interp": "Benutzerdefinierte Öffnungs-/Schließpositionen für Meine Abdeckung festlegen, falls diese nicht vollständig bei 0-100% funktioniert"
+        },
+        "data_description": {
+          "set_azimuth": "Azimut-Winkel festlegen",
+          "window_height": "Höhe der Markise vom Bodenlevel aus anpassen",
+          "length_awning": "Gesamtlänge der Spannweite in Metern",
+          "angle": "Winkel der befestigten Markise, senkrecht von der Wand zum Boden gemessen",
+          "distance_shaded_area": "Abstand von der Abdeckung zur beschatteten Fläche in Metern",
+          "default_percentage": "Standardabdeckungsposition als Prozentsatz",
+          "min_position": "Minimale einstellbare Abdeckungsposition als Prozentsatz",
+          "max_position": "Maximale einstellbare Abdeckungsposition als Prozentsatz",
+          "fov_left": "Sichtfeld in Grad links vom Fensterzentrum",
+          "fov_right": "Sichtfeld in Grad rechts vom Fensterzentrum",
+          "group": "Entitäten zur Steuerung über die Integration auswählen",
+          "sunset_position": "Position nach Sonnenuntergang",
+          "sunset_offset": "Versatz (±) zur Sonnenuntergangszeit in Minuten",
+          "sunrise_offset": "Versatz (±) zur Sonnenaufgangszeit in Minuten",
+          "climate_mode": "Variablen für den Klima-Modus konfigurieren"
+        },
+        "description": "Konfigurationsvariablen zum Sensor hinzufügen",
+        "title": "Horizontale Abdeckung"
+      },
+      "tilt": {
+        "data": {
+          "set_azimuth": "Fenster-Azimut",
+          "slat_depth": "Lamellentiefe",
+          "slat_distance": "Lamellenabstand",
+          "default_percentage": "Standardposition",
+          "min_position": "Minimale Position",
+          "max_position": "Maximale Position",
+          "enable_min_position": "Die minimale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "enable_max_position": "Die maximale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "fov_left": "Sichtfeld links",
+          "fov_right": "Sichtfeld rechts",
+          "group": "Abdeckungs-Entitäten",
+          "inverse_state": "Status umkehren (erforderlich für einige Abdeckungen, die nicht den HA-Richtlinien folgen)",
+          "sunset_position": "Sonnenuntergangsposition",
+          "sunset_offset": "Sonnenuntergangsversatz",
+          "sunrise_offset": "Sonnenaufgangsversatz",
+          "climate_mode": "Klima-Modus",
+          "tilt_mode": "Bewegungsart",
+          "blind_spot": "Blindenbereich einrichten",
+          "min_elevation": "Minimale Sonnenhöhe (Elevation)",
+          "max_elevation": "Maximale Sonnenhöhe (Elevation)",
+          "interp": "Benutzerdefinierte Öffnungs-/Schließpositionen für Meine Abdeckung festlegen, falls diese nicht vollständig bei 0-100% funktioniert"
+        },
+        "data_description": {
+          "set_azimuth": "Azimut-Winkel festlegen",
+          "slat_depth": "Tiefe jeder einzelnen Lamelle in Zentimetern",
+          "slat_distance": "Vertikaler Abstand zwischen zwei Lamellen in Zentimetern",
+          "default_percentage": "Standardabdeckungsposition als Prozentsatz",
+          "min_position": "Minimale einstellbare Abdeckungsposition als Prozentsatz",
+          "max_position": "Maximale einstellbare Abdeckungsposition als Prozentsatz",
+          "fov_left": "Sichtfeld in Grad links vom Fensterzentrum",
+          "fov_right": "Sichtfeld in Grad rechts vom Fensterzentrum",
+          "group": "Entitäten zur Steuerung über die Integration auswählen",
+          "sunset_position": "Position nach Sonnenuntergang",
+          "sunset_offset": "Versatz (±) zur Sonnenuntergangszeit in Minuten",
+          "sunrise_offset": "Versatz (±) zur Sonnenaufgangszeit in Minuten",
+          "climate_mode": "Variablen für den Klima-Modus konfigurieren",
+          "tilt_mode": "Bewegungsart wählen"
+        },
+        "description": "Konfigurationsvariablen zum Sensor hinzufügen",
+		"title": "Kippbare Abdeckung"
+	  },
+	  "blind_spot": {
+		"data": {
+          "blind_spot_left": "Start der blinden Zone links",
+          "blind_spot_right": "Ende der blinden Zone rechts",
+          "blind_spot_elevation": "Elevationshöhe der blinden Zone"
+		},
+		"data_description": {
+          "blind_spot_left": "Linke Kante der blinden Zone",
+          "blind_spot_right": "Rechte Kante der blinden Zone",
+          "blind_spot_elevation": "Alle Werte, die gleich oder kleiner sind, gelten als innerhalb der blinden Zone. Nützlich, wenn die Sonne über ein Objekt in der blinden Zone scheinen kann"
+		},
+		"title": "Blinde Zone",
+		"description": "Blinde Zone für die Abdeckung einrichten. Diese Werte sind relative Gradwerte zur Breite des Sichtfelds, wobei 0 die linkeste Position darstellt, die vom Parameter 'FOV links' des Sichtfeldes genommen wird."
+	  },
+	  "interp": {
+		"data": {
+          "interp_start": "Wert, bei dem die Öffnung beginnt",
+          "interp_end": "Wert, bei dem das Schließen beginnt",
+          "interp_list": "Liste der Interpolationen",
+          "interp_list_new": "Benutzerdefinierte Interpolationsliste"
+		},
+		"data_description": {
+          "interp_list": "Liste der Interpolationswerte, bei denen 0 vollständig geschlossen und 100 vollständig offen ist",
+          "interp_list_new": "Benutzerdefinierter Bereich von Interpolationswerten, wobei der Beginn geschlossen und das Ende offen darstellen sollte"
+		  },
+		  "title": "Bereichsanpassung",
+		  "description": "Passen Sie die Werte an, bei denen Ihre Abdeckung effektiv öffnet oder schließt. Ideal für Abdeckungen, die nicht vollständig bei 0% öffnen oder bei 100% schließen. \n Die ersten beiden Schieberegler sind für eine 2-Punkte-Anpassung, die Listenauswahl ist für eine Mehrpunkt-Anpassung."
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "automation": "Automatisierungskonfiguration ändern",
+          "blind": "Jalousien-Einstellungen anpassen",
+          "climate": "Klimakonfiguration bearbeiten",
+          "weather": "Wetterkonfiguration bearbeiten",
+          "blind_spot": "Blindenbereich einrichten",
+          "interp": "Bereichsanpassung"
+        }
+      },
+      "automation": {
+        "data": {
+          "delta_position": "Minimale Positionsänderung",
+          "delta_time": "Minimales Intervall zwischen Positionsänderungen",
+          "start_time": "Startzeit",
+          "start_entity": "Entität zur Bestimmung der Startzeit",
+          "manual_override_duration": "Dauer der manuellen Übersteuerung",
+          "manual_override_reset": "Manuelle Übersteuerungsdauer zurücksetzen",
+          "end_time": "Endzeit",
+          "end_entity": "Entität zur Bestimmung der Endzeit",
+          "manual_threshold": "Schwellenwert für manuelle Übersteuerung",
+          "manual_ignore_intermediate": "Zwischenpositionen während manueller Übersteuerung ignorieren (Öffnen und Schließen)",
+          "return_sunset": "Immer zur Standard-Sonnenuntergangsposition zurückkehren; nützlich, wenn die Endzeit vor Sonnenuntergang liegt"
+        },
+        "data_description": {
+          "delta_position": "Minimale Änderung der Position, bevor die Jalousie angepasst wird",
+          "delta_time": "Minimales Zeitintervall zwischen Positionsänderungen; mindestens 2 Minuten",
+          "start_time": "Startzeit für jeden Tag; davor bleibt die Jalousie unverändert",
+          "start_entity": "Entität, die die Startzeit bestimmt und die feste Startzeit überschreibt. Nützlich zur Automatisierung mit einer Entität",
+          "manual_override_duration": "Dauer der manuellen Steuerung, bevor die Automatik zurückgesetzt wird",
+          "manual_override_reset": "Option zum Zurücksetzen der manuellen Übersteuerungsdauer nach jeder manuellen Anpassung; wenn deaktiviert, gilt die Dauer nur für die erste manuelle Anpassung",
+          "end_time": "Endzeit für jeden Tag; danach bleibt die Jalousie unverändert",
+          "end_entity": "Stellt sicher, dass die Position bis zur Endzeit auf die Standard-Sonnenuntergangseinstellung zurückgesetzt wird, insbesondere wenn die Endzeit vor dem tatsächlichen Sonnenuntergang liegt"
+        }
+      },
+      "vertical": {
+        "data": {
+          "set_azimuth": "Fenster-Azimut",
+          "window_height": "Fensterhöhe",
+          "distance_shaded_area": "Beschatteter Bereich",
+          "default_percentage": "Standardposition",
+          "min_position": "Minimale Position",
+          "max_position": "Maximale Position",
+          "enable_min_position": "Minimale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "enable_max_position": "Maximale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "fov_left": "Sichtfeld links",
+          "fov_right": "Sichtfeld rechts",
+          "group": "Jalousie-Entitäten",
+          "inverse_state": "Zustand umkehren (nötig für manche Jalousien, die nicht den HA-Richtlinien folgen)",
+          "sunset_position": "Position bei Sonnenuntergang",
+          "sunset_offset": "Versatz zum Sonnenuntergang",
+          "sunrise_offset": "Versatz zum Sonnenaufgang",
+          "climate_mode": "Klima-Modus",
+          "blind_spot": "Blindenbereich einrichten",
+          "min_elevation": "Minimale Sonnenhöhe (Elevation)",
+          "max_elevation": "Maximale Sonnenhöhe (Elevation)",
+          "interp": "Benutzerdefinierte Öffnungs-/Schließpositionen festlegen, falls die Jalousie nicht vollständig bei 0-100% arbeitet"
+        },
+        "data_description": {
+          "set_azimuth": "Azimut einstellen",
+          "window_height": "Fensterhöhe in Metern angeben",
+          "distance_shaded_area": "Entfernung vom Jalousie bis zum beschatteten Bereich in Metern",
+          "default_percentage": "Standardposition der Jalousie in Prozent",
+          "min_position": "Minimale einstellbare Position der Jalousie in Prozent",
+          "max_position": "Maximale einstellbare Position der Jalousie in Prozent",
+          "fov_left": "Sichtfeldwinkel links vom Fenstermittelpunkt",
+          "fov_right": "Sichtfeldwinkel rechts vom Fenstermittelpunkt",
+          "group": "Entitäten zur Steuerung über die Integration auswählen",
+          "sunset_position": "Position nach Sonnenuntergang",
+          "sunset_offset": "Versatz (+/-) zur Sonnenuntergangszeit in Minuten",
+          "sunrise_offset": "Versatz (+/-) zur Sonnenaufgangszeit in Minuten",
+          "climate_mode": "Variablen für den Klima-Modus konfigurieren"
+        },
+        "description": "Konfigurationsvariablen zum Sensor hinzufügen",
+        "title": "Vertikale Jalousie"
+      },
+      "climate": {
+        "data": {
+          "temp_entity": "Innensensor für Temperatur",
+          "presence_entity": "Präsenzsensor (optional)",
+          "weather_entity": "Wettersensor (optional)",
+          "outside_temp": "Außentemperatur-Sensor (optional)",
+          "temp_low": "Untere Temperaturschwelle",
+          "temp_high": "Obere Temperaturschwelle",
+          "transparent_blind": "Transparente Jalousie",
+          "lux_entity": "Lichtsensor (optional)",
+          "lux_threshold": "Lichtschwelle",
+          "irradiance_entity": "Bestrahlungsstärke-Sensor (optional)",
+          "irradiance_threshold": "Schwelle für Bestrahlungsstärke",
+          "outside_threshold": "Minimale Außentemperatur für den Sommermodus"
+        },
+        "data_description": {
+          "presence_entity": "Entität zur Erfassung des Anwesenheitsstatus im Raum oder Haus",
+          "weather_entity": "Überwacht Wetterbedingungen und Außentemperatur",
+          "outside_temp": "Überschreibt die Außentemperatur des Wettersensors, falls beide gesetzt sind",
+          "temp_low": "Mindesttemperatur für Komfort",
+          "temp_high": "Höchsttemperatur für Komfort",
+          "transparent_blind": "Die Jalousie ist transparent und sollte im Sommermodus immer vollständig schließen",
+          "lux_entity": "Verwendet den Lichtsensor, um Blendung im Anwesenheitsmodus zu reduzieren",
+          "lux_threshold": "Schwellenwert für den Lichtsensor, oberhalb dessen Blendung reduziert werden sollte",
+          "irradiance_entity": "Verwendet den Bestrahlungsstärke-Sensor, um Blendung im Anwesenheitsmodus zu reduzieren",
+          "irradiance_threshold": "Schwellenwert für den Bestrahlungsstärke-Sensor, oberhalb dessen Blendung reduziert werden sollte"
+        },
+        "description": "Zusätzliche Klima-Konfigurationsvariablen hinzufügen.",
+        "title": "Klimaeinstellungen"
+      },
+      "weather": {
+        "data": { "weather_state": "Wetterbedingungen" },
+        "data_description": {
+          "weather_state": "Wähle die Wetterbedingungen, die eine automatische Fenstersteuerung aktivieren."
+        },
+        "title": "Wetterbedingungen"
+	  },
+	  "horizontal": {
+		"data": {
+          "set_azimuth": "Fenster-Azimut",
+          "length_awning": "Markisen-Spannweite",
+          "window_height": "Markisenhöhe",
+          "angle": "Markisenwinkel",
+          "distance_shaded_area": "Beschatteter Bereich",
+          "default_percentage": "Standardposition",
+          "min_position": "Mindestposition",
+          "max_position": "Maximale Position",
+          "enable_min_position": "Minimale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "enable_max_position": "Maximale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "fov_left": "Sichtfeld links",
+          "fov_right": "Sichtfeld rechts",
+          "group": "Abdeck-Entitäten",
+          "inverse_state": "Zustand umkehren (benötigt für einige Abdeckungen, die den HA-Richtlinien nicht folgen)",
+          "sunset_position": "Sonnenuntergangsposition",
+          "sunset_offset": "Sonnenuntergangs-Offset",
+          "sunrise_offset": "Sonnenaufgangs-Offset",
+          "climate_mode": "Klimamodus",
+          "blind_spot": "Blinde Zone einrichten",
+          "min_elevation": "Minimale Elevation der Sonne",
+          "max_elevation": "Maximale Elevation der Sonne",
+          "interp": "Benutzerdefinierte Öffnungs-/Schließpositionen für Meine Abdeckung einstellen, wenn diese nicht vollständig bei 0-100% funktioniert"
+		},
+		"data_description": {
+          "set_azimuth": "Azimut angeben",
+          "window_height": "Höhe der Markise vom Arbeitsbereich aus anpassen",
+          "length_awning": "Gesamtlänge der Markise in Metern",
+          "angle": "Winkel der befestigten Markise, senkrecht von der Wand zum Boden gemessen",
+          "distance_shaded_area": "Abstand von der Abdeckung zum beschatteten Bereich in Metern",
+          "default_percentage": "Standardposition der Abdeckung als Prozentsatz",
+          "min_position": "Minimale verstellbare Abdeckposition als Prozentsatz",
+          "max_position": "Maximale verstellbare Abdeckposition als Prozentsatz",
+          "fov_left": "Sichtfeldwinkel links vom Fensterzentrum",
+          "fov_right": "Sichtfeldwinkel rechts vom Fensterzentrum",
+          "group": "Entitäten auswählen, die über die Integration gesteuert werden sollen",
+          "sunset_position": "Position, die nach Sonnenuntergang eingenommen wird",
+          "sunset_offset": "Offset (±) von der Sonnenuntergangszeit in Minuten",
+          "sunrise_offset": "Offset (±) von der Sonnenaufgangszeit in Minuten",
+          "climate_mode": "Variablen für den Klimamodus konfigurieren"
+		},
+		"description": "Füge Konfigurationsvariablen zum Sensor hinzu",
+		"title": "Horizontale Abdeckung"
+	  },
+	  "tilt": {
+		"data": {
+          "set_azimuth": "Fenster-Azimut",
+          "slat_depth": "Lamellenstärke",
+          "slat_distance": "Lamellenabstand",
+          "default_percentage": "Standardposition",
+          "min_position": "Mindestposition",
+          "max_position": "Maximale Position",
+          "enable_min_position": "Minimale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "enable_max_position": "Maximale Position nur erzwingen, wenn die Sonne vor dem Fenster steht",
+          "fov_left": "Sichtfeld links",
+          "fov_right": "Sichtfeld rechts",
+          "group": "Abdeck-Entitäten",
+          "inverse_state": "Zustand umkehren (benötigt für einige Abdeckungen, die den HA-Richtlinien nicht folgen)",
+          "sunset_position": "Sonnenuntergangsposition",
+          "sunset_offset": "Sonnenuntergangs-Offset",
+          "sunrise_offset": "Sonnenaufgangs-Offset",
+          "climate_mode": "Klimamodus",
+          "tilt_mode": "Bewegungsart",
+          "blind_spot": "Blinde Zone einrichten",
+          "min_elevation": "Minimale Elevation der Sonne",
+          "max_elevation": "Maximale Elevation der Sonne",
+          "interp": "Benutzerdefinierte Öffnungs-/Schließpositionen für Meine Abdeckung einstellen, wenn diese nicht vollständig bei 0-100% funktioniert"
+		},
+		"data_description": {
+          "set_azimuth": "Azimut angeben",
+          "slat_depth": "Tiefe jeder einzelnen Lamelle in Zentimetern",
+          "slat_distance": "Vertikaler Abstand zwischen zwei Lamellen in Zentimetern",
+          "default_percentage": "Standardposition der Abdeckung als Prozentsatz",
+          "min_position": "Minimale Position",
+          "max_position": "Maximale verstellbare Abdeckposition als Prozentsatz",
+          "fov_left": "Grad, die vom linken Fensterzentrum berücksichtigt werden",
+          "fov_right": "Grad, die vom rechten Fensterzentrum berücksichtigt werden",
+          "group": "Entitäten auswählen, die über die Integration gesteuert werden sollen",
+          "sunset_position": "Position, die nach Sonnenuntergang eingenommen wird",
+          "sunset_offset": "Offset (±) von der Sonnenuntergangszeit in Minuten",
+          "sunrise_offset": "Offset (±) von der Sonnenaufgangszeit in Minuten",
+          "climate_mode": "Variablen für den Klimamodus konfigurieren",
+          "tilt_mode": "Bewegungsart auswählen"
+		},
+		"description": "Füge Konfigurationsvariablen zum Sensor hinzu",
+		"title": "Kippbare Abdeckung"
+	  },
+	  "blind_spot": {
+		"data": {
+          "blind_spot_left": "Start der blinden Zone links",
+          "blind_spot_right": "Ende der blinden Zone rechts",
+          "blind_spot_elevation": "Elevationshöhe der blinden Zone"
+		},
+		"data_description": {
+          "blind_spot_left": "Linke Kante der blinden Zone",
+          "blind_spot_right": "Rechte Kante der blinden Zone",
+          "blind_spot_elevation": "Alle Werte, die gleich oder kleiner sind, gelten als innerhalb der blinden Zone. Nützlich, wenn die Sonne über ein Objekt in der blinden Zone scheinen kann"
+		},
+		"title": "Blinde Zone",
+		"description": "Blinde Zone für die Abdeckung einrichten. Diese Werte sind relative Gradwerte zur Breite des Sichtfelds, wobei 0 die linkeste Position darstellt, die vom Parameter 'FOV links' des Sichtfeldes genommen wird."
+	  },
+	  "interp": {
+		"data": {
+          "interp_start": "Wert, bei dem die Öffnung beginnt",
+          "interp_end": "Wert, bei dem das Schließen beginnt",
+          "interp_list": "Liste der Interpolationen",
+          "interp_list_new": "Benutzerdefinierte Interpolationsliste"
+		},
+		"data_description": {
+          "interp_list": "Liste der Interpolationswerte, bei denen 0 vollständig geschlossen und 100 vollständig offen ist",
+          "interp_list_new": "Benutzerdefinierter Bereich von Interpolationswerten, wobei der Beginn geschlossen und das Ende offen darstellen sollte"
+		},
+		"title": "Bereichsanpassung",
+		"description": "Passen Sie die Werte an, bei denen Ihre Abdeckung effektiv öffnet oder schließt. Ideal für Abdeckungen, die nicht vollständig bei 0% öffnen oder bei 100% schließen. \n Die ersten beiden Schieberegler sind für eine 2-Punkte-Anpassung, die Listenauswahl ist für eine Mehrpunkt-Anpassung."
+      }
+    }
+  },
+  "selector": {
+    "mode": {
+      "options": {
+        "cover_blind": "Vertikale Jalousie",
+        "cover_awning": "Horizontale Markise",
+        "cover_tilt": "Kippbare Jalousie"
+      }
+    },
+    "tilt_mode": {
+      "options": {
+        "mode1": "Einzelrichtung (0% = geschlossen / 100% = offen)",
+        "mode2": "Bidirektional (0% = geschlossen / 50% = offen / 100% = geschlossen)"
+      }
+    }
+  }
+}

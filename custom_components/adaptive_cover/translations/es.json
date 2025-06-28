@@ -1,0 +1,481 @@
+{
+  "title": "Adaptive Cover",
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "name": "Nombre",
+          "blueprint": "Añadir blueprint a HomeAssistant",
+          "mode": "Tipo de persiana"
+        }
+      },
+      "automation": {
+        "data": {
+          "delta_position": "Ajuste de posición mínima",
+          "delta_time": "Intervalo mínimo entre cambios de posición",
+          "start_time": "Hora de comienzo",
+          "start_entity": "Entidad para la hora de comienzo",
+          "manual_override_duration": "Duración de la anulación manual",
+          "manual_override_reset": "Duración del reseteo de la anulación manual",
+          "end_time": "Hora de finalización",
+          "end_entity": "Entidad para la hora de finalización",
+          "manual_threshold": "Umbral de la anulación manual",
+          "manual_ignore_intermediate": "Ignora las posiciones intermedias durante la anulación manual (apertura y cierre)",
+          "return_sunset": "Siempre ajusta la posición a la por defecto al ocaso en la hora de finalización; Útil si la hora de finalización es antes del ocaso"
+        },
+        "data_description": {
+          "delta_position": "Cambio mínimo de la posición requerido antes de aplicar cambios en la persiana",
+          "delta_time": "Intervalo mínimo de tiempo requerido entre cambios de posición; mínimo 2 minutos",
+          "start_time": "Hora de inicio para cada día; antes de esta hora, la persiana permanecerá estacionaria",
+          "start_entity": "Entidad que representa la hora de inicio, anulando lo hora de inicio configurada arriba. Útil para automatizar la hora de inicio con una entidad",
+          "manual_override_duration": "Duración del control manual antes de volver a control automático",
+          "manual_override_reset": "Opción para resetear la duración de la anulación manual después de cada ajuste manual; si se deshabilita, la duración solo se aplica al primer ajuste manual",
+          "end_time": "Hora de finalización diaria; despues de esta hora, la persiana permanecerá estacionaria",
+          "end_entity": "Entidad que representa la hora de finalización, anulando lo hora de finalización configurada arriba. Útil para automatizar la hora de finalización con una entidad"
+        }
+      },
+      "vertical": {
+        "data": {
+          "set_azimuth": "Azimut de la ventana",
+          "window_height": "Altura de la ventana",
+          "distance_shaded_area": "Área sombreada",
+          "default_percentage": "Posición por defecto",
+          "min_position": "Posición mínima",
+          "max_position": "Posición máxima",
+          "enable_min_position": "Forzar la posición mínima solo si el sol está enfrente de la ventana",
+          "enable_max_position": "Forzar la posición máxima solo si el sol está enfrente de la ventana",
+          "fov_left": "Campo de visión izquierdo",
+          "fov_right": "Campo de visión derecho",
+          "group": "Entidades de las persianas",
+          "inverse_state": "Invertir el estado (se necesita para algunas persianas que no siguen las directrices de HA)",
+          "sunset_position": "Posición al ocaso",
+          "sunset_offset": "Desfase del Ocaso",
+          "sunrise_offset": "Desfase del Orto",
+          "climate_mode": "Modo Clima",
+          "blind_spot": "Configura punto ciego",
+          "min_elevation": "Elevación mínima del sol",
+          "max_elevation": "Elevación máxima del sol",
+          "interp": "Configurar posiciones personalizadas para posiciones abierto/cerrado de My Cover, si no funcionan sobre aperturas 0-100%"
+        },
+        "data_description": {
+          "set_azimuth": "Indicar azimut",
+          "window_height": "Indicar la altura de la ventana en metros",
+          "distance_shaded_area": "Distancia de la persiana al área sombreada en metros",
+          "default_percentage": "Posición por defecto de la persiana como porcentaje",
+          "min_position": "Posición mínima ajustable de la persiana como porcentaje",
+          "max_position": "Posición máxima ajustable de la persiana como porcentaje",
+          "fov_left": "Ángulo de visión hacia la izquierda del centro de la ventana",
+          "fov_right": "Ángulo de visión hacia la derecha del centro de la ventana",
+          "group": "Seleccionar entidades para controlar vía la integración",
+          "sunset_position": "Posición a la que cambiar tras el Ocaso",
+          "sunset_offset": "Desfase (±) desde el Ocaso en minutos",
+          "sunrise_offset": "Desfase (±) desde el Orto en minutos",
+          "climate_mode": "Configurar variables para el modo clima"
+        },
+        "description": "Agregar variables de configuración al sensor",
+        "title": "Persiana vertical"
+      },
+      "climate": {
+        "data": {
+          "temp_entity": "Entidad de temperatura interior",
+          "presence_entity": "Entidad de presencia (opcional)",
+          "weather_entity": "Entidad meteorológica (opcional)",
+          "outside_temp": "Sensor de temperatura exterior (opcional)",
+          "temp_low": "Umbral de baja temperatura",
+          "temp_high": "Umbral de alta temperatura",
+          "transparent_blind": "Persiana ciega",
+          "lux_entity": "Sensor de lux (opcional)",
+          "lux_threshold": "Umbral de lux",
+          "irradiance_entity": "Sensor de irradiancia (opcional)",
+          "irradiance_threshold": "Umbral de irradiancia",
+          "outside_threshold": "Temperatura exterior mínima para el modo verano"
+        },
+        "data_description": {
+          "presence_entity": "Entidad que representa el estado de presencia en la habitación o en el hogar",
+          "weather_entity": "Monitorea las condiciones climáticas y la temperatura exterior.",
+          "outside_temp": "Anula la temperatura exterior de la entidad meteorológica si ambas están configuradas",
+          "temp_low": "Temperatura mínima confortable",
+          "temp_high": "Temperatura máxima confortable",
+          "transparent_blind": "La persiana es transparente y siempre debe cerrarse completamente cuando el modo verano esté activo.",
+          "lux_entity": "Utilice el sensor de lux para determinar si la persiana debe reducir el deslumbramiento en el modo de presencia",
+          "lux_threshold": "Umbral para el sensor de lux, por encima de este valor se debe reducir el deslumbramiento",
+          "irradiance_entity": "Utilice el sensor de irradiancia para determinar si la cubierta debe reducir el deslumbramiento en el modo de presencia",
+          "irradiance_threshold": "Umbral para el sensor de irradiancia, por encima de este valor se debe reducir el deslumbramiento"
+        },
+        "description": "Añadir variables de configuración climática adicionales.",
+        "title": "Configuraciones climáticas"
+      },
+      "weather": {
+        "data": { "weather_state": "Condiciones climáticas" },
+        "data_description": {
+          "weather_state": "Seleccione las condiciones climáticas que permitan el control automático de las ventanas."
+        },
+        "title": "Condiciones climáticas"
+      },
+      "horizontal": {
+        "data": {
+          "set_azimuth": "Azimut de ventana",
+          "length_awning": "Longitud del toldo",
+          "window_height": "Altura del toldo",
+          "angle": "Ángulo del toldo",
+          "distance_shaded_area": "Área sombreada",
+          "default_percentage": "Posición predeterminada",
+          "min_position": "Posición mínima",
+          "max_position": "Posición máxima",
+          "enable_min_position": "Sólo fuerce la posición mínima cuando el sol esté frente a la ventana",
+          "enable_max_position": "Sólo fuerce la posición máxima cuando el sol esté frente a la ventana",
+          "fov_left": "Campo de visión izquierdo",
+          "fov_right": "Campo de visión derecho",
+          "group": "Entidades de persiana",
+          "inverse_state": "Invertir el estado (necesario para algunas cubiertas que no siguen las pautas de HA)",
+          "sunset_position": "Posición al Ocaso",
+          "sunset_offset": "Desfase del Ocaso",
+          "sunrise_offset": "Desfase del Orto",
+          "climate_mode": "Modo Clima",
+          "blind_spot": "Configurar punto ciego",
+          "min_elevation": "Elevación mínima del sol",
+          "max_elevation": "Establezca posiciones de apertura y cierre personalizadas para My Cover, si no funciona completamente al 0-100 %evación máxima del sol",
+          "interp": "Establezca posiciones de apertura y cierre personalizadas para My Cover, si no funciona completamente al 0-100 %"
+        },
+        "data_description": {
+          "set_azimuth": "Especifique el azimut",
+          "window_height": "Ajuste la altura del toldo desde el nivel del área de trabajo.",
+          "length_awning": "Longitud total en metros",
+          "angle": "Ángulo del toldo fijado medido perpendicularmente desde la pared hasta el suelo",
+          "distance_shaded_area": "Distancia de la portada al Área sombreada en metros",
+          "default_percentage": "Posición por defecto de la persiana como porcentaje",
+          "min_position": "Posición mínima de la cubierta ajustable como porcentaje",
+          "max_position": "Posición máxima ajustable de la persiana como porcentaje",
+          "fov_left": "Grados del campo de visión a la izquierda del centro de la ventana",
+          "fov_right": "Grados del campo de visión a la derecha del centro de la ventana",
+          "group": "Seleccionar entidades para controlar vía integración",
+          "sunset_position": "Posición a la que cambiar después del Ocaso",
+          "sunset_offset": "Desfase (±) respecto del Ocaso en minutos",
+          "sunrise_offset": "Desfase (±) respecto del Orto en minutos",
+          "climate_mode": "Configurar variables para Modo Clima"
+        },
+        "description": "Agregar variables de configuración al sensor",
+        "title": "Persiana horizontal"
+      },
+      "tilt": {
+        "data": {
+          "set_azimuth": "Azimut de ventana",
+          "slat_depth": "Profundidad de la lama",
+          "slat_distance": "Espacio entre lamas",
+          "default_percentage": "Posición predeterminada",
+          "min_position": "Posición mínima",
+          "max_position": "Posición máxima",
+          "enable_min_position": "Solo fuerce la posición máxima cuando el sol esté frente a la ventana",
+          "enable_max_position": "Forzar la posición máxima solo cuando el sol esté frente a la ventana",
+          "fov_left": "Campo de visión izquierdo",
+          "fov_right": "Campo de visión derecho",
+          "group": "Entidades de persiana",
+          "inverse_state": "Invertir el estado (necesario para algunas cubiertas que no siguen las pautas de HA)",
+          "sunset_position": "Posición al Ocaso",
+          "sunset_offset": "Desfase del Ocaso",
+          "sunrise_offset": "Desfase del Orto",
+          "climate_mode": "Modo Clima",
+          "tilt_mode": "Tipo de movimiento",
+          "blind_spot": "Configurar punto ciego",
+          "min_elevation": "Elevación mínima del sol",
+          "max_elevation": "Elevación máxima del sol",
+          "interp": "Establezca posiciones de apertura y cierre personalizadas para My Cover, si no funciona completamente al 0-100 %"
+        },
+        "data_description": {
+          "set_azimuth": "Especifique el azimut",
+          "slat_depth": "Profundidad de cada lama individual en centímetros",
+          "slat_distance": "Distancia vertical entre dos lamas en centímetros",
+          "default_percentage": "Posición por defecto de la persiana como porcentaje",
+          "min_position": "Posición mínima de la cubierta ajustable como porcentaje",
+          "max_position": "Posición máxima ajustable de la persiana como porcentaje",
+          "fov_left": "Grados a considerar desde el lado izquierdo del centro de la ventana",
+          "fov_right": "Grados a considerar desde el lado derecho del centro de la ventana",
+          "group": "Seleccionar entidades para controlar vía integración",
+          "sunset_position": "Posición a la que hacer la transición después del Ocaso",
+          "sunset_offset": "Desfase (±) respecto del Ocaso en minutos",
+          "sunrise_offset": "Desfase (±) respecto del Orto en minutos",
+          "climate_mode": "Configurar variables para Modo Clima",
+          "tilt_mode": "Elija Tipo de movimiento"
+        },
+        "description": "Agregar variables de configuración al sensor",
+        "title": "Persiana inclinada"
+      },
+      "blind_spot": {
+        "data": {
+          "blind_spot_left": "Inicio del punto ciego",
+          "blind_spot_right": "Fin del punto ciego",
+          "blind_spot_elevation": "Elevación del punto ciego"
+        },
+        "data_description": {
+          "blind_spot_left": "Borde izquierdo del punto ciego",
+          "blind_spot_right": "Borde derecho del punto ciego",
+          "blind_spot_elevation": "Cualquier valor igual o inferior se considera dentro del punto ciego. Resulta útil si el sol puede iluminar el objeto en el punto ciego."
+        },
+        "title": "Blindspot",
+        "description": "Configurar el punto ciego para la persiana. Estos valores son grados relativos al ancho del campo de visión. Donde 0 es la posición más a la izquierda, tomada del parámetro Campo de visión izquierdo."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Valor donde comienza la apertura",
+          "interp_end": "Valor donde comienza el cierre",
+          "interp_list": "Lista de interpolación",
+          "interp_list_new": "Lista de interpolación personalizada"
+        },
+        "data_description": {
+          "interp_list": "Lista de valores de interpolación, donde 0 es completamente cerrado y 100 es completamente abierto",
+          "interp_list_new": "Rango personalizado de valores de interpolación, donde el inicio debe representar cerrado y el final abierto"
+        },
+        "title": "Rango de ajuste",
+        "description": "Ajuste los valores a los que la cubierta se abre o cierra eficazmente. Ideal para cubiertas que no abren completamente al 0 % ni cierran al 100 %. \n Los dos primeros controles deslizantes son para un ajuste de 2 puntos, las opciones de lista son para un ajuste de varios puntos"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "automation": "Modificar la configuración de automatización",
+          "blind": "Ajuste fino de la configuración de las persianas",
+          "climate": "Editar configuración climática",
+          "weather": "Editar configuración climática",
+          "blind_spot": "Configurar punto ciego",
+          "interp": "Rango de ajuste"
+        }
+      },
+      "automation": {
+        "data": {
+          "delta_position": "Ajuste de la posición mínima",
+          "delta_time": "Intervalo mínimo entre cambios de posición",
+          "start_time": "Hora de inicio",
+          "start_entity": "Entidad que indica la hora de inicio",
+          "manual_override_duration": "Duración de la anulación manual",
+          "manual_override_reset": "Restablecer la duración de la anulación manual",
+          "end_time": "Hora de finalización",
+          "end_entity": "Entidad que indica la hora de finalización",
+          "manual_threshold": "Umbral de anulación manual",
+          "manual_ignore_intermediate": "Ignorar posiciones intermedias durante la anulación manual (apertura y cierre)",
+          "return_sunset": "Ajustar siempre la posición a la predeterminada del Ocaso al momento de finalización; útil si el momento de finalización es anterior al Ocaso real"
+        },
+        "data_description": {
+          "delta_position": "Se requiere un cambio mínimo de posición antes de ajustar la posición de la persiana.",
+          "delta_time": "Intervalo de tiempo mínimo entre cambios de posición; el mínimo es de 2 minutos",
+          "start_time": "Hora de inicio de cada día; antes de esta hora, la cubierta permanecerá fija.",
+          "start_entity": "Entidad que representa el estado de la hora de inicio, que anula la hora de inicio fija establecida anteriormente. Útil para automatizar la hora de inicio con una entidad.",
+          "manual_override_duration": "La duración del control manual antes de restablecer el control automático",
+          "Opción para restablecer la duración de la anulación manual después de cada ajuste manual; si está deshabilitada, la duración solo se aplica al primer ajuste manual",
+          "end_time": "Hora de finalización de cada día; después de esta hora, la cubierta permanecerá fija.",
+          "end_entity": "Asegúrese de que la posición se ajuste a la configuración predeterminada del Ocaso antes de la hora de finalización. Esto es especialmente beneficioso cuando la hora de finalización precede a la del Ocaso real."
+        }
+      },
+      "vertical": {
+        "data": {
+          "set_azimuth": "Azimut de ventana",
+          "window_height": "Altura de la ventana",
+          "distance_shaded_area": "Área sombreada",
+          "default_percentage": "Posición predeterminada",
+          "min_position": "Posición mínima",
+          "max_position": "Posición máxima",
+          "enable_min_position": "Sólo fuerce la posición máxima cuando el sol esté frente a la ventana",
+          "enable_max_position": "Forzar la posición máxima solo cuando el sol esté frente a la ventana",
+          "fov_left": "Campo de visión izquierdo",
+          "fov_right": "Campo de visión derecho",
+          "group": "Entidades de persiana",
+          "inverse_state": "Invertir el estado (necesario para algunas cubiertas que no siguen las pautas de HA)",
+          "sunset_position": "Posición al Ocaso",
+          "sunset_offset": "Desfase del Ocaso",
+          "sunrise_offset": "Desfase del Orto",
+          "climate_mode": "Modo Clima",
+          "blind_spot": "Configurar punto ciego",
+          "min_elevation": "Elevación mínima del sol",
+          "max_elevation": "Elevación máxima del sol",
+          "interp": "Establezca posiciones de apertura y cierre personalizadas para My Cover, si no funciona completamente al 0-100 %"
+        },
+        "data_description": {
+          "set_azimuth": "Ajustar azimut",
+          "window_height": "Especifique la altura de la ventana en metros",
+          "distance_shaded_area": "Distancia desde la persiana área sombreada en metros",
+          "default_percentage": "Posición por defecto de la persiana como porcentaje",
+          "min_position": "Posición mínima de la cubierta ajustable como porcentaje",
+          "max_position": "Posición máxima ajustable de la persiana como porcentaje",
+          "fov_left": "Ángulo del campo de visión a la izquierda del centro de la ventana",
+          "fov_right": "Ángulo del campo de visión a la derecha del centro de la ventana",
+          "group": "Seleccionar entidades para controlar via integración",
+          "sunset_position": "Posición a la que cambiar después del Ocaso",
+          "sunset_offset": "Desfase (±) respecto del Ocaso en minutos",
+          "sunrise_offset": "Desfase (±) respecto del Orto en minutos",
+          "climate_mode": "Configurar variables para Modo Clima"
+        },
+        "description": "Agregar variables de configuración al sensor",
+        "title": "Persiana vertical"
+      },
+      "climate": {
+        "data": {
+          "temp_entity": "Entidad de temperatura interior",
+          "presence_entity": "Entidad de presencia (opcional)",
+          "weather_entity": "Entidad meteorológica (opcional)",
+          "outside_temp": "Sensor de temperatura exterior (opcional)",
+          "temp_low": "Umbral de baja temperatura",
+          "temp_high": "Umbral de alta temperatura",
+          "transparent_blind": "Persiana transparente",
+          "lux_entity": "Sensor de lux (opcional)",
+          "lux_threshold": "Umbral de lux",
+          "irradiance_entity": "Sensor de irradiancia (opcional)",
+          "irradiance_threshold": "Umbral de irradiancia",
+          "outside_threshold": "Temperatura exterior mínima para el modo verano"
+        },
+        "data_description": {
+          "presence_entity": "Entidad que representa el estado de presencia en la habitación o en el hogar",
+          "weather_entity": "Monitoriza las condiciones climáticas y la temperatura exterior.",
+          "outside_temp": "Anula la temperatura exterior de la entidad meteorológica si ambas están configuradas",
+          "temp_low": "Temperatura mínima confortable",
+          "temp_high": "Temperatura máxima confortable",
+          "transparent_blind": "La persiana es transparente y siempre debe cerrarse completamente cuando el modo verano esté activo.",
+          "lux_entity": "Utilice el sensor de lux para determinar si la persiana debe reducir el deslumbramiento en el modo de presencia",
+          "lux_threshold": "Umbral para el sensor de lux, por encima de este valor se debe reducir el deslumbramiento",
+          "irradiance_entity": "Utilice el sensor de irradiancia para determinar si la persiana debe reducir el deslumbramiento en el modo de presencia",
+          "irradiance_threshold": "Umbral para el sensor de irradiancia, por encima de este valor se debe reducir el deslumbramiento"
+        },
+        "description": "Añadir variables de configuración climática adicionales.",
+        "title": "Climate settings"
+      },
+      "weather": {
+        "data": { "weather_state": "Condiciones climáticas" },
+        "data_description": {
+          "weather_state": "Elija las Condiciones climáticas que permitan el control automático de ventanas."
+        },
+        "title": "Condiciones climáticas"
+      },
+      "horizontal": {
+        "data": {
+          "set_azimuth": "Azimut de ventana",
+          "length_awning": "Longitud del toldo",
+          "window_height": "Awning Height",
+          "angle": "Ángulo del toldo",
+          "distance_shaded_area": "Área sombreada",
+          "default_percentage": "Posición predeterminada",
+          "min_position": "Posición mínima",
+          "max_position": "Posición máxima",
+          "enable_min_position": "Solo fuerce la posición máxima cuando el sol esté frente a la ventana",
+          "enable_max_position": "Forzar la posición máxima solo cuando el sol esté frente a la ventana",
+          "fov_left": "Campo de visión izquierdo",
+          "fov_right": "Campo de visión derecho",
+          "group": "Entidades de persiana",
+          "inverse_state": "Invertir el estado (necesario para algunas cubiertas que no siguen las pautas de HA)",
+          "sunset_position": "Posición al Ocaso",
+          "sunset_offset": "Desfase del Ocaso",
+          "sunrise_offset": "Desfase del Orto",
+          "climate_mode": "Modo Clima",
+          "blind_spot": "Configurar punto ciego",
+          "min_elevation": "Elevación mínima del sol",
+          "max_elevation": "Elevación máxima del sol",
+          "interp": "Establezca posiciones de apertura y cierre personalizadas para My Cover, si no funciona completamente al 0-100 %"
+        },
+        "data_description": {
+          "set_azimuth": "Especifique el azimut",
+          "window_height": "Ajuste la altura del toldo desde el nivel del área de trabajo.",
+          "length_awning": "Longitud total en metros",
+          "angle": "Ángulo del toldo fijo medido perpendicularmente desde la pared hasta el suelo",
+          "distance_shaded_area": "Distancia de la persiana al área sombreada en metros",
+          "default_percentage": "Posición por defecto de la persiana como porcentaje",
+          "min_position": "Posición mínima de la persiana ajustable como porcentaje",
+          "max_position": "Posición máxima ajustable de la persiana como porcentaje",
+          "fov_left": "Grados del campo de visión a la izquierda del centro de la ventana",
+          "fov_right": "Grados del campo de visión a la derecha del centro de la ventana",
+          "group": "Seleccionar entidades para controlar via integración",
+          "sunset_position": "Posición a la que cambiar después del Ocaso",
+          "sunset_offset": "Desfase (±) respecto del Ocaso en minutos",
+          "sunrise_offset": "Desfase (±) respecto del Orto en minutos",
+          "climate_mode": "Configurar variables para Modo Clima"
+        },
+        "description": "Agregar variables de configuración al sensor",
+        "title": "Persiana horizontal"
+      },
+      "tilt": {
+        "data": {
+          "set_azimuth": "Azimut de la ventana",
+          "slat_depth": "Profundidad de la lama",
+          "slat_distance": "Espacio entre lamas",
+          "default_percentage": "Posición predeterminada",
+          "min_position": "Posición mínima",
+          "max_position": "Posición máxima",
+          "enable_min_position": "Forzarla posición mínima solo cuando el sol esté frente a la ventana",
+          "enable_max_position": "Forzar la posición máxima solo cuando el sol esté frente a la ventana",
+          "fov_left": "Campo de visión izquierdo",
+          "fov_right": "Campo de visión derecho",
+          "group": "Entidades de las persianas",
+          "inverse_state": "Invertir el estado (necesario para algunas cubiertas que no siguen las pautas de HA)",
+          "sunset_position": "Posición al Ocaso",
+          "sunset_offset": "Desfase del Ocaso",
+          "sunrise_offset": "Desfase del Orto",
+          "climate_mode": "Modo Clima",
+          "tilt_mode": "tipo de movimiento",
+          "blind_spot": "Configurar punto ciego",
+          "min_elevation": "Elevación mínima del sol",
+          "max_elevation": "Elevación máxima del sol",
+          "interp": "Establezca posiciones de apertura y cierre personalizadas para My Cover, si no funciona completamente al 0-100 %"
+        },
+        "data_description": {
+          "set_azimuth": "Especifique el azimut",
+          "slat_depth": "Profundidad de cada lama individual en centímetros",
+          "slat_distance": "Distancia vertical entre dos lamas en centímetros",
+          "default_percentage": "Posición por defecto de la persiana como porcentaje",
+          "min_position": "Posición mínima",
+          "max_position": "Posición máxima ajustable de la persiana como porcentaje",
+          "fov_left": "Grados a considerar desde el lado izquierdo del centro de la ventana",
+          "fov_right": "Grados a considerar desde el lado derecho del centro de la ventana",
+          "group": "Seleccionar entidades para controlar via integración",
+          "sunset_position": "Posición a la que hacer la transición después del Ocaso",
+          "sunset_offset": "Desfase (±) respecto del Ocaso en minutos",
+          "sunrise_offset": "Desfase (±) respecto del Orto en minutos",
+          "climate_mode": "Configurar variables para Modo Clima",
+          "tilt_mode": "Elige el tipo de movimiento"
+        },
+        "description": "Agregar variables de configuración al sensor",
+        "title": "Persiana inclinada"
+      },
+      "blind_spot": {
+        "data": {
+          "blind_spot_left": "Principio del punto ciego",
+          "blind_spot_right": "Fin del punto ciego",
+          "blind_spot_elevation": "Elevación del punto ciego"
+        },
+        "data_description": {
+          "blind_spot_left": "Borde izquierdo del punto ciego",
+          "blind_spot_right": "Borde derecho del punto ciego",
+          "blind_spot_elevation": "Cualquier valor igual o inferior se considera dentro del punto ciego. Resulta útil si el sol puede iluminar el objeto en el punto ciego."
+        },
+        "title": "Blindspot",
+        "description": "Configure el punto ciego para la persiana. Estos valores son grados relativos al ancho del campo de visión. Donde 0 es la posición más a la izquierda, tomada del parámetro Campo de visión izquierdo."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Valor donde comienza la apertura",
+          "interp_end": "Valor donde comienza el cierre",
+          "interp_list": "Lista de interpolación",
+          "interp_list_new": "Lista de interpolación personalizada"
+        },
+        "data_description": {
+          "interp_list": "Lista de valores de interpolación, donde 0 está completamente cerrado y 100 está completamente abierto",
+          "interp_list_new": "Rango personalizado de valores de interpolación, donde el inicio debe representar cerrado y el final abierto"
+        },
+        "title": "Rango de ajustes",
+        "description": "Ajuste los valores con los que la persiana se abre o cierra. Ideal para persianas que no se abren completamente al 0 % ni se cierran al 100 %. Los dos primeros controles deslizantes son para un ajuste de 2 puntos; las opciones de lista son para un ajuste de varios puntos."
+      }
+    }
+  },
+  "selector": {
+    "mode": {
+      "options": {
+        "cover_blind": "Persiana vertical",
+        "cover_awning": "Persiana horizontal",
+        "cover_tilt": "Persiana inclinada"
+      }
+    },
+    "tilt_mode": {
+      "options": {
+        "mode1": "dirección única (0% = cerrado / 100% = abierto)",
+        "mode2": "bidireccional (0% = cerrado / 50% = abierto / 100% = cerrado)"
+      }
+    }
+  }
+}
