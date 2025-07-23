@@ -188,18 +188,19 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 
 ### Vertical
 
-| Variables         | Default | Range | Description                                                                                 |
-| ----------------- | ------- | ----- | ------------------------------------------------------------------------------------------- |
-| Window Height     | 2.1     | 0.1-6 | Length of fully extended cover/window                                                       |
-| Glare Zone        | 0.5     | 0.1-2 | Objects within this distance of the cover recieve direct sunlight. Measured horizontally from the bottom of the cover when fully extended |
+| Variables               | Default | Range  | Description                                                                                                                                                                                               |
+| ----------------------- | ------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Window Height           | 2.1     | 0.1-6  | Length of fully extended cover/window                                                                                                                                                                     |
+| Glare Zone              | 0.5     | 0.1-10 | Objects within this distance of the cover recieve direct sunlight. Measured horizontally from the bottom of the cover when fully extended                                                                 |
+| Glare Height Adjustment | 0.0     | -6 - 6 | The vertical distance from the bottom of the closed blind to the shaded area. Will be negative value for 2nd story windows in tall rooms and postive value when shaded area is higher than base of window |
 
 ### Horizontal
 
-| Variables                  | Default | Range | Description                                    |
-| -------------------------- | ------- | ----- | ---------------------------------------------- |
-| Awning Height              | 2       | 0.1-6 | Height from work area to awning mounting point |
-| Awning Length (horizontal) | 2.1     | 0.3-6 | Length of the awning when fully extended       |
-| Awning Angle               | 0       | 0-45  | Angle of the awning from the wall              |
+| Variables                  | Default | Range | Description                                                       |
+| -------------------------- | ------- | ----- | ----------------------------------------------------------------- |
+| Awning Height              | 2       | 0.1-6 | Height from work area to awning mounting point                    |
+| Awning Length (horizontal) | 2.1     | 0.3-6 | Length of the awning when fully extended                          |
+| Awning Angle               | 0       | 0-45  | Angle of the awning from the wall                                 |
 | Glare Zone                 | 0.5     | 0.1-2 | Objects within this distance of the cover recieve direct sunlight |
 
 ### Tilt

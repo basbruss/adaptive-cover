@@ -82,6 +82,7 @@ from .const import (
     CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
     CONF_RETURN_SUNSET,
+    CONF_SHADED_HEIGHT_DELTA,
     CONF_START_ENTITY,
     CONF_START_TIME,
     CONF_SUNRISE_OFFSET,
@@ -692,6 +693,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         return [
             options.get(CONF_DISTANCE),
             options.get(CONF_HEIGHT_WIN),
+            options.get(CONF_SHADED_HEIGHT_DELTA),
         ]
 
     def horizontal_data(self, options):
