@@ -188,11 +188,11 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 
 ### Vertical
 
-| Variables               | Default | Range  | Description                                                                                                                                                                                                |
-| ----------------------- | ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| Window Height           | 2.1     | 0.1-6  | Length of fully extended cover/window                                                                                                                                                                      |
-| Glare Zone              | 0.5     | 0.1-10 | Objects within this distance of the cover recieve direct sunlight. Measured horizontally from the bottom of the cover when fully extended                                                                  | extended |
-| Glare Height Adjustment | 0.5     | -6 - 6 | The vertical distance from the bottom of the closed blind to the shaded area. Will be negative value for 2nd story windows in tall rooms and postive value when shaded area is higher than base of window. |
+| Variables               | Default | Range  | Description                                                                                                                                                                                               |
+| ----------------------- | ------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Window Height           | 2.1     | 0.1-6  | Length of fully extended cover/window                                                                                                                                                                     |
+| Glare Zone              | 0.5     | 0.1-10 | Objects within this distance of the cover recieve direct sunlight. Measured horizontally from the bottom of the cover when fully extended                                                                 |
+| Glare Height Adjustment | 0.0     | -6 - 6 | The vertical distance from the bottom of the closed blind to the shaded area. Will be negative value for 2nd story windows in tall rooms and postive value when shaded area is higher than base of window |
 
 ### Horizontal
 
