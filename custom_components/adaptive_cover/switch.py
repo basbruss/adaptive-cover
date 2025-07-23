@@ -14,7 +14,6 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    _LOGGER,
     CONF_CLIMATE_MODE,
     CONF_ENTITIES,
     CONF_IRRADIANCE_ENTITY,
@@ -148,6 +147,8 @@ class AdaptiveCoverSwitch(
             name=self._device_name,
         )
 
+        self.coordinator.logger.debug("Setup switch")
+
     @property
     def name(self):
         """Name of the entity."""
@@ -155,6 +156,7 @@ class AdaptiveCoverSwitch(
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
+        self.coordinator.logger.debug("Turning on")
         self._attr_is_on = True
         setattr(self.coordinator, self._key, True)
         if self._key == "control_toggle" and kwargs.get("added") is not True:
@@ -171,6 +173,7 @@ class AdaptiveCoverSwitch(
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the device off."""
+        self.coordinator.logger.debug("Turning off")
         self._attr_is_on = False
         setattr(self.coordinator, self._key, False)
         if self._key == "control_toggle" and kwargs.get("added") is not True:
@@ -182,7 +185,7 @@ class AdaptiveCoverSwitch(
     async def async_added_to_hass(self) -> None:
         """Call when entity about to be added to hass."""
         last_state = await self.async_get_last_state()
-        _LOGGER.debug("%s: last state is %s", self._name, last_state)
+        self.coordinator.logger.debug("%s: last state is %s", self._name, last_state)
         if (last_state is None and self._initial_state) or (
             last_state is not None and last_state.state == STATE_ON
         ):

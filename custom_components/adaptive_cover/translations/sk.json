@@ -1,0 +1,481 @@
+{
+  "title": "Adaptívny kryt",
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "name": "Názov",
+          "blueprint": "Pridajte plán do HomeAssistant",
+          "mode": "Typ rolety"
+        }
+      },
+      "automation": {
+        "data": {
+          "delta_position": "Minimálne nastavenie polohy",
+          "delta_time": "Minimálny interval medzi zmenami polohy",
+          "start_time": "Začiatočný čas",
+          "start_entity": "Entita označujúca čas začiatku",
+          "manual_override_duration": "Trvanie manuálneho ovládania",
+          "manual_override_reset": "Resetovať trvanie manuálneho prepísania",
+          "end_time": "Čas ukončenia",
+          "end_entity": "Entita označujúca čas ukončenia",
+          "manual_threshold": "Prah ručného ovládania",
+          "manual_ignore_intermediate": "Ignorovať medzipolohy pri ručnom ovládaní (otváranie a zatváranie)",
+          "return_sunset": "Vždy upravte polohu na predvolenú hodnotu západu slnka v čase ukončenia; Užitočné, ak je čas ukončenia pred skutočným západom slnka"
+        },
+        "data_description": {
+          "delta_position": "Pred nastavením polohy krytu je potrebná minimálna zmena polohy",
+          "delta_time": "Minimálny časový interval medzi zmenami polohy; minimum sú 2 minúty",
+          "start_time": "Začiatočný čas pre každý deň; pred týmto časom zostane kryt nehybný",
+          "start_entity": "Entita predstavujúca stav počiatočného času, ktorý má prednosť pred pevným časom začiatku nastaveným vyššie. Užitočné na automatizáciu času začiatku s entitou",
+          "manual_override_duration": "Trvanie manuálneho ovládania pred resetovaním na automatické ovládanie",
+          "manual_override_reset": "Možnosť resetovania trvania manuálneho ovládania po každom manuálnom nastavení; ak je vypnutá, trvanie platí len pre prvé manuálne nastavenie",
+          "end_time": "Čas ukončenia každého dňa; po tomto čase zostane kryt nehybný",
+          "end_entity": "Entita predstavujúca stav času ukončenia, ktorý má prednosť pred pevným časom ukončenia nastaveným vyššie. Užitočné na automatizáciu času ukončenia s entitou"
+        }
+      },
+      "vertical": {
+        "data": {
+          "set_azimuth": "Azimut okna",
+          "window_height": "Výška okna",
+          "distance_shaded_area": "Zatienená oblasť",
+          "default_percentage": "Predvolená poloha",
+          "min_position": "Minimálna pozícia",
+          "max_position": "Maximálna pozícia",
+          "enable_min_position": "Minimálnu polohu vynucujte len vtedy, keď je slnko pred oknom",
+          "enable_max_position": "Maximálnu polohu vynucujte len vtedy, keď je slnko pred oknom",
+          "fov_left": "Zorné pole vľavo",
+          "fov_right": "Zorné pole vpravo",
+          "group": "Krycie entity",
+          "inverse_state": "Inverzia stavu (potrebné pre niektoré kryty, ktoré nespĺňajú pokyny HA)",
+          "sunset_position": "Poloha pri západe slnka",
+          "sunset_offset": "Posun západu slnka",
+          "sunrise_offset": "Posun východu slnka",
+          "climate_mode": "Klimatický režim",
+          "blind_spot": "Nastavenie mŕtveho uhla",
+          "min_elevation": "Minimálna výška slnka",
+          "max_elevation": "Maximálna výška slnka",
+          "interp": "Nastavte vlastné pozície otvorenia/zatvorenia pre Môj Kryt, ak nefunguje úplne pri 0-100 %"
+        },
+        "data_description": {
+          "set_azimuth": "Upravte azimut",
+          "window_height": "Zadajte výšku okna v metroch",
+          "distance_shaded_area": "Vzdialenosť od krytu k zatienenej ploche v metroch",
+          "default_percentage": "Predvolená poloha krytu v percentách",
+          "min_position": "Minimálna nastaviteľná poloha krytu v percentách",
+          "max_position": "Maximálna nastaviteľná poloha krytu v percentách",
+          "fov_left": "Uhol zorného poľa vľavo od stredu okna",
+          "fov_right": "Uhol zorného poľa vpravo od stredu okna",
+          "group": "Vyberte entity na riadenie prostredníctvom integrácie",
+          "sunset_position": "Pozícia na prepnutie po západe slnka",
+          "sunset_offset": "Posun (±) od času západu slnka v minútach",
+          "sunrise_offset": "Posun (±) od času východu slnka v minútach",
+          "climate_mode": "Nakonfigurujte premenné pre klimatický režim"
+        },
+        "description": "Pridajte do snímača konfiguračné premenné",
+        "title": "Vertikálny kryt"
+      },
+      "climate": {
+        "data": {
+          "temp_entity": "Entita vnútornej teploty",
+          "presence_entity": "Entita prítomnosti (voliteľné)",
+          "weather_entity": "Entita počasia (voliteľné)",
+          "outside_temp": "Senzor vonkajšej teploty (voliteľné)",
+          "temp_low": "Nízky teplotný prah",
+          "temp_high": "Vysoký teplotný prah",
+          "transparent_blind": "Priehľadná roleta",
+          "lux_entity": "Lux senzor (voliteľné)",
+          "lux_threshold": "Lux prah",
+          "irradiance_entity": "Senzor ožiarenia (voliteľné)",
+          "irradiance_threshold": "Prah ožiarenia",
+          "outside_threshold": "Minimálna vonkajšia teplota pre letný režim"
+        },
+        "data_description": {
+          "presence_entity": "Entita predstavujúca stav prítomnosti v miestnosti alebo domácnosti",
+          "weather_entity": "Monitoruje poveternostné podmienky a vonkajšiu teplotu",
+          "outside_temp": "Prepíše vonkajšiu teplotu z entity počasia, ak sú obe nastavené",
+          "temp_low": "Minimálna komfortná teplota",
+          "temp_high": "Maximálna komfortná teplota",
+          "transparent_blind": "Roleta je priehľadná a mala by sa vždy úplne zatiahnuť, keď je aktívny letný režim",
+          "lux_entity": "Pomocou senzora luxu zistite, či má kryt znížiť oslnenie v režime prítomnosti",
+          "lux_threshold": "Prahová hodnota pre lux senzor, nad touto hodnotou by sa malo oslnenie znížiť",
+          "irradiance_entity": "Pomocou snímača ožiarenia zistite, či by kryt mal znížiť oslnenie v režime prítomnosti",
+          "irradiance_threshold": "Prahová hodnota pre snímač ožiarenia, nad touto hodnotou by sa malo oslnenie znížiť"
+        },
+        "description": "Pridajte ďalšie premenné konfigurácie klímy.",
+        "title": "Nastavenia klímy"
+      },
+      "weather": {
+        "data": { "weather_state": "Poveternostné podmienky" },
+        "data_description": {
+          "weather_state": "Vyberte poveternostné podmienky, ktoré umožňujú automatické ovládanie okien."
+        },
+        "title": "Poveternostné podmienky"
+      },
+      "horizontal": {
+        "data": {
+          "set_azimuth": "Azimut okna",
+          "length_awning": "Dĺžka rozpätia markízy",
+          "window_height": "Dĺžka markízy",
+          "angle": "Uhol markízy",
+          "distance_shaded_area": "Zatienená oblasť",
+          "default_percentage": "Predvolená poloha",
+          "min_position": "Minimálna pozícia",
+          "max_position": "Maximálna pozícia",
+          "enable_min_position": "Minimálnu polohu vynucujte len vtedy, keď je slnko pred oknom",
+          "enable_max_position": "Maximálnu polohu vynucujte len vtedy, keď je slnko pred oknom",
+          "fov_left": "Zorné pole vľavo",
+          "fov_right": "Zorné pole vpravo",
+          "group": "Krycie entity",
+          "inverse_state": "Inverzia stavu (potrebné pre niektoré kryty, ktoré nespĺňajú pokyny HA)",
+          "sunset_position": "Poloha pri západe slnka",
+          "sunset_offset": "Posun západu slnka",
+          "sunrise_offset": "Posun východu slnka",
+          "climate_mode": "Klimatický režim",
+          "blind_spot": "Nastavenie mŕtveho uhla",
+          "min_elevation": "Minimálna výška slnka",
+          "max_elevation": "Maximálna výška slnka",
+          "interp": "Nastavte vlastné pozície otvorenia/zatvorenia pre Môj Kryt, ak nefunguje úplne pri 0-100 %"
+        },
+        "data_description": {
+          "set_azimuth": "Zadajte azimut",
+          "window_height": "Nastavte výšku markízy od úrovne pracovnej plochy",
+          "length_awning": "Celková dĺžka rozpätia v metroch",
+          "angle": "Uhol pripevnenej markízy meraný kolmo od steny k zemi",
+          "distance_shaded_area": "Vzdialenosť od krytu k zatienenej ploche v metroch",
+          "default_percentage": "Predvolená poloha krytu v percentách",
+          "min_position": "Minimálna nastaviteľná poloha krytu v percentách",
+          "max_position": "Maximálna nastaviteľná poloha krytu v percentách",
+          "fov_left": "Stupne zorného poľa naľavo od stredu okna",
+          "fov_right": "Stupne zorného poľa vpravo od stredu okna",
+          "group": "Vyberte entity na riadenie prostredníctvom integrácie",
+          "sunset_position": "Pozícia na prepnutie po západe slnka",
+          "sunset_offset": "Posun (±) od času západu slnka v minútach",
+          "sunrise_offset": "Posun (±) od času východu slnka v minútach",
+          "climate_mode": "Nakonfigurujte premenné pre klimatický režim"
+        },
+        "description": "Pridajte do snímača konfiguračné premenné",
+        "title": "Horizontálny kryt"
+      },
+      "tilt": {
+        "data": {
+          "set_azimuth": "Azimut okna",
+          "slat_depth": "Hĺbka lamely",
+          "slat_distance": "Rozstup lamiel",
+          "default_percentage": "Predvolená poloha",
+          "min_position": "Minimálna pozícia",
+          "max_position": "Maximálna pozícia",
+          "enable_min_position": "Minimálnu polohu vynucujte len vtedy, keď je slnko pred oknom",
+          "enable_max_position": "Maximálnu polohu vynucujte len vtedy, keď je slnko pred oknom",
+          "fov_left": "Zorné pole vľavo",
+          "fov_right": "Zorné pole vpravo",
+          "group": "Krycie entity",
+          "inverse_state": "Inverzia stavu (potrebné pre niektoré kryty, ktoré nespĺňajú pokyny HA)",
+          "sunset_position": "Poloha pri západe slnka",
+          "sunset_offset": "Posun západu slnka",
+          "sunrise_offset": "Posun východu slnka",
+          "climate_mode": "Klimatický režim",
+          "tilt_mode": "Typ pohybu",
+          "blind_spot": "Nastavenie mŕtveho uhla",
+          "min_elevation": "Minimálna výška slnka",
+          "max_elevation": "Maximálna výška slnka",
+          "interp": "Nastavte vlastné pozície otvorenia/zatvorenia pre Môj kryt, ak nefunguje úplne pri 0-100 %"
+        },
+        "data_description": {
+          "set_azimuth": "Zadajte azimut",
+          "slat_depth": "Hĺbka každej jednotlivej lamely v centimetroch",
+          "slat_distance": "Vertikálna vzdialenosť medzi dvoma lamelami v centimetroch",
+          "default_percentage": "Predvolená poloha krytu v percentách",
+          "min_position": "Minimálna nastaviteľná poloha krytu v percentách",
+          "max_position": "Maximálna nastaviteľná poloha krytu v percentách",
+          "fov_left": "Stupne, ktoré treba zvážiť z ľavej strany stredu okna",
+          "fov_right": "Stupne, ktoré treba zvážiť z pravej strany stredu okna",
+          "group": "Vyberte entity na riadenie prostredníctvom integrácie",
+          "sunset_position": "Pozícia na prechod po západe slnka",
+          "sunset_offset": "Posun (±) od času západu slnka v minútach",
+          "sunrise_offset": "Posun (±) od času východu slnka v minútach",
+          "climate_mode": "Nakonfigurujte premenné pre klimatický režim",
+          "tilt_mode": "Vyberte si typ pohybu"
+        },
+        "description": "Pridajte do snímača konfiguračné premenné",
+        "title": "Naklonený kryt"
+      },
+      "blind_spot": {
+        "data": {
+          "blind_spot_left": "Začnite slepý uhol vľavo",
+          "blind_spot_right": "Koniec slepého uhla vpravo",
+          "blind_spot_elevation": "Nadmorská výška slepého uhla"
+        },
+        "data_description": {
+          "blind_spot_left": "Ľavý okraj slepého uhla",
+          "blind_spot_right": "Pravý okraj slepého uhla",
+          "blind_spot_elevation": "Akákoľvek hodnota, ktorá sa rovná alebo je nižšia, sa berie do úvahy v rámci slepého bodu. Užitočné, ak slnko môže svietiť na objekt v mŕtvom uhle"
+        },
+        "title": "Mŕtvy uhol",
+        "description": "Nastavenie slepého uhla pre kryt. Tieto hodnoty sú relatívne stupne k šírke zorného poľa. Kde 0 je pozícia úplne vľavo od ľavého parametra zorného poľa."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Hodnota, kde začína otváranie",
+          "interp_end": "Hodnota, kde začína zatváranie",
+          "interp_list": "Zoznam interpolácií",
+          "interp_list_new": "Vlastný zoznam interpolácií"
+        },
+        "data_description": {
+          "interp_list": "Zoznam hodnôt interpolácie, kde 0 je úplne uzavretá a 100 je úplne otvorená",
+          "interp_list_new": "Vlastný rozsah interpolačných hodnôt, kde začiatok by mal predstavovať uzavretý a koniec otvorený"
+        },
+        "title": "Úprava rozsahu",
+        "description": "Upravte hodnoty, pri ktorých sa kryt efektívne otvára alebo zatvára. Ideálne pre kryty, ktoré sa úplne neotvoria pri 0 % alebo nezatvoria pri 100 %. \n Prvé dva posuvníky sú pre 2-bodové nastavenie, možnosti zoznamu sú pre viacbodové nastavenie"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "automation": "Upravte konfiguráciu automatizácie",
+          "blind": "Jemne dolaďte nastavenia žalúzie",
+          "climate": "Upraviť konfiguráciu klímy",
+          "weather": "Upraviť konfiguráciu počasia",
+          "blind_spot": "Nastavenie mŕtveho uhla",
+          "interp": "Úprava rozsahu"
+        }
+      },
+      "automation": {
+        "data": {
+          "delta_position": "Minimálne nastavenie polohy",
+          "delta_time": "Minimálny interval medzi zmenami polohy",
+          "start_time": "Začiatočný čas",
+          "start_entity": "Entita označujúca čas začatia",
+          "manual_override_duration": "Trvanie manuálneho ovládania",
+          "manual_override_reset": "Resetovať trvanie manuálneho prepísania",
+          "end_time": "Čas ukončenia",
+          "end_entity": "Entita označujúca čas ukončenia",
+          "manual_threshold": "Prah ručného ovládania",
+          "manual_ignore_intermediate": "Ignorovať medzipolohy pri ručnom ovládaní (otváranie a zatváranie)",
+          "return_sunset": "Vždy upravte polohu na predvolenú hodnotu západu slnka v čase ukončenia; Užitočné, ak je čas ukončenia pred skutočným západom slnka"
+        },
+        "data_description": {
+          "delta_position": "Pred nastavením polohy krytu je potrebná minimálna zmena polohy",
+          "delta_time": "Minimálny časový interval medzi zmenami polohy; minimum sú 2 minúty",
+          "start_time": "Začiatočný čas pre každý deň; pred týmto časom zostane kryt nehybný",
+          "start_entity": "Entita predstavujúca stav počiatočného času, ktorý má prednosť pred pevným časom začiatku nastaveným vyššie. Užitočné na automatizáciu času začiatku s entitou",
+          "manual_override_duration": "Trvanie manuálneho ovládania pred resetovaním na automatické ovládanie",
+          "manual_override_reset": "Možnosť resetovania trvania manuálneho ovládania po každom manuálnom nastavení; ak je vypnutá, trvanie platí len pre prvé manuálne nastavenie",
+          "end_time": "Čas ukončenia každého dňa; po tomto čase zostane kryt nehybný",
+          "end_entity": "Uistite sa, že pozícia je v čase ukončenia konzistentne nastavená na predvolené nastavenie západu slnka. To je obzvlášť výhodné, keď čas ukončenia predchádza skutočnému západu slnka."
+        }
+      },
+      "vertical": {
+        "data": {
+          "set_azimuth": "Azimut okna",
+          "window_height": "Výška okna",
+          "distance_shaded_area": "Zatienená oblasť",
+          "default_percentage": "Predvolená poloha",
+          "min_position": "Minimálna pozícia",
+          "max_position": "Maximálna pozícia",
+          "enable_min_position": "Minimálnu polohu vynucujte len vtedy, keď je slnko pred oknom",
+          "enable_max_position": "Maximálnu polohu vynucujte len vtedy, keď je slnko pred oknom",
+          "fov_left": "Zorné pole vľavo",
+          "fov_right": "Zorné pole vpravo",
+          "group": "Krycie entity",
+          "inverse_state": "Inverzia stavu (potrebné pre niektoré kryty, ktoré nespĺňajú pokyny HA)",
+          "sunset_position": "Poloha pri západe slnka",
+          "sunset_offset": "Posun západu slnka",
+          "sunrise_offset": "Posun východu slnka",
+          "climate_mode": "Klimatický režim",
+          "blind_spot": "Nastavenie mŕtveho uhla",
+          "min_elevation": "Minimálna výška slnka",
+          "max_elevation": "Maximálna výška slnka",
+          "interp": "Nastavte vlastné pozície otvorenia/zatvorenia pre Môj Kryt, ak nefunguje úplne pri 0-100 %"
+        },
+        "data_description": {
+          "set_azimuth": "Upravte azimut",
+          "window_height": "Zadajte výšku okna v metroch",
+          "distance_shaded_area": "Vzdialenosť od krytu k zatienenej ploche v metroch",
+          "default_percentage": "Predvolená poloha krytu v percentách",
+          "min_position": "Minimálna nastaviteľná poloha krytu v percentách",
+          "max_position": "Maximálna nastaviteľná poloha krytu v percentách",
+          "fov_left": "Uhol zorného poľa vľavo od stredu okna",
+          "fov_right": "Uhol zorného poľa vpravo od stredu okna",
+          "group": "Vyberte entity na riadenie prostredníctvom integrácie",
+          "sunset_position": "Pozícia na prepnutie po západe slnka",
+          "sunset_offset": "Posun (±) od času západu slnka v minútach",
+          "sunrise_offset": "Posun (±) od času východu slnka v minútach",
+          "climate_mode": "Nakonfigurujte premenné pre klimatický režim"
+        },
+        "description": "Pridajte do snímača konfiguračné premenné",
+        "title": "Vertikálny kryt"
+      },
+      "climate": {
+        "data": {
+          "temp_entity": "Entita vnútornej teploty",
+          "presence_entity": "Entita prítomnosti (voliteľné)",
+          "weather_entity": "Entita počasia (voliteľné)",
+          "outside_temp": "Senzor vonkajšej teploty (voliteľné)",
+          "temp_low": "Nízky teplotný prah",
+          "temp_high": "Vysoký teplotný prah",
+          "transparent_blind": "Priehľadná roleta",
+          "lux_entity": "Lux snímač (voliteľný)",
+          "lux_threshold": "Lux prah",
+          "irradiance_entity": "Senzor ožiarenia (voliteľné)",
+          "irradiance_threshold": "Prah ožiarenia",
+          "outside_threshold": "Minimálna vonkajšia teplota pre letný režim"
+        },
+        "data_description": {
+          "presence_entity": "Entita predstavujúca stav prítomnosti v miestnosti alebo domácnosti",
+          "weather_entity": "Monitoruje poveternostné podmienky a vonkajšiu teplotu",
+          "outside_temp": "Prepíše vonkajšiu teplotu z entity počasia, ak sú obe nastavené",
+          "temp_low": "Minimálna komfortná teplota",
+          "temp_high": "Maximálna komfortná teplota",
+          "transparent_blind": "Roleta je priehľadná a mala by sa vždy úplne zatiahnuť, keď je aktívny letný režim",
+          "lux_entity": "Pomocou senzora luxu zistite, či má kryt znížiť oslnenie v režime prítomnosti",
+          "lux_threshold": "Prahová hodnota pre lux senzor, nad touto hodnotou by sa malo oslnenie znížiť",
+          "irradiance_entity": "Pomocou snímača ožiarenia zistite, či by kryt mal znížiť oslnenie v režime prítomnosti",
+          "irradiance_threshold": "Prahová hodnota pre snímač ožiarenia, nad touto hodnotou by sa malo oslnenie znížiť"
+        },
+        "description": "Pridajte ďalšie premenné konfigurácie klímy.",
+        "title": "Nastavenia klímy"
+      },
+      "weather": {
+        "data": { "weather_state": "Poveternostné podmienky" },
+        "data_description": {
+          "weather_state": "Vyberte poveternostné podmienky, ktoré umožňujú automatické ovládanie okien."
+        },
+        "title": "Poveternostné podmienky"
+      },
+      "horizontal": {
+        "data": {
+          "set_azimuth": "Azimut okna",
+          "length_awning": "Dĺžka rozpätia markízy",
+          "window_height": "Dĺžka markízy",
+          "angle": "Uol markízy",
+          "distance_shaded_area": "Zatienená oblasť",
+          "default_percentage": "Predvolená poloha",
+          "min_position": "Minimálna pozícia",
+          "max_position": "Maximálna pozícia",
+          "enable_min_position": "Minimálnu polohu vynucujte len vtedy, keď je slnko pred oknom",
+          "enable_max_position": "Maximálnu polohu vynucujte len vtedy, keď je slnko pred oknom",
+          "fov_left": "Zorné pole vľavo",
+          "fov_right": "Zorné pole vpravo",
+          "group": "Krycie entity",
+          "inverse_state": "Inverzia stavu (potrebné pre niektoré kryty, ktoré nespĺňajú pokyny HA)",
+          "sunset_position": "Poloha pri západe slnka",
+          "sunset_offset": "Posun západu slnka",
+          "sunrise_offset": "Posun východu slnka",
+          "climate_mode": "Klimatický režim",
+          "blind_spot": "Nastavenie mŕtveho uhla",
+          "min_elevation": "Minimálna výška slnka",
+          "max_elevation": "Maximálna výška slnka",
+          "interp": "Nastavte vlastné pozície otvorenia/zatvorenia pre Môj Kryt, ak nefunguje úplne pri 0-100 %"
+        },
+        "data_description": {
+          "set_azimuth": "Zadajte azimut",
+          "window_height": "Nastavte výšku markízy od úrovne pracovnej plochy",
+          "length_awning": "Celková dĺžka rozpätia v metroch",
+          "angle": "Uhol pripevnenej markízy meraný kolmo od steny k zemi",
+          "distance_shaded_area": "Vzdialenosť od krytu k zatienenej ploche v metroch",
+          "default_percentage": "Predvolená poloha krytu v percentách",
+          "min_position": "Minimálna nastaviteľná poloha krytu v percentách",
+          "max_position": "Maximálna nastaviteľná poloha krytu v percentách",
+          "fov_left": "Stupne zorného poľa naľavo od stredu okna",
+          "fov_right": "Stupne zorného poľa vpravo od stredu okna",
+          "group": "Vyberte entity na riadenie prostredníctvom integrácie",
+          "sunset_position": "Pozícia na prepnutie po západe slnka",
+          "sunset_offset": "Posun (±) od času západu slnka v minútach",
+          "sunrise_offset": "Posun (±) od času východu slnka v minútach",
+          "climate_mode": "Nakonfigurujte premenné pre klimatický režim"
+        },
+        "description": "Pridajte do snímača konfiguračné premenné",
+        "title": "Horizontálny kryt"
+      },
+      "tilt": {
+        "data": {
+          "set_azimuth": "Azimut okna",
+          "slat_depth": "Hĺbka lamely",
+          "slat_distance": "Rozostup lamiel",
+          "default_percentage": "Predvolená poloha",
+          "min_position": "Minimálna pozícia",
+          "max_position": "Maximálna pozícia",
+          "enable_min_position": "Minimálnu polohu vynucujte len vtedy, keď je slnko pred oknom",
+          "enable_max_position": "Maximálnu polohu vynucujte len vtedy, keď je slnko pred oknom",
+          "fov_left": "Zorné pole vľavo",
+          "fov_right": "Zorné pole vpravo",
+          "group": "Krycie entity",
+          "inverse_state": "Inverzia stavu (potrebné pre niektoré kryty, ktoré nespĺňajú pokyny HA)",
+          "sunset_position": "Poloha pri západe slnka",
+          "sunset_offset": "Posun západu slnka",
+          "sunrise_offset": "Posun východu slnka",
+          "climate_mode": "Klimatický režim",
+          "tilt_mode": "Typ pohybu",
+          "blind_spot": "Nastavenie mŕtveho uhla",
+          "min_elevation": "Minimálna výška slnka",
+          "max_elevation": "Maximálna výška slnka",
+          "interp": "Nastavte vlastné pozície otvorenia/zatvorenia pre Môj Kryt, ak nefunguje úplne pri 0-100 %"
+        },
+        "data_description": {
+          "set_azimuth": "Zadajte azimut",
+          "slat_depth": "Hĺbka každej jednotlivej lamely v centimetroch",
+          "slat_distance": "Vertikálna vzdialenosť medzi dvoma lamelami v centimetroch",
+          "default_percentage": "Predvolená poloha krytu v percentách",
+          "min_position": "Minimálna pozícia",
+          "max_position": "Maximálna nastaviteľná poloha krytu v percentách",
+          "fov_left": "Stupne, ktoré treba zvážiť z ľavej strany stredu okna",
+          "fov_right": "Stupne, ktoré treba zvážiť z pravej strany stredu okna",
+          "group": "Vyberte entity na riadenie prostredníctvom integrácie",
+          "sunset_position": "Pozícia na prechod po západe slnka",
+          "sunset_offset": "Posun (±) od času západu slnka v minútach",
+          "sunrise_offset": "Posun (±) od času východu slnka v minútach",
+          "climate_mode": "Nakonfigurujte premenné pre klimatický režim",
+          "tilt_mode": "Vyberte si typ pohybu"
+        },
+        "description": "Pridajte do snímača konfiguračné premenné",
+        "title": "Naklonený kryt"
+      },
+      "blind_spot": {
+        "data": {
+          "blind_spot_left": "Začnite slepý uhol vľavo",
+          "blind_spot_right": "Koniec slepého uhla vpravo",
+          "blind_spot_elevation": "Nadmorská výška slepého uhla"
+        },
+        "data_description": {
+          "blind_spot_left": "Ľavý okraj slepého uhla",
+          "blind_spot_right": "Pravý okraj slepého uhla",
+          "blind_spot_elevation": "Akákoľvek hodnota, ktorá sa rovná alebo je nižšia, sa berie do úvahy v rámci slepého bodu. Užitočné, ak slnko môže svietiť na objekt v mŕtvom uhle"
+        },
+        "title": "Mŕtvy uhol",
+        "description": "Nastavenie slepého uhla pre kryt. Tieto hodnoty sú relatívne stupne k šírke zorného poľa. Kde 0 je pozícia úplne vľavo od ľavého parametra zorného poľa."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Hodnota, kde začína otváranie",
+          "interp_end": "Hodnota, kde začína zatváranie",
+          "interp_list": "Zoznam interpolácií",
+          "interp_list_new": "Vlastný zoznam interpolácií"
+        },
+        "data_description": {
+          "interp_list": "Zoznam hodnôt interpolácie, kde 0 je úplne uzavretá a 100 je úplne otvorená",
+          "interp_list_new": "Vlastný rozsah interpolačných hodnôt, kde začiatok by mal predstavovať uzavretý a koniec otvorený"
+        },
+        "title": "Úprava rozsahu",
+        "description": "Upravte hodnoty, pri ktorých sa kryt efektívne otvára alebo zatvára. Ideálne pre kryty, ktoré sa úplne neotvoria pri 0 % alebo nezatvoria pri 100 %. \n Prvé dva posuvníky sú pre 2-bodové nastavenie, možnosti zoznamu sú pre viacbodové nastavenie"
+      }
+    }
+  },
+  "selector": {
+    "mode": {
+      "options": {
+        "cover_blind": "Vertikálna žalúzia",
+        "cover_awning": "Horizontálna žalúzia",
+        "cover_tilt": "Naklonená roleta"
+      }
+    },
+    "tilt_mode": {
+      "options": {
+        "mode1": "jeden smer (0 % = zatvorené / 100 % = otvorené)",
+        "mode2": "obojsmerné (0 % = zatvorené / 50 % = otvorené / 100 % = zatvorené)"
+      }
+    }
+  }
+}
