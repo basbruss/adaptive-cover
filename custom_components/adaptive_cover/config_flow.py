@@ -637,7 +637,6 @@ class OptionsFlowHandler(OptionsFlow):
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize options flow."""
         # super().__init__(config_entry)
-        self.config_entry = config_entry
         self.current_config: dict = dict(config_entry.data)
         self.options = dict(config_entry.options)
         self.sensor_type: SensorType = (
