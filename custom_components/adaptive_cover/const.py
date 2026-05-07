@@ -61,7 +61,6 @@ CONF_IRRADIANCE_ENTITY = "irradiance_entity"
 CONF_IRRADIANCE_THRESHOLD = "irradiance_threshold"
 CONF_OUTSIDE_THRESHOLD = "outside_threshold"
 
-
 CONF_DELTA_POSITION = "delta_position"
 CONF_DELTA_TIME = "delta_time"
 CONF_START_TIME = "start_time"
@@ -73,6 +72,10 @@ CONF_MANUAL_OVERRIDE_DURATION = "manual_override_duration"
 CONF_MANUAL_OVERRIDE_RESET = "manual_override_reset"
 CONF_MANUAL_THRESHOLD = "manual_threshold"
 CONF_MANUAL_IGNORE_INTERMEDIATE = "manual_ignore_intermediate"
+
+CONF_WINDOW_ENTITY = "window_entity"
+CONF_RAIN_ENTITY = "rain_entity"
+CONF_WIND_ENTITY = "wind_entity"
 
 STRATEGY_MODE_BASIC = "basic"
 STRATEGY_MODE_CLIMATE = "climate"

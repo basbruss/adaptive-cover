@@ -24,7 +24,6 @@ from .const import (
 )
 from .coordinator import AdaptiveDataUpdateCoordinator
 
-
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -63,8 +62,10 @@ async def async_setup_entry(
     control = AdaptiveCoverControlSensorEntity(
         config_entry.entry_id, hass, config_entry, name, coordinator
     )
-    async_add_entities([sensor, start, end, control])
-
+    explain = AdaptiveCoverExplainSensorEntity(
+        config_entry.entry_id, hass, config_entry, name, coordinator
+    )
+    async_add_entities([sensor, start, end, control, explain])
 
 class AdaptiveCoverSensorEntity(
     CoordinatorEntity[AdaptiveDataUpdateCoordinator], SensorEntity
@@ -131,7 +132,6 @@ class AdaptiveCoverSensorEntity(
     def extra_state_attributes(self) -> Mapping[str, Any] | None:  # noqa: D102
         return self.data.attributes
 
-
 class AdaptiveCoverTimeSensorEntity(
     CoordinatorEntity[AdaptiveDataUpdateCoordinator], SensorEntity
 ):
@@ -197,7 +197,6 @@ class AdaptiveCoverTimeSensorEntity(
             name=self._device_name,
         )
 
-
 class AdaptiveCoverControlSensorEntity(
     CoordinatorEntity[AdaptiveDataUpdateCoordinator], SensorEntity
 ):
@@ -249,6 +248,67 @@ class AdaptiveCoverControlSensorEntity(
     def native_value(self) -> str | None:
         """Handle when entity is added."""
         return self.data.states["control"]
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info."""
+        return DeviceInfo(
+            entry_type=DeviceEntryType.SERVICE,
+            identifiers={(DOMAIN, self._device_id)},
+            name=self._device_name,
+        )
+        
+class AdaptiveCoverExplainSensorEntity(
+    CoordinatorEntity[AdaptiveDataUpdateCoordinator], SensorEntity
+):
+    """Adaptive Cover Explanation Sensor."""
+
+    _attr_has_entity_name = True
+    _attr_should_poll = False
+    _attr_icon = "mdi:text-box-search-outline"
+    _attr_translation_key = "algorithm_status" # Tłumaczenia z plików językowych
+    _attr_device_class = SensorDeviceClass.ENUM # Mówi HA, że to skończona lista wariantów
+    _attr_options = [
+        "auto", "dawn_protection", "rain_detected", "wind_detected",
+        "cold_protection", "night_purge", "max_limit", "min_limit",
+        "night_mode", "sun_shadow", "calculating"
+    ]
+
+    def __init__(
+        self,
+        unique_id: str,
+        hass,
+        config_entry,
+        name: str,
+        coordinator: AdaptiveDataUpdateCoordinator,
+    ) -> None:
+        """Initialize adaptive_cover Sensor."""
+        super().__init__(coordinator=coordinator)
+        self.type = {
+            "cover_blind": "Vertical",
+            "cover_awning": "Horizontal",
+            "cover_tilt": "Tilt",
+        }
+        self.coordinator = coordinator
+        self.data = self.coordinator.data
+        self._attr_unique_id = f"{unique_id}_explanation"
+        self._device_id = unique_id
+        self.id = unique_id
+        self.hass = hass
+        self.config_entry = config_entry
+        self._name = name
+        self._device_name = self.type[config_entry.data[CONF_SENSOR_TYPE]]
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.data = self.coordinator.data
+        self.async_write_ha_state()
+
+    @property
+    def native_value(self) -> str | None:
+        """Fetch the explanation string."""
+        return self.data.states.get("explanation", "calculating") # Default ENUM fallback
 
     @property
     def device_info(self) -> DeviceInfo:

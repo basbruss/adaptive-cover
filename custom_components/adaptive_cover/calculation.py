@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.template import state_attr
 from numpy import cos, sin, tan
 from numpy import radians as rad
 
@@ -15,6 +14,11 @@ from .helpers import get_domain, get_safe_state
 from .sun import SunData
 from .config_context_adapter import ConfigContextAdapter
 
+def state_attr(hass, entity_id: str, attr_name: str):
+    state = hass.states.get(entity_id)
+    if state is None:
+        return None
+    return state.attributes.get(attr_name)
 
 @dataclass
 class AdaptiveGeneralCover(ABC):
@@ -251,18 +255,66 @@ class ClimateCoverData:
     temp_summer_outside: float
     _use_lux: bool
     _use_irradiance: bool
+    rain_entity: str
+    wind_entity: str
 
     @property
+    def is_raining(self) -> bool:
+        """Check for rain using dedicated sensor or weather entity."""
+        # 1. Sprawdź dedykowany czujnik deszczu (np. binary_sensor)
+        if self.rain_entity:
+            state = get_safe_state(self.hass, self.rain_entity)
+            if str(state).lower() in ["on", "true", "detected", "1"]:
+                return True
+            # Jeśli to sensor liczbowy (np. mm/h), uznamy deszcz powyżej 0
+            try:
+                if float(state) > 0: return True
+            except (ValueError, TypeError): pass
+
+        # 2. Fallback do encji pogody
+        weather = get_safe_state(self.hass, self.weather_entity)
+        return weather in ['rainy', 'pouring', 'lightning-rainy', 'hail', 'snowy', 'snowy-rainy']
+
+    @property
+    def current_wind_speed(self) -> float:
+        """Get wind speed from dedicated sensor or weather entity."""
+        if self.wind_entity:
+            val = get_safe_state(self.hass, self.wind_entity)
+            try: return float(val)
+            except (ValueError, TypeError): pass
+            
+        # Fallback do atrybutu weather_entity
+        return float(state_attr(self.hass, self.weather_entity, "wind_speed") or 0)
+    
+    @property
     def outside_temperature(self):
-        """Get outside temperature."""
+        """Get outside temperature and today's max forecast."""
         temp = None
+        
+        # Jeśli użyto osobnego sensora temperatury zewnętrznej
         if self.outside_entity:
             temp = get_safe_state(
                 self.hass,
                 self.outside_entity,
             )
+            # W tym trybie nie mamy prognozy z pojedynczego sensora, przypisujemy temp do max_forecast
+            self.max_forecast_temp = float(temp) if temp else None
+
+        # Jeśli użyto integracji pogody (np. weather.home)
         elif self.weather_entity:
+            # 1. Pobierz aktualną temperaturę na zewnątrz
             temp = state_attr(self.hass, self.weather_entity, "temperature")
+            
+            # 2. Pobierz prognozę, by wiedzieć, czy później będzie gorąco
+            forecast_data = state_attr(self.hass, self.weather_entity, "forecast")
+            if forecast_data and isinstance(forecast_data, list) and len(forecast_data) > 0:
+                # Bierzemy prognozowaną temperaturę na pierwszy dzień/godzinę z listy
+                # (Zazwyczaj jest to dzisiejsze maksimum w prognozach dziennych)
+                forecast_temp = forecast_data[0].get("temperature")
+                self.max_forecast_temp = float(forecast_temp) if forecast_temp is not None else float(temp)
+            else:
+                self.max_forecast_temp = float(temp) if temp else None
+                
         return temp
 
     @property
@@ -332,34 +384,74 @@ class ClimateCoverData:
 
     @property
     def is_summer(self) -> bool:
-        """Check if temperature is over threshold."""
-        if self.temp_high is not None and self.get_current_temperature is not None:
-            is_it = self.get_current_temperature > self.temp_high and self.outside_high
-        else:
-            is_it = False
+        """Check if temperature is over threshold OR if predictive high heat is expected."""
+        if self.temp_high is None or self.get_current_temperature is None:
+             return False
+
+        # 1. Wymaganie starego algorytmu: w pokoju już jest za gorąco
+        already_hot_inside = self.get_current_temperature > self.temp_high
+        
+        # 2. PREDYKCJA: W pokoju jest OK, ale prognoza przewiduje duży upał (np. o 2 stopnie wyżej niż nasza tolerancja temp_summer_outside)
+        # Musimy wywołać outside_temperature, żeby zmienna max_forecast_temp się zainicjowała
+        _ = self.outside_temperature 
+        predictive_heat = False
+        
+        if hasattr(self, 'max_forecast_temp') and self.max_forecast_temp is not None and self.temp_summer_outside is not None:
+            # Jeśli prognoza przekracza nasz ustawiony próg zewnętrzny (plus bufor)
+            predictive_heat = self.max_forecast_temp > (self.temp_summer_outside + 2.0)
+
+        # Jest "Lato" (czyli zamykamy rolety), jeśli wewnątrz już jest gorąco ALBO na zewnątrz będzie bardzo gorąco.
+        # Warunkiem koniecznym jest, że na zewnątrz faktycznie JEST cieplej/prognozowane cieplej, żeby nie zamknąć rolet zimą.
+        is_it = (already_hot_inside or predictive_heat) and self.outside_high
 
         self.logger.debug(
-            "is_summer(): current_temp > temp_high and outside_high?: %s > %s and %s = %s",
-            self.get_current_temperature,
-            self.temp_high,
-            self.outside_high,
+            "PREDICTIVE is_summer(): Already Hot? %s | Predictive Heat Expected? %s (Max Forecast: %s) -> Result: %s",
+            already_hot_inside,
+            predictive_heat,
+            getattr(self, 'max_forecast_temp', 'N/A'),
             is_it,
         )
         return is_it
 
     @property
     def is_sunny(self) -> bool:
-        """Check if condition can contain radiation in winter."""
-        weather_state = None
-        if self.weather_entity is not None:
-            weather_state = get_safe_state(self.hass, self.weather_entity)
-        else:
-            self.logger.debug("is_sunny(): No weather entity defined")
+        """Check if condition can contain radiation in winter/summer."""
+        if not self.weather_entity:
+            self.logger.debug("is_sunny(): Brak encji pogodowej")
             return True
+
+        weather_state = get_safe_state(self.hass, self.weather_entity)
+        
+        # --- ETAP 5: INTELIGENTNY BUFOR CHMUR (CLOUD COVERAGE) ---
+        # 1. Sprawdzamy dokładny procent zachmurzenia (jeśli pogoda go podaje)
+        cloud_coverage = state_attr(self.hass, self.weather_entity, "cloud_coverage")
+        if cloud_coverage is not None:
+            try:
+                clouds = float(cloud_coverage)
+                self.logger.debug("is_sunny: Odczytano zachmurzenie %s%%", clouds)
+                
+                # Histereza (Bufor):
+                if clouds > 65:
+                    self.logger.debug("is_sunny: Grube chmury (>65%). Brak słońca.")
+                    return False  # Na pewno nie ma słońca
+                elif clouds < 35:
+                    self.logger.debug("is_sunny: Czyste niebo (<35%). Jest słońce.")
+                    return True   # Na pewno jest słońce
+                
+                # Jeśli zachmurzenie jest pomiędzy 35% a 65%, algorytm NIE PODEJMUJE agresywnej decyzji z procentów,
+                # tylko "przepuszcza" logikę dalej, unikając skakania rolet przy każdej małej chmurce.
+            except (ValueError, TypeError):
+                pass
+        # ---------------------------------------------------------
+
+        # 2. Standardowy fallback do statusu słownego (jeśli pogoda nie ma procentów 
+        # lub chmury są w strefie przejściowej 35-65%)
         if self.weather_condition is not None:
             matches = weather_state in self.weather_condition
-            self.logger.debug("is_sunny(): Weather: %s = %s", weather_state, matches)
+            self.logger.debug("is_sunny(): Stan %s w liście słonecznych = %s", weather_state, matches)
             return matches
+            
+        return True
 
     @property
     def lux(self) -> bool:
@@ -475,23 +567,59 @@ class ClimateCoverState(NormalCoverState):
 
     def get_state(self) -> int:
         """Return state."""
+        self.cover.state_info = "auto" # Domyślny opis (Klucz systemowy)
+        
+        if self.climate_data.is_summer and self.cover.sunset_valid:
+            try:
+                now = datetime.now()
+                if 5 <= now.month <= 10:
+                    now_utc = datetime.utcnow()
+                    sunrise = self.cover.sun_data.sunrise().replace(tzinfo=None)
+                    time_to_sunrise = (sunrise - now_utc).total_seconds()
+
+                    if 0 < time_to_sunrise < 3600:
+                        self.cover.state_info = "dawn_protection"
+                        return 0
+                    
+                    if self.climate_data.is_raining:
+                        self.cover.state_info = "rain_detected"
+                        return 0
+
+                    if self.climate_data.current_wind_speed > 40:
+                        self.cover.state_info = "wind_detected"
+                        return 0
+
+                    inside = self.climate_data.inside_temperature
+                    outside = self.climate_data.outside_temperature
+                    temp_comfort = self.climate_data.temp_low
+                    
+                    if inside is not None and outside is not None:
+                        if float(outside) < 16:
+                            self.cover.state_info = "cold_protection"
+                            return 0
+
+                        if float(inside) > float(temp_comfort) and float(outside) < float(inside):
+                            self.cover.state_info = "night_purge"
+                            return 50 if self.climate_data.blind_type == "cover_tilt" else 15
+
+            except Exception as e:
+                self.cover.logger.debug("Błąd zaawansowanej funkcji Night Purge: %s", e)
+
         result = self.normal_type_cover()
         if self.climate_data.blind_type == "cover_tilt":
             result = self.tilt_state()
+            
         if self.cover.apply_max_position and result > self.cover.max_pos:
-            self.cover.logger.debug(
-                "Climate state: Max position applied (%s > %s)",
-                result,
-                self.cover.max_pos,
-            )
+            self.cover.state_info = "max_limit"
             return self.cover.max_pos
         if self.cover.apply_min_position and result < self.cover.min_pos:
-            self.cover.logger.debug(
-                "Climate state: Min position applied (%s < %s)",
-                result,
-                self.cover.min_pos,
-            )
+            self.cover.state_info = "min_limit"
             return self.cover.min_pos
+
+        if not self.cover.valid and self.cover.sunset_valid:
+             self.cover.state_info = "night_mode"
+        elif not self.cover.valid:
+             self.cover.state_info = "sun_shadow"
         return result
 
 

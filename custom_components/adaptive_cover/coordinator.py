@@ -23,7 +23,6 @@ from homeassistant.core import (
     callback,
 )
 from homeassistant.helpers.event import async_track_point_in_time
-from homeassistant.helpers.template import state_attr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .config_context_adapter import ConfigContextAdapter
@@ -96,11 +95,19 @@ from .const import (
     CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
+    CONF_WINDOW_ENTITY,
+    CONF_RAIN_ENTITY,
+    CONF_WIND_ENTITY,
     DOMAIN,
     LOGGER,
 )
 from .helpers import get_datetime_from_str, get_last_updated, get_safe_state
 
+def state_attr(hass, entity_id: str, attr_name: str):
+    state = hass.states.get(entity_id)
+    if state is None:
+        return None
+    return state.attributes.get(attr_name)
 
 @dataclass
 class StateChangedData:
@@ -168,7 +175,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._scheduled_time = dt.datetime.now()
 
         self._cached_options = None
-
+        
+        # Nasza nowa zmienna przechowująca wybraną opcję
+        self.dynamic_override_duration_text = "1 Godzina"
+        self.dynamic_override_minutes = 60 # Wartość domyślna w minutach
+        
     async def async_config_entry_first_refresh(self) -> None:
         """Config entry first refresh."""
         self.first_refresh = True
@@ -193,6 +204,31 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             await self.async_refresh()
         else:
             self.logger.debug("Timed refresh, but: not equal to end time")
+
+    def set_dynamic_override_duration(self, option: str):
+        """Aktualizuje czas trwania manual override na podstawie encji Select."""
+        self.dynamic_override_duration_text = option
+        
+        # Przeliczamy tekst z encji na minuty
+        mapping = {
+            "Brak (Wyłączone)": 0,
+            "15 Minut": 15,
+            "30 Minut": 30,
+            "1 Godzina": 60,
+            "2 Godziny": 120,
+            "4 Godziny": 240,
+            "Do zachodu słońca": 9999
+        }
+        
+        self.dynamic_override_minutes = mapping.get(option, 60)
+        
+        # Kluczowe: Aktualizujemy bezpośrednio managera!
+        if self.dynamic_override_minutes == 9999:
+            # Ustawiamy sztucznie długi czas, w przyszłości można to ulepszyć licząc czas do zachodu
+            self.manager.reset_duration = dt.timedelta(minutes=9999) 
+        else:
+            self.manager.reset_duration = dt.timedelta(minutes=self.dynamic_override_minutes)
+        self.logger.debug(f"Dynamic override duration set to: {option} ({self.dynamic_override_minutes} min)")
 
     async def async_check_entity_state_change(
         self, event: Event[EventStateChangedData]
@@ -339,6 +375,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 "start": start,
                 "end": end,
                 "control": self.control_method,
+                "explanation": getattr(cover_data, "state_info", "auto"),
                 "sun_motion": normal_cover.valid,
                 "manual_override": self.manager.binary_cover_manual,
                 "manual_list": self.manager.manual_controlled,
@@ -382,6 +419,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def async_handle_first_refresh(self, state: int, options):
         """Handle first refresh."""
+        if self.is_window_open:
+            self.logger.debug("Window is open! Halting first refresh movement.")
+            self.first_refresh = False
+            return
+            
         if self.control_toggle:
             for cover in self.entities:
                 if (
@@ -397,6 +439,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def async_handle_timed_refresh(self, options):
         """Handle timed refresh."""
+        if self.is_window_open:
+            self.logger.debug("Window is open! Halting timed refresh movement.")
+            self.timed_refresh = False
+            return
+            
         self.logger.debug(
             "This is a timed refresh, using sunset position: %s",
             options.get(CONF_SUNSET_POS),
@@ -418,6 +465,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def async_handle_call_service(self, entity, state: int, options):
         """Handle call service."""
+        if self.is_window_open:
+            self.logger.debug("Window is open! Halting adaptive cover movement for %s", entity)
+            return
+            
         if (
             self.check_adaptive_time
             and self.check_position_delta(entity, state, options)
@@ -456,6 +507,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     def _update_options(self, options):
         """Update options."""
         self.entities = options.get(CONF_ENTITIES, [])
+        self.window_entity = options.get(CONF_WINDOW_ENTITY)
         self.min_change = options.get(CONF_DELTA_POSITION, 1)
         self.time_threshold = options.get(CONF_DELTA_TIME, 2)
         self.start_time = options.get(CONF_START_TIME)
@@ -464,7 +516,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.end_time_entity = options.get(CONF_END_ENTITY)
         self.manual_reset = options.get(CONF_MANUAL_OVERRIDE_RESET, False)
         self.manual_duration = options.get(
-            CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
+            CONF_MANUAL_OVERRIDE_DURATION, {"minutes": self.dynamic_override_minutes}
         )
         self.manual_threshold = options.get(CONF_MANUAL_THRESHOLD)
         self.start_value = options.get(CONF_INTERP_START)
@@ -578,6 +630,16 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             return position != state
         self.logger.debug("Cover is already at position %s", state)
         return False
+        
+    @property
+    def is_window_open(self):
+        """Check if the physical window/door is open."""
+        if getattr(self, 'window_entity', None):
+            state = self.hass.states.get(self.window_entity)
+            # W Home Assistant kontaktrony (binary_sensor) mają stan 'on', gdy magnes jest oddalony (okno otwarte)
+            if state and state.state == "on":
+                return True
+        return False
 
     def check_position_delta(self, entity, state: int, options):
         """Check cover positions to reduce calls."""
@@ -672,6 +734,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options.get(CONF_OUTSIDE_THRESHOLD),
             self._lux_toggle,
             self._irradiance_toggle,
+            options.get(CONF_RAIN_ENTITY),
+            options.get(CONF_WIND_ENTITY),
         ]
 
     def climate_mode_data(self, options, cover_data):

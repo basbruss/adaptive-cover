@@ -69,6 +69,9 @@ from .const import (
     CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
+    CONF_WINDOW_ENTITY,
+    CONF_RAIN_ENTITY,
+    CONF_WIND_ENTITY,
     CONF_OUTSIDE_THRESHOLD,
     DOMAIN,
     SensorType,
@@ -223,6 +226,12 @@ TILT_OPTIONS = vol.Schema(
 
 CLIMATE_OPTIONS = vol.Schema(
     {
+        vol.Optional(CONF_RAIN_ENTITY): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=["binary_sensor", "sensor"])
+        ),
+        vol.Optional(CONF_WIND_ENTITY): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain="sensor")
+        ),
         vol.Required(CONF_TEMP_ENTITY): selector.EntitySelector(
             selector.EntityFilterSelectorConfig(domain=["climate", "sensor"])
         ),
@@ -334,6 +343,11 @@ AUTOMATION_CONFIG = vol.Schema(
             vol.Coerce(int), vol.Range(min=0, max=99)
         ),
         vol.Optional(CONF_MANUAL_IGNORE_INTERMEDIATE, default=False): bool,
+        # --- NASZ NOWY WYBÓR ENCJ OKNA/DRZWI BALKONOWYCH ---
+        vol.Optional(CONF_WINDOW_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["binary_sensor", "input_boolean"])
+        ),
+        # ---------------------------------------------------
         vol.Optional(CONF_END_TIME, default="00:00:00"): selector.TimeSelector(),
         vol.Optional(CONF_END_ENTITY): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
@@ -627,6 +641,8 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_IRRADIANCE_ENTITY: self.config.get(CONF_IRRADIANCE_ENTITY),
                 CONF_IRRADIANCE_THRESHOLD: self.config.get(CONF_IRRADIANCE_THRESHOLD),
                 CONF_OUTSIDE_THRESHOLD: self.config.get(CONF_OUTSIDE_THRESHOLD),
+                CONF_RAIN_ENTITY: self.config.get(CONF_RAIN_ENTITY),
+                CONF_WIND_ENTITY: self.config.get(CONF_WIND_ENTITY),
             },
         )
 
@@ -636,8 +652,6 @@ class OptionsFlowHandler(OptionsFlow):
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize options flow."""
-        # super().__init__(config_entry)
-        self.config_entry = config_entry
         self.current_config: dict = dict(config_entry.data)
         self.options = dict(config_entry.options)
         self.sensor_type: SensorType = (
@@ -662,7 +676,7 @@ class OptionsFlowHandler(OptionsFlow):
     async def async_step_automation(self, user_input: dict[str, Any] | None = None):
         """Manage automation options."""
         if user_input is not None:
-            entities = [CONF_START_ENTITY, CONF_END_ENTITY, CONF_MANUAL_THRESHOLD]
+            entities = [CONF_START_ENTITY, CONF_END_ENTITY, CONF_MANUAL_THRESHOLD, CONF_WINDOW_ENTITY]
             self.optional_entities(entities, user_input)
             self.options.update(user_input)
             return await self._update_options()
@@ -860,6 +874,8 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_PRESENCE_ENTITY,
                 CONF_LUX_ENTITY,
                 CONF_IRRADIANCE_ENTITY,
+                CONF_RAIN_ENTITY,
+                CONF_WIND_ENTITY,
             ]
             self.optional_entities(entities, user_input)
             self.options.update(user_input)
