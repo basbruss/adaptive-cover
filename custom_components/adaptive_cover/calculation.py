@@ -257,6 +257,12 @@ class ClimateCoverData:
     _use_irradiance: bool
     rain_entity: str
     wind_entity: str
+    dawn_start_month: int
+    dawn_end_month: int
+    dawn_duration_min: int
+    cold_threshold: float
+    wind_threshold: float
+    purge_pos: int
 
     @property
     def is_raining(self) -> bool:
@@ -567,44 +573,54 @@ class ClimateCoverState(NormalCoverState):
 
     def get_state(self) -> int:
         """Return state."""
-        self.cover.state_info = "auto" # Domyślny opis (Klucz systemowy)
+        self.cover.state_info = "auto"
+        now = datetime.now()
+
+        # 1. Ochrona pogodowa
+        if self.climate_data.is_raining:
+            self.cover.state_info = "rain_detected"
+            return 0
+            
+        # Zabezpieczenie na wypadek, gdyby threshold jeszcze nie istniał
+        wind_thresh = getattr(self.climate_data, "wind_threshold", 40)
+        if self.climate_data.current_wind_speed > wind_thresh:
+            self.cover.state_info = "wind_detected"
+            return 0
+
+        # 2. Ochrona przed świtem (Dawn Protection)
+        # Pobieranie miesięcy (bezpieczny fallback)
+        m_start = getattr(self.climate_data, "dawn_start_month", 5)
+        m_end = getattr(self.climate_data, "dawn_end_month", 10)
+        duration = getattr(self.climate_data, "dawn_duration_min", 60)
         
-        if self.climate_data.is_summer and self.cover.sunset_valid:
-            try:
-                now = datetime.now()
-                if 5 <= now.month <= 10:
-                    now_utc = datetime.utcnow()
-                    sunrise = self.cover.sun_data.sunrise().replace(tzinfo=None)
-                    time_to_sunrise = (sunrise - now_utc).total_seconds()
+        if m_start <= now.month <= m_end:
+            now_utc = datetime.utcnow()
+            sunrise = self.cover.sun_data.sunrise().replace(tzinfo=None)
+            time_to_sunrise = (sunrise - now_utc).total_seconds()
+            if 0 < time_to_sunrise < (duration * 60):
+                self.cover.state_info = "dawn_protection"
+                return 0
 
-                    if 0 < time_to_sunrise < 3600:
-                        self.cover.state_info = "dawn_protection"
-                        return 0
-                    
-                    if self.climate_data.is_raining:
-                        self.cover.state_info = "rain_detected"
-                        return 0
+        # 3. Ochrona przed zimnem i Nocne wietrzenie
+        outside = self.climate_data.outside_temperature
+        if outside is not None:
+            cold_thresh = getattr(self.climate_data, "cold_threshold", 16)
+            if float(outside) < cold_thresh:
+                self.cover.state_info = "cold_protection"
+                return 0
+            
+            # Purge tylko w nocy
+            if self.cover.sunset_valid:
+                inside = self.climate_data.inside_temperature
+                temp_comfort = self.climate_data.temp_low
+                purge_val = getattr(self.climate_data, "purge_pos", 15)
+                
+                if inside is not None and temp_comfort is not None:
+                    if float(inside) > float(temp_comfort) and float(outside) < float(inside):
+                        self.cover.state_info = "night_purge"
+                        return purge_val if self.climate_data.blind_type != "cover_tilt" else 50
 
-                    if self.climate_data.current_wind_speed > 40:
-                        self.cover.state_info = "wind_detected"
-                        return 0
-
-                    inside = self.climate_data.inside_temperature
-                    outside = self.climate_data.outside_temperature
-                    temp_comfort = self.climate_data.temp_low
-                    
-                    if inside is not None and outside is not None:
-                        if float(outside) < 16:
-                            self.cover.state_info = "cold_protection"
-                            return 0
-
-                        if float(inside) > float(temp_comfort) and float(outside) < float(inside):
-                            self.cover.state_info = "night_purge"
-                            return 50 if self.climate_data.blind_type == "cover_tilt" else 15
-
-            except Exception as e:
-                self.cover.logger.debug("Błąd zaawansowanej funkcji Night Purge: %s", e)
-
+        # 4. Powrót do standardowej logiki (dla trybów dziennych)
         result = self.normal_type_cover()
         if self.climate_data.blind_type == "cover_tilt":
             result = self.tilt_state()

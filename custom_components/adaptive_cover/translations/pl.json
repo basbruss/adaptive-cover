@@ -88,10 +88,15 @@
           "lux_entity": "Sensor natężenia światła Lux (Opcjonalnie)",
           "lux_threshold": "Próg Lux",
           "irradiance_entity": "Sensor promieniowania słonecznego (Opcjonalnie)",
-          "irradiance_threshold": "Próg promieniowania",
           "outside_threshold": "Minimalna temperatura zewnętrzna dla trybu letniego",
           "rain_entity": "Czujnik opadów / deszczu (Opcjonalnie)",
-          "wind_entity": "Czujnik prędkości wiatru (Opcjonalnie)"
+          "wind_entity": "Czujnik prędkości wiatru (Opcjonalnie)",
+          "dawn_month_start": "Miesiąc rozpoczęcia ochrony przed świtem (np. 5 = Maj)",
+          "dawn_month_end": "Miesiąc zakończenia ochrony przed świtem (np. 10 = Październik)",
+          "dawn_duration": "Czas ochrony przed świtem (w minutach)",
+          "cold_threshold": "Próg ochrony przed zimnem (°C)",
+          "wind_threshold": "Próg ochrony przed wiatrem (km/h)",
+          "purge_pos": "Pozycja wietrzenia nocnego (%)"
         },
         "data_description": {
           "presence_entity": "Encja reprezentująca obecność domowników (np. group.family)",
@@ -329,7 +334,13 @@
           "irradiance_threshold": "Próg promieniowania",
           "outside_threshold": "Blokuj tryb letni, jeśli na zewnątrz jest poniżej:",
           "rain_entity": "Czujnik opadów / deszczu (Opcjonalnie)",
-          "wind_entity": "Czujnik prędkości wiatru (Opcjonalnie)"
+          "wind_entity": "Czujnik prędkości wiatru (Opcjonalnie)",
+          "dawn_month_start": "Miesiąc rozpoczęcia ochrony przed świtem (np. 5 = Maj)",
+          "dawn_month_end": "Miesiąc zakończenia ochrony przed świtem (np. 10 = Październik)",
+          "dawn_duration": "Czas ochrony przed świtem (w minutach)",
+          "cold_threshold": "Próg ochrony przed zimnem (°C) (Zamyka rolety)",
+          "wind_threshold": "Próg ochrony przed wiatrem (km/h)",
+          "purge_pos": "Pozycja rolety do wietrzenia nocnego (%)"
         },
         "data_description": {
           "presence_entity": "Jeżeli czujnik nie wykaże nikogo w domu - integracja wymusi maksymalną energooszczędność",
@@ -518,7 +529,8 @@
           "min_limit": "Wymuszono limit: Otwarcie Min",
           "night_mode": "Tryb nocny (Zasłonięte po zachodzie)",
           "sun_shadow": "Otwarto: Słońce poza oknem (Cień)",
-          "calculating": "Trwa obliczanie..."
+          "calculating": "Trwa obliczanie...",
+          "window_open": "Otwarte okno/drzwi"
         }
       }
     }

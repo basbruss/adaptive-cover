@@ -90,8 +90,14 @@
           "irradiance_entity": "Irradiance sensor (optional)",
           "irradiance_threshold": "Irradiance threshold",
           "outside_threshold": "Minimum outside temperature for summer mode",
-		  "rain_entity": "Rain / precipitation sensor (optional)",
-          "wind_entity": "Wind speed sensor (optional)"
+          "rain_entity": "Rain / precipitation sensor (optional)",
+          "wind_entity": "Wind speed sensor (optional)",
+          "dawn_month_start": "Dawn protection start month (e.g., 5 = May)",
+          "dawn_month_end": "Dawn protection end month (e.g., 10 = October)",
+          "dawn_duration": "Dawn protection duration in minutes",
+          "cold_threshold": "Cold protection threshold (°C)",
+          "wind_threshold": "Wind protection threshold (km/h)",
+          "purge_pos": "Night purge cover position (%)"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
@@ -104,7 +110,7 @@
           "lux_threshold": "Threshold for lux sensor, above this value glare should be reduced",
           "irradiance_entity": "Use irradiance sensor to determine if cover should reduce glare in presence mode",
           "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced",
-		  "rain_entity": "Select a dedicated rain sensor (takes priority over weather entity data)",
+		      "rain_entity": "Select a dedicated rain sensor (takes priority over weather entity data)",
           "wind_entity": "Select a dedicated wind sensor in km/h (takes priority over weather entity data)"
         },
         "description": "Add additional climate configuration variables.",
@@ -328,8 +334,14 @@
           "irradiance_entity": "Irradiance sensor (optional)",
           "irradiance_threshold": "Irradiance threshold",
           "outside_threshold": "Minimum outside temperature for summer mode",
-		  "rain_entity": "Rain / precipitation sensor (optional)",
-          "wind_entity": "Wind speed sensor (optional)"
+          "rain_entity": "Rain / precipitation sensor (optional)",
+          "wind_entity": "Wind speed sensor (optional)",
+          "dawn_month_start": "Dawn protection start month (e.g., 5 = May)",
+          "dawn_month_end": "Dawn protection end month (e.g., 10 = October)",
+          "dawn_duration": "Dawn protection duration in minutes",
+          "cold_threshold": "Cold protection threshold (°C)",
+          "wind_threshold": "Wind protection threshold (km/h)",
+          "purge_pos": "Night purge cover position (%)"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
@@ -517,7 +529,8 @@
           "min_limit": "Min Limit Forced",
           "night_mode": "Night Mode (Closed after sunset)",
           "sun_shadow": "Open: Sun outside window (Shadow)",
-          "calculating": "Calculating..."
+          "calculating": "Calculating...",
+          "window_open": "Window/Door Open"
         }
       }
     }

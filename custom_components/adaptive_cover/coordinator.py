@@ -98,6 +98,12 @@ from .const import (
     CONF_WINDOW_ENTITY,
     CONF_RAIN_ENTITY,
     CONF_WIND_ENTITY,
+    CONF_DAWN_MONTH_START,
+    CONF_DAWN_MONTH_END,
+    CONF_DAWN_DURATION,
+    CONF_COLD_THRESHOLD,
+    CONF_WIND_THRESHOLD,
+    CONF_PURGE_POS,
     DOMAIN,
     LOGGER,
 )
@@ -375,7 +381,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 "start": start,
                 "end": end,
                 "control": self.control_method,
-                "explanation": getattr(cover_data, "state_info", "auto"),
+                "explanation": "window_open" if self.is_window_open else getattr(cover_data, "state_info", "auto"),
                 "sun_motion": normal_cover.valid,
                 "manual_override": self.manager.binary_cover_manual,
                 "manual_list": self.manager.manual_controlled,
@@ -736,6 +742,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             self._irradiance_toggle,
             options.get(CONF_RAIN_ENTITY),
             options.get(CONF_WIND_ENTITY),
+            options.get(CONF_DAWN_MONTH_START, 5),
+            options.get(CONF_DAWN_MONTH_END, 10),
+            options.get(CONF_DAWN_DURATION, 60),
+            options.get(CONF_COLD_THRESHOLD, 16),
+            options.get(CONF_WIND_THRESHOLD, 40),
+            options.get(CONF_PURGE_POS, 15),
         ]
 
     def climate_mode_data(self, options, cover_data):

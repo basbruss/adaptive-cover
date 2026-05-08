@@ -271,7 +271,7 @@ class AdaptiveCoverExplainSensorEntity(
     _attr_options = [
         "auto", "dawn_protection", "rain_detected", "wind_detected",
         "cold_protection", "night_purge", "max_limit", "min_limit",
-        "night_mode", "sun_shadow", "calculating"
+        "night_mode", "sun_shadow", "calculating", "window_open"
     ]
 
     def __init__(
