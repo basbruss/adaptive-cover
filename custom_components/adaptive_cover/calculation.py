@@ -581,14 +581,12 @@ class ClimateCoverState(NormalCoverState):
             self.cover.state_info = "rain_detected"
             return 0
             
-        # Zabezpieczenie na wypadek, gdyby threshold jeszcze nie istniał
         wind_thresh = getattr(self.climate_data, "wind_threshold", 40)
         if self.climate_data.current_wind_speed > wind_thresh:
             self.cover.state_info = "wind_detected"
             return 0
 
         # 2. Ochrona przed świtem (Dawn Protection)
-        # Pobieranie miesięcy (bezpieczny fallback)
         m_start = getattr(self.climate_data, "dawn_start_month", 5)
         m_end = getattr(self.climate_data, "dawn_end_month", 10)
         duration = getattr(self.climate_data, "dawn_duration_min", 60)
@@ -605,11 +603,13 @@ class ClimateCoverState(NormalCoverState):
         outside = self.climate_data.outside_temperature
         if outside is not None:
             cold_thresh = getattr(self.climate_data, "cold_threshold", 16)
-            if float(outside) < cold_thresh:
+            
+            # --- POPRAWKA: Ochrona przed zimnem działa TYLKO w nocy (po zachodzie słońca) ---
+            if float(outside) < cold_thresh and self.cover.sunset_valid:
                 self.cover.state_info = "cold_protection"
                 return 0
             
-            # Purge tylko w nocy
+            # Purge (wietrzenie) również tylko w nocy
             if self.cover.sunset_valid:
                 inside = self.climate_data.inside_temperature
                 temp_comfort = self.climate_data.temp_low
