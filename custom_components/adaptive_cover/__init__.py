@@ -15,12 +15,15 @@ from .const import (
     CONF_PRESENCE_ENTITY,
     CONF_TEMP_ENTITY,
     CONF_WEATHER_ENTITY,
+    CONF_WINDOW_ENTITY,
+    CONF_RAIN_ENTITY,
+    CONF_WIND_ENTITY,
     DOMAIN,
     _LOGGER,
 )
 from .coordinator import AdaptiveDataUpdateCoordinator
 
-PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.BINARY_SENSOR, Platform.BUTTON]
+PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.BINARY_SENSOR, Platform.BUTTON, Platform.SELECT, Platform.TIME, Platform.NUMBER]
 CONF_SUN = ["sun.sun"]
 
 
@@ -44,8 +47,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _weather_entity = entry.options.get(CONF_WEATHER_ENTITY)
     _cover_entities = entry.options.get(CONF_ENTITIES, [])
     _end_time_entity = entry.options.get(CONF_END_ENTITY)
+    _window_entity = entry.options.get(CONF_WINDOW_ENTITY)
+    
+    # --- NOWE ENCJE ---
+    _rain_entity = entry.options.get(CONF_RAIN_ENTITY)
+    _wind_entity = entry.options.get(CONF_WIND_ENTITY)
+    # ------------------
+    
     _entities = ["sun.sun"]
-    for entity in [_temp_entity, _presence_entity, _weather_entity, _end_time_entity]:
+    
+    # --- DODANE NOWE ENCJE NA KONIEC TEJ LISTY ---
+    for entity in [_temp_entity, _presence_entity, _weather_entity, _end_time_entity, _window_entity, _rain_entity, _wind_entity]:
         if entity is not None:
             _entities.append(entity)
 
@@ -74,7 +86,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True
-
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""

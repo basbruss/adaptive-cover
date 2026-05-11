@@ -1,0 +1,550 @@
+{
+  "title": "Adaptacyjne Rolety (Adaptive Cover)",
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "name": "Nazwa",
+          "blueprint": "Dodaj blueprint do HomeAssistant",
+          "mode": "Typ rolety/osłony"
+        }
+      },
+      "automation": {
+        "data": {
+          "delta_position": "Minimalna zmiana pozycji",
+          "delta_time": "Minimalny czas między zmianami pozycji",
+          "start_time": "Czas rozpoczęcia",
+          "start_entity": "Encja określająca czas rozpoczęcia",
+          "manual_override_duration": "Czas trwania ręcznego nadpisania",
+          "manual_override_reset": "Resetuj czas ręcznego nadpisania po każdym ruchu",
+          "end_time": "Czas zakończenia",
+          "end_entity": "Encja określająca czas zakończenia",
+          "manual_threshold": "Próg ignorowania ręcznej zmiany",
+          "manual_ignore_intermediate": "Ignoruj pozycje pośrednie podczas ręcznego sterowania (otwieranie i zamykanie)",
+          "workday_entity": "Sesnor dni roboczych (Opcjonalnie)",
+          "window_entity": "Czujnik otwarcia okna / balkonu (Opcjonalnie)",
+          "return_sunset": "Zawsze ustawiaj domyślną pozycję po zachodzie słońca; Przydatne, gdy czas zakończenia wypada przed faktycznym zachodem słońca"
+        },
+        "data_description": {
+          "delta_position": "Minimalna wymagana zmiana pozycji, zanim roleta zostanie przestawiona",
+          "delta_time": "Minimalny odstęp czasu między zmianami pozycji; minimum to 2 minuty",
+          "start_time": "Czas rozpoczęcia automatyki na dany dzień; przed tym czasem roleta pozostanie w bezruchu",
+          "start_entity": "Encja nadpisująca stały czas rozpoczęcia ustawiony powyżej. Przydatne do dynamicznej automatyzacji",
+          "manual_override_duration": "Czas, po którym roleta wróci do pracy automatycznej po ręcznym ruchu. Możesz to zmienić również na Dashboardzie.",
+          "manual_override_reset": "Opcja resetowania odliczania czasu po każdej ręcznej zmianie; jeśli wyłączona, czas dotyczy tylko pierwszej zmiany",
+          "end_time": "Czas zakończenia dla każdego dnia; po tym czasie roleta pozostanie w bezruchu",
+          "end_entity": "Upewnij się, że o czasie zakończenia pozycja zostanie zawsze dostosowana do ustawienia po zachodzie słońca."
+        }
+      },
+      "vertical": {
+        "data": {
+          "set_azimuth": "Azymut okna",
+          "window_height": "Wysokość okna",
+          "distance_shaded_area": "Strefa odblasku (Zacienienie)",
+          "default_percentage": "Domyślna pozycja",
+          "min_position": "Minimalna pozycja",
+          "max_position": "Maksymalna pozycja",
+          "enable_min_position": "Wymuś minimalną pozycję tylko wtedy, gdy słońce jest przed oknem",
+          "enable_max_position": "Wymuś maksymalną pozycję tylko wtedy, gdy słońce jest przed oknem",
+          "fov_left": "Pole widzenia (Lewo)",
+          "fov_right": "Pole widzenia (Prawo)",
+          "group": "Encje Rolet",
+          "inverse_state": "Odwróć stan (wymagane dla rolet niezgodnych ze standardem HA, np. 100% to zamknięte)",
+          "sunset_position": "Pozycja po zachodzie słońca",
+          "sunset_offset": "Przesunięcie względem zachodu (Offset)",
+          "sunrise_offset": "Przesunięcie względem wschodu (Offset)",
+          "climate_mode": "Tryb Klimatyczny (Climate Mode)",
+          "blind_spot": "Skonfiguruj martwe pole (Blindspot)",
+          "min_elevation": "Minimalna elewacja słońca",
+          "max_elevation": "Maksymalna elewacja słońca",
+          "interp": "Skonfiguruj własne punkty graniczne (Interpolacja), jeśli roleta nie działa w pełnym zakresie 0-100%"
+        },
+        "data_description": {
+          "set_azimuth": "Określ kierunek geograficzny okna (w stopniach)",
+          "window_height": "Określ wysokość okna w metrach",
+          "distance_shaded_area": "Obiekty w tej odległości od rolety będą otrzymywać bezpośrednie światło słoneczne.",
+          "default_percentage": "Domyślne rozwinięcie rolety w procentach",
+          "min_position": "Minimalne dozwolone otwarcie rolety w procentach",
+          "max_position": "Maksymalne dozwolone otwarcie rolety w procentach",
+          "fov_left": "Kąt pola widzenia w lewo od środka okna",
+          "fov_right": "Kąt pola widzenia w prawo od środka okna",
+          "group": "Wybierz rolety, którymi ma sterować ta integracja",
+          "sunset_position": "Pozycja, na którą roleta ustawi się po zachodzie słońca",
+          "sunset_offset": "Przesunięcie (±) względem czasu zachodu słońca w minutach",
+          "sunrise_offset": "Przesunięcie (±) względem czasu wschodu słońca w minutach",
+          "climate_mode": "Skonfiguruj parametry dla trybu klimatycznego"
+        },
+        "description": "Dodaj zmienne konfiguracyjne do sensora",
+        "title": "Rolety Pionowe (Zwykłe)"
+      },
+      "climate": {
+        "data": {
+          "temp_entity": "Sensor temperatury wewnętrznej",
+          "presence_entity": "Sensor obecności (Opcjonalnie)",
+          "weather_entity": "Integracja pogody (Opcjonalnie)",
+          "outside_temp": "Sensor temperatury zewnętrznej (Opcjonalnie)",
+          "temp_low": "Próg zimowy (Wpuszczaj słońce)",
+          "temp_high": "Próg letni (Zasłaniaj słońce)",
+          "transparent_blind": "Roleta przepuszczająca światło",
+          "lux_entity": "Sensor natężenia światła Lux (Opcjonalnie)",
+          "lux_threshold": "Próg Lux",
+          "irradiance_entity": "Sensor promieniowania słonecznego (Opcjonalnie)",
+          "outside_threshold": "Minimalna temperatura zewnętrzna dla trybu letniego",
+          "rain_entity": "Czujnik opadów / deszczu (Opcjonalnie)",
+          "wind_entity": "Czujnik prędkości wiatru (Opcjonalnie)",
+          "dawn_month_start": "Miesiąc rozpoczęcia ochrony przed świtem (np. 5 = Maj)",
+          "dawn_month_end": "Miesiąc zakończenia ochrony przed świtem (np. 10 = Październik)",
+          "dawn_duration": "Czas ochrony przed świtem (w minutach)",
+          "cold_threshold": "Próg ochrony przed zimnem (°C)",
+          "wind_threshold": "Próg ochrony przed wiatrem (km/h)",
+          "purge_pos": "Pozycja wietrzenia nocnego (%)"
+        },
+        "data_description": {
+          "presence_entity": "Encja reprezentująca obecność domowników (np. group.family)",
+          "weather_entity": "Monitoruje warunki pogodowe i temperaturę na zewnątrz",
+          "outside_temp": "Nadpisuje temperaturę zewnętrzną z integracji pogodowej (jeśli podano obie)",
+          "temp_low": "Minimalna temperatura komfortowa",
+          "temp_high": "Maksymalna temperatura komfortowa",
+          "transparent_blind": "Roleta jest przezroczysta/firankowa i powinna zamykać się całkowicie w upalne dni",
+          "lux_entity": "Użyj sensora lux, aby określić, czy roleta powinna zredukować odblaski",
+          "lux_threshold": "Próg dla sensora lux – powyżej tej wartości odblaski będą redukowane",
+          "irradiance_entity": "Użyj sensora promieniowania, aby określić, czy roleta powinna zredukować odblaski",
+          "irradiance_threshold": "Próg dla sensora promieniowania – powyżej tej wartości odblaski będą redukowane",
+          "rain_entity": "Wybierz dedykowany czujnik deszczu (priorytet nad danymi z pogody)",
+          "wind_entity": "Wybierz dedykowany wiatromierz w km/h (priorytet nad danymi z pogody)"
+        },
+        "description": "Skonfiguruj dodatkowe zmienne dla trybu kontroli klimatu.",
+        "title": "Ustawienia Klimatyczne"
+      },
+      "weather": {
+        "data": { "weather_state": "Warunki Pogodowe" },
+        "data_description": {
+          "weather_state": "Wybierz warunki pogodowe, które pozwalają na automatyczne zasłanianie."
+        },
+        "title": "Warunki Pogodowe"
+      },
+      "horizontal": {
+        "data": {
+          "set_azimuth": "Azymut okna",
+          "length_awning": "Długość Markizy",
+          "window_height": "Wysokość zawieszenia",
+          "angle": "Kąt nachylenia markizy",
+          "distance_shaded_area": "Strefa odblasku (Zacienienie)",
+          "default_percentage": "Domyślna pozycja",
+          "min_position": "Minimalna pozycja",
+          "max_position": "Maksymalna pozycja",
+          "enable_min_position": "Wymuś minimalną pozycję tylko wtedy, gdy słońce jest przed oknem",
+          "enable_max_position": "Wymuś maksymalną pozycję tylko wtedy, gdy słońce jest przed oknem",
+          "fov_left": "Pole widzenia (Lewo)",
+          "fov_right": "Pole widzenia (Prawo)",
+          "group": "Encje Markiz",
+          "inverse_state": "Odwróć stan (wymagane dla markiz niezgodnych ze standardem HA, np. 100% to zamknięte)",
+          "sunset_position": "Pozycja po zachodzie słońca",
+          "sunset_offset": "Przesunięcie względem zachodu",
+          "sunrise_offset": "Przesunięcie względem wschodu",
+          "climate_mode": "Tryb Klimatyczny (Climate Mode)",
+          "blind_spot": "Skonfiguruj martwe pole",
+          "min_elevation": "Minimalna elewacja słońca",
+          "max_elevation": "Maksymalna elewacja słońca",
+          "interp": "Skonfiguruj własne punkty graniczne (Interpolacja)"
+        },
+        "data_description": {
+          "set_azimuth": "Określ azymut",
+          "window_height": "Ustaw wysokość zawieszenia markizy w stosunku do zacienianej powierzchni",
+          "length_awning": "Całkowita długość wysięgu markizy w metrach",
+          "angle": "Kąt nachylenia zamocowanej markizy (od ściany w stronę ziemi)",
+          "distance_shaded_area": "Obiekty w tej odległości od rolety będą otrzymywać bezpośrednie światło słoneczne",
+          "default_percentage": "Domyślne rozwinięcie w procentach",
+          "min_position": "Minimalne rozwinięcie w procentach",
+          "max_position": "Maksymalne rozwinięcie w procentach",
+          "fov_left": "Pole widzenia w stopniach na lewo od centrum",
+          "fov_right": "Pole widzenia w stopniach na prawo od centrum",
+          "group": "Wybierz encje do sterowania",
+          "sunset_position": "Pozycja docelowa po zachodzie słońca",
+          "sunset_offset": "Przesunięcie (±) względem zachodu słońca w minutach",
+          "sunrise_offset": "Przesunięcie (±) względem wschodu słońca w minutach",
+          "climate_mode": "Skonfiguruj zmienne klimatyczne"
+        },
+        "description": "Dodaj zmienne konfiguracyjne do sensora",
+        "title": "Osłona pozioma (Markiza)"
+      },
+      "tilt": {
+        "data": {
+          "set_azimuth": "Azymut okna",
+          "slat_depth": "Głębokość lameli",
+          "slat_distance": "Odstęp między lamelami",
+          "default_percentage": "Domyślna pozycja",
+          "min_position": "Minimalna pozycja",
+          "max_position": "Maksymalna pozycja",
+          "enable_min_position": "Wymuś minimalną pozycję tylko wtedy, gdy słońce jest przed oknem",
+          "enable_max_position": "Wymuś maksymalną pozycję tylko wtedy, gdy słońce jest przed oknem",
+          "fov_left": "Pole widzenia (Lewo)",
+          "fov_right": "Pole widzenia (Prawo)",
+          "group": "Encje Żaluzji",
+          "inverse_state": "Odwróć stan",
+          "sunset_position": "Pozycja po zachodzie słońca",
+          "sunset_offset": "Przesunięcie względem zachodu",
+          "sunrise_offset": "Przesunięcie względem wschodu",
+          "climate_mode": "Tryb Klimatyczny (Climate Mode)",
+          "tilt_mode": "Typ ruchu (jedno/dwukierunkowy)",
+          "blind_spot": "Skonfiguruj martwe pole",
+          "min_elevation": "Minimalna elewacja słońca",
+          "max_elevation": "Maksymalna elewacja słońca",
+          "interp": "Skonfiguruj własne punkty graniczne (Interpolacja)"
+        },
+        "data_description": {
+          "set_azimuth": "Określ azymut",
+          "slat_depth": "Głębokość pojedynczej lameli w centymetrach",
+          "slat_distance": "Pionowa odległość między dwiema lamelami w centymetrach",
+          "default_percentage": "Domyślna pozycja żaluzji",
+          "min_position": "Minimalna pozycja uchyłu",
+          "max_position": "Maksymalna pozycja uchyłu",
+          "fov_left": "Kąt brany pod uwagę od lewej strony środka okna",
+          "fov_right": "Kąt brany pod uwagę od prawej strony środka okna",
+          "group": "Wybierz encje żaluzji fasadowych",
+          "sunset_position": "Pozycja uchyłu na noc",
+          "sunset_offset": "Przesunięcie (±) względem zachodu w minutach",
+          "sunrise_offset": "Przesunięcie (±) względem wschodu w minutach",
+          "climate_mode": "Skonfiguruj tryb klimatyczny",
+          "tilt_mode": "Wybierz mechanikę obrotu lameli"
+        },
+        "description": "Dodaj zmienne konfiguracyjne do sensora",
+        "title": "Żaluzje fasadowe (Tilt)"
+      },
+      "blind_spot": {
+        "data": {
+          "blind_spot_left": "Początek martwego pola (od lewej)",
+          "blind_spot_right": "Koniec martwego pola (od prawej)",
+          "blind_spot_elevation": "Elewacja martwego pola"
+        },
+        "data_description": {
+          "blind_spot_left": "Lewa krawędź martwego pola",
+          "blind_spot_right": "Prawa krawędź martwego pola",
+          "blind_spot_elevation": "Słońce poniżej tej wysokości będzie traktowane jako ukryte w martwym polu (np. za budynkiem)."
+        },
+        "title": "Martwe pole (Blindspot)",
+        "description": "Ustaw martwe pole dla osłony. Są to względne stopnie względem całkowitego Pola Widzenia okna (FOV). Gdzie 0 to skrajna lewa pozycja wzięta z parametru FOV_Left."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Wartość, przy której zaczyna się otwierać",
+          "interp_end": "Wartość, przy której zaczyna się zamykać",
+          "interp_list": "Lista interpolacji",
+          "interp_list_new": "Niestandardowa lista interpolacji"
+        },
+        "data_description": {
+          "interp_list": "Lista wartości interpolacji, gdzie 0 to całkowicie zamknięte, a 100 to całkowicie otwarte",
+          "interp_list_new": "Niestandardowy zakres, gdzie początek oznacza zamknięcie, a koniec otwarcie"
+        },
+        "title": "Dostosowanie zakresu",
+        "description": "Dostosuj rzeczywiste wartości % silnika. Idealne dla rolet, które nie zamykają się poprawnie przy 0% lub 100%.\n Pierwsze dwa suwaki służą do korekcji 2-punktowej."
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "automation": "Skonfiguruj Automatyzację (Czasy, Nadpisania)",
+          "blind": "Skonfiguruj parametry Rolety / Okna",
+          "climate": "Skonfiguruj Tryb Klimatyczny",
+          "weather": "Skonfiguruj Opcje Pogodowe",
+          "blind_spot": "Ustawienia Martwego Pola",
+          "interp": "Dostosowanie zakresu działania silnika"
+        }
+      },
+      "automation": {
+        "data": {
+          "delta_position": "Minimalna zmiana pozycji",
+          "delta_time": "Minimalny czas między zmianami",
+          "start_time": "Czas rozpoczęcia",
+          "start_entity": "Encja czasu rozpoczęcia",
+          "manual_override_duration": "Czas blokady przy ręcznym sterowaniu",
+          "manual_override_reset": "Resetuj czas ręcznego nadpisania",
+          "end_time": "Czas zakończenia",
+          "end_entity": "Encja czasu zakończenia",
+          "manual_threshold": "Próg ignorowania ręcznej zmiany",
+          "manual_ignore_intermediate": "Ignoruj pozycje pośrednie (otwieranie/zamykanie) podczas ręcznej kontroli",
+          "workday_entity": "Sensor dni roboczych (Opcjonalnie)",
+          "window_entity": "Czujnik otwarcia okna / balkonu (Opcjonalnie)",
+          "return_sunset": "Upewnij się, że roleta zawsze powróci do nocnej pozycji docelowej na koniec dnia"
+        },
+        "data_description": {
+          "delta_position": "Minimalna wymagana zmiana %, żeby skrypt wysłał polecenie ruchu do silnika",
+          "delta_time": "Minimalny czas w minutach między kolejnymi ruchami; (minimum: 2 minuty)",
+          "start_time": "Godzina, przed którą roleta nie zacznie automatycznie reagować na słońce",
+          "start_entity": "Alternatywa dla sztywnej godziny: użyj innej encji (np. wstawanie z łóżka)",
+          "manual_override_duration": "Jak długo automatyka ma czekać po tym, gdy ktoś ręcznie ruszy roletą z przycisku na ścianie",
+          "manual_override_reset": "Czy kolejny ruch ręczny ma od nowa odliczać czas pauzy automatyki?",
+          "end_time": "Godzina, po której automatyka na dany dzień jest usypiana",
+          "end_entity": "Upewnij się, że roleta ustawi się na zaplanowaną pozycję dla 'zachodu słońca'."
+        }
+      },
+      "vertical": {
+        "data": {
+          "set_azimuth": "Azymut okna",
+          "window_height": "Wysokość okna",
+          "distance_shaded_area": "Strefa odblasku (Zacienienie)",
+          "default_percentage": "Domyślna pozycja",
+          "min_position": "Minimalna pozycja",
+          "max_position": "Maksymalna pozycja",
+          "enable_min_position": "Wymuś minimalną pozycję tylko w bezpośrednim słońcu",
+          "enable_max_position": "Wymuś maksymalną pozycję tylko w bezpośrednim słońcu",
+          "fov_left": "Pole widzenia (Lewo)",
+          "fov_right": "Pole widzenia (Prawo)",
+          "group": "Encje Rolet",
+          "inverse_state": "Odwróć stan",
+          "sunset_position": "Pozycja nocna (Zachód)",
+          "sunset_offset": "Przesunięcie względem zachodu",
+          "sunrise_offset": "Przesunięcie względem wschodu",
+          "climate_mode": "Użyj Trybu Klimatycznego",
+          "blind_spot": "Użyj Martwego Pola",
+          "min_elevation": "Minimalna elewacja",
+          "max_elevation": "Maksymalna elewacja",
+          "interp": "Korekcja wartości silnika (Interpolacja)"
+        },
+        "data_description": {
+          "set_azimuth": "Podaj azymut",
+          "window_height": "Wysokość okna w metrach",
+          "distance_shaded_area": "Zacienienie od rolety w metrach (np. 0.5 chroni biurko przy oknie)",
+          "default_percentage": "Standardowa pozycja w pochmurne dni",
+          "min_position": "Roleta nie opuści się bardziej niż",
+          "max_position": "Roleta nie otworzy się bardziej niż",
+          "fov_left": "Widoczność słońca w stopniach na lewo od ramy",
+          "fov_right": "Widoczność słońca w stopniach na prawo od ramy",
+          "group": "Encje",
+          "sunset_position": "Na co ustawić po zajściu słońca",
+          "sunset_offset": "Przesuń zachód (minuty)",
+          "sunrise_offset": "Przesuń wschód (minuty)",
+          "climate_mode": "Włącz ulepszone śledzenie temperatur i obecności"
+        },
+        "description": "Zmień główne parametry zachowania tej rolety",
+        "title": "Rolety Pionowe"
+      },
+      "climate": {
+        "data": {
+          "temp_entity": "Sensor temperatury wewnętrznej",
+          "presence_entity": "Sensor obecności (Opcjonalnie)",
+          "weather_entity": "Integracja pogody (Opcjonalnie)",
+          "outside_temp": "Sensor temperatury zewnętrznej (Opcjonalnie)",
+          "temp_low": "Próg zimowy (Wpuszczaj słońce)",
+          "temp_high": "Próg letni (Zasłaniaj słońce)",
+          "transparent_blind": "Zasłaniaj maksymalnie w lecie (Roleta prześwitująca)",
+          "lux_entity": "Sensor LUX (Opcjonalnie)",
+          "lux_threshold": "Próg LUX",
+          "irradiance_entity": "Sensor promieniowania (Opcjonalnie)",
+          "irradiance_threshold": "Próg promieniowania",
+          "outside_threshold": "Blokuj tryb letni, jeśli na zewnątrz jest poniżej:",
+          "rain_entity": "Czujnik opadów / deszczu (Opcjonalnie)",
+          "wind_entity": "Czujnik prędkości wiatru (Opcjonalnie)",
+          "dawn_month_start": "Miesiąc rozpoczęcia ochrony przed świtem (np. 5 = Maj)",
+          "dawn_month_end": "Miesiąc zakończenia ochrony przed świtem (np. 10 = Październik)",
+          "dawn_duration": "Czas ochrony przed świtem (w minutach)",
+          "cold_threshold": "Próg ochrony przed zimnem (°C) (Zamyka rolety)",
+          "wind_threshold": "Próg ochrony przed wiatrem (km/h)",
+          "purge_pos": "Pozycja rolety do wietrzenia nocnego (%)"
+        },
+        "data_description": {
+          "presence_entity": "Jeżeli czujnik nie wykaże nikogo w domu - integracja wymusi maksymalną energooszczędność",
+          "weather_entity": "Zastępuje czujniki temp. zewnętrznej i monitoruje słońce",
+          "outside_temp": "Zewnętrzny czujnik na balkonie/ogrodzie",
+          "temp_low": "Poniżej tej temperatury system otworzy rolety, by za darmo ogrzać dom (Zima)",
+          "temp_high": "Powyżej tej temperatury (w domu i na zewnątrz), system zasłoni okna (Lato)",
+          "transparent_blind": "Jeśli materiał nie jest zaciemniający w 100%, zjedź całkowicie do 0% w lecie.",
+          "lux_entity": "Sensor światła",
+          "lux_threshold": "Zasłaniaj odblaski, gdy światło przekroczy ten próg",
+          "irradiance_entity": "Sensor nasłonecznienia W/m2",
+          "irradiance_threshold": "Zasłaniaj, gdy nagrzewanie przekroczy próg",
+          "outside_threshold": "Minimalna temperatura za oknem, która zezwala na włączenie trybu chłodzenia",
+          "rain_entity": "Wybierz dedykowany czujnik deszczu (priorytet nad danymi z pogody)",
+          "wind_entity": "Wybierz dedykowany wiatromierz w km/h (priorytet nad danymi z pogody)"
+        },
+        "description": "Skonfiguruj dodatkowe warunki, które sterują termiką Twojego domu.",
+        "title": "Ustawienia Klimatyczne"
+      },
+      "weather": {
+        "data": { "weather_state": "Słoneczne Stany Pogodowe" },
+        "data_description": {
+          "weather_state": "Jeśli w integracji pogodowej pojawi się jeden z tych stanów, system przyjmie, że zza chmur wyszło słońce."
+        },
+        "title": "Ustawienia Pogody"
+      },
+      "horizontal": {
+        "data": {
+          "set_azimuth": "Azymut okna",
+          "length_awning": "Długość Markizy",
+          "window_height": "Wysokość markizy",
+          "angle": "Kąt opadania",
+          "distance_shaded_area": "Strefa odblasku (Zacienienie)",
+          "default_percentage": "Domyślna pozycja",
+          "min_position": "Minimalna pozycja",
+          "max_position": "Maksymalna pozycja",
+          "enable_min_position": "Wymuś minimalną pozycję tylko w bezpośrednim słońcu",
+          "enable_max_position": "Wymuś maksymalną pozycję tylko w bezpośrednim słońcu",
+          "fov_left": "Pole widzenia (Lewo)",
+          "fov_right": "Pole widzenia (Prawo)",
+          "group": "Encje Markiz",
+          "inverse_state": "Odwróć stan",
+          "sunset_position": "Pozycja nocna (Zachód)",
+          "sunset_offset": "Przesunięcie względem zachodu",
+          "sunrise_offset": "Przesunięcie względem wschodu",
+          "climate_mode": "Użyj Trybu Klimatycznego",
+          "blind_spot": "Użyj Martwego Pola",
+          "min_elevation": "Minimalna elewacja",
+          "max_elevation": "Maksymalna elewacja",
+          "interp": "Korekcja wartości silnika"
+        },
+        "data_description": {
+          "set_azimuth": "Podaj azymut",
+          "window_height": "Wysokość w metrach nad podłożem",
+          "length_awning": "Jak daleko markiza wysuwa się w poziomie",
+          "angle": "Kąt między ścianą a materiałem",
+          "distance_shaded_area": "Odległość chronionego obszaru",
+          "default_percentage": "Standardowa pozycja",
+          "min_position": "Limity wysuwu w %",
+          "max_position": "Limity wysuwu w %",
+          "fov_left": "Kąt FOV",
+          "fov_right": "Kąt FOV",
+          "group": "Zaznacz encje",
+          "sunset_position": "Na co ustawić po zajściu słońca",
+          "sunset_offset": "Przesunięcie (±) względem zachodu słońca",
+          "sunrise_offset": "Przesunięcie (±) względem wschodu słońca",
+          "climate_mode": "Ustawienia temperatury"
+        },
+        "description": "Dodaj zmienne konfiguracyjne do sensora",
+        "title": "Markizy poziome"
+      },
+      "tilt": {
+        "data": {
+          "set_azimuth": "Azymut okna",
+          "slat_depth": "Głębokość pojedynczej lameli",
+          "slat_distance": "Pionowa odległość między lamelami",
+          "default_percentage": "Domyślna pozycja uchyłu",
+          "min_position": "Minimalna pozycja uchyłu",
+          "max_position": "Maksymalna pozycja uchyłu",
+          "enable_min_position": "Wymuś pozycję tylko w bezpośrednim słońcu",
+          "enable_max_position": "Wymuś pozycję tylko w bezpośrednim słońcu",
+          "fov_left": "Pole widzenia (Lewo)",
+          "fov_right": "Pole widzenia (Prawo)",
+          "group": "Encje Żaluzji Fasadowych",
+          "inverse_state": "Odwróć odczyt stanu",
+          "sunset_position": "Uchył nocny",
+          "sunset_offset": "Przesunięcie zachodu",
+          "sunrise_offset": "Przesunięcie wschodu",
+          "climate_mode": "Tryb Klimatyczny",
+          "tilt_mode": "Typ ruchu",
+          "blind_spot": "Martwe Pole",
+          "min_elevation": "Min elewacja",
+          "max_elevation": "Max elewacja",
+          "interp": "Korekcja wartości (Interpolacja)"
+        },
+        "data_description": {
+          "set_azimuth": "Podaj azymut",
+          "slat_depth": "Wymiar pióra (w cm)",
+          "slat_distance": "Odstęp między sąsiednimi piórami w poziomie (w cm)",
+          "default_percentage": "Domyślny uchył %",
+          "min_position": "Limit otwarcia uchyłu",
+          "max_position": "Limit zamknięcia uchyłu",
+          "fov_left": "Stopnie widoczności słońca",
+          "fov_right": "Stopnie widoczności słońca",
+          "group": "Wybierz rolety",
+          "sunset_position": "Nocne pozycjonowanie",
+          "sunset_offset": "Odsunięcie zachodu w min.",
+          "sunrise_offset": "Odsunięcie wschodu w min.",
+          "climate_mode": "Dostosuj żaluzje do temperatury",
+          "tilt_mode": "Zależnie od silnika"
+        },
+        "description": "Skonfiguruj żaluzje fasadowe z obracanymi lamelami (Tilt)",
+        "title": "Żaluzje (Tilt)"
+      },
+      "blind_spot": {
+        "data": {
+          "blind_spot_left": "Start martwego pola z lewej",
+          "blind_spot_right": "Koniec martwego pola z prawej",
+          "blind_spot_elevation": "Elewacja martwego pola"
+        },
+        "data_description": {
+          "blind_spot_left": "W którym stopniu zaczyna się przeszkoda",
+          "blind_spot_right": "W którym stopniu kończy się przeszkoda",
+          "blind_spot_elevation": "Wszystko poniżej tego kąta elewacji jest uznawane za schowane (np. płot sąsiada)"
+        },
+        "title": "Martwe Pole",
+        "description": "Zdefiniuj strefę, w której słońce i tak fizycznie nie pada na okno."
+      },
+      "interp": {
+        "data": {
+          "interp_start": "Rzeczywiste % gdzie zaczyna się otwierać",
+          "interp_end": "Rzeczywiste % gdzie zaczyna się zamykać",
+          "interp_list": "Lista domyślna",
+          "interp_list_new": "Niestandardowa lista korekt"
+        },
+        "data_description": {
+          "interp_list": "Standardowe pozycje (np. 0, 50, 100)",
+          "interp_list_new": "Twój niestandardowy zakres wartości"
+        },
+        "title": "Korekcja wartości silnika",
+        "description": "Jeżeli Twój silnik nie reaguje precyzyjnie zmodyfikuj te parametry."
+      }
+    }
+  },
+  "selector": {
+    "mode": {
+      "options": {
+        "cover_blind": "Zwykła Roleta Pionowa",
+        "cover_awning": "Markiza Pozioma",
+        "cover_tilt": "Żaluzja Fasadowa"
+      }
+    },
+    "tilt_mode": {
+      "options": {
+        "mode1": "Jednokierunkowy (0% = zamknięta / 100% = otwarta)",
+        "mode2": "Dwukierunkowy (0% = zamknięta / 50% = otwarta / 100% = zamknięta)"
+      }
+    }
+  },
+  "entity": {
+    "time": {
+      "start_time_workday": { "name": "Otwarcie (Dni robocze)" },
+      "start_time_weekend": { "name": "Otwarcie (Dni wolne/Weekend)" }
+    },
+    "number": {
+      "close_sunset_offset": { "name": "Przesunięcie zachodu (Zamykanie)" }
+    },
+    "select": {
+      "manual_override": {
+        "name": "Czas blokady ręcznej",
+        "state": {
+          "none": "Brak (Wyłączone)",
+          "15_min": "15 Minut",
+          "30_min": "30 Minut",
+          "60_min": "1 Godzina",
+          "120_min": "2 Godziny",
+          "240_min": "4 Godziny",
+          "sunset": "Do zachodu słońca"
+        }
+      }
+    },
+    "sensor": {
+      "algorithm_status": {
+        "schedule": {
+          "name": "Harmonogram na dzisiaj"
+        },
+        "name": "Status algorytmu",
+        "state": {
+          "auto": "Tryb automatyczny (Słońce / Klimat)",
+          "dawn_protection": "Ochrona przed świtem (Zamknięte)",
+          "rain_detected": "Wykryto opady (Zamknięte)",
+          "wind_detected": "Silny wiatr (Zamknięte)",
+          "cold_protection": "Za zimno na wietrzenie (Zamknięte)",
+          "night_purge": "Nocne chłodzenie (Uchylone)",
+          "max_limit": "Wymuszono limit: Otwarcie Max",
+          "min_limit": "Wymuszono limit: Otwarcie Min",
+          "night_mode": "Tryb nocny (Zasłonięte po zachodzie)",
+          "sun_shadow": "Otwarto: Słońce poza oknem (Cień)",
+          "calculating": "Trwa obliczanie...",
+          "window_open": "Otwarte okno/drzwi"
+        }
+      }
+    }
+  }
+}

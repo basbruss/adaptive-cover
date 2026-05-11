@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import homeassistant.util.dt as dt_util
 import asyncio
 import datetime as dt
 from dataclasses import dataclass
@@ -23,7 +24,6 @@ from homeassistant.core import (
     callback,
 )
 from homeassistant.helpers.event import async_track_point_in_time
-from homeassistant.helpers.template import state_attr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .config_context_adapter import ConfigContextAdapter
@@ -96,11 +96,25 @@ from .const import (
     CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
+    CONF_WINDOW_ENTITY,
+    CONF_RAIN_ENTITY,
+    CONF_WIND_ENTITY,
+    CONF_DAWN_MONTH_START,
+    CONF_DAWN_MONTH_END,
+    CONF_DAWN_DURATION,
+    CONF_COLD_THRESHOLD,
+    CONF_WIND_THRESHOLD,
+    CONF_PURGE_POS,
     DOMAIN,
     LOGGER,
 )
 from .helpers import get_datetime_from_str, get_last_updated, get_safe_state
 
+def state_attr(hass, entity_id: str, attr_name: str):
+    state = hass.states.get(entity_id)
+    if state is None:
+        return None
+    return state.attributes.get(attr_name)
 
 @dataclass
 class StateChangedData:
@@ -165,10 +179,14 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             CONF_MANUAL_IGNORE_INTERMEDIATE, False
         )
         self._update_listener = None
-        self._scheduled_time = dt.datetime.now()
+        self._scheduled_time = dt_util.utcnow()
 
         self._cached_options = None
-
+        
+        # Nasza nowa zmienna przechowująca wybraną opcję
+        self.dynamic_override_duration_text = "1 Godzina"
+        self.dynamic_override_minutes = 60 # Wartość domyślna w minutach
+        
     async def async_config_entry_first_refresh(self) -> None:
         """Config entry first refresh."""
         self.first_refresh = True
@@ -177,22 +195,49 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def async_timed_refresh(self, event) -> None:
         """Control state at end time."""
-
-        now = dt.datetime.now()
-        if self.end_time is not None:
-            time = self.end_time
+        now = dt_util.now()
+        time = self.end_time
         if self.end_time_entity is not None:
             time = get_safe_state(self.hass, self.end_time_entity)
 
         self.logger.debug("Checking timed refresh. End time: %s, now: %s", time, now)
 
-        time_check = now - get_datetime_from_str(time)
-        if time is not None and (time_check <= dt.timedelta(seconds=1)):
-            self.timed_refresh = True
-            self.logger.debug("Timed refresh triggered")
-            await self.async_refresh()
+        if time is not None:
+            time_obj = get_datetime_from_str(time)
+            if time_obj.tzinfo is None:
+                time_obj = dt_util.as_local(time_obj)
+            time_check = now - time_obj
+            if time_check <= dt.timedelta(seconds=1):
+                self.timed_refresh = True
+                self.logger.debug("Timed refresh triggered")
+                await self.async_refresh()
+            else:
+                self.logger.debug("Timed refresh, but: not equal to end time")
+
+    def set_dynamic_override_duration(self, option: str):
+        """Aktualizuje czas trwania manual override na podstawie encji Select."""
+        self.dynamic_override_duration_text = option
+        
+        # Przeliczamy tekst z encji na minuty
+        mapping = {
+            "Brak (Wyłączone)": 0,
+            "15 Minut": 15,
+            "30 Minut": 30,
+            "1 Godzina": 60,
+            "2 Godziny": 120,
+            "4 Godziny": 240,
+            "Do zachodu słońca": 9999
+        }
+        
+        self.dynamic_override_minutes = mapping.get(option, 60)
+        
+        # Kluczowe: Aktualizujemy bezpośrednio managera!
+        if self.dynamic_override_minutes == 9999:
+            # Ustawiamy sztucznie długi czas, w przyszłości można to ulepszyć licząc czas do zachodu
+            self.manager.reset_duration = dt.timedelta(minutes=9999) 
         else:
-            self.logger.debug("Timed refresh, but: not equal to end time")
+            self.manager.reset_duration = dt.timedelta(minutes=self.dynamic_override_minutes)
+        self.logger.debug(f"Dynamic override duration set to: {option} ({self.dynamic_override_minutes} min)")
 
     async def async_check_entity_state_change(
         self, event: Event[EventStateChangedData]
@@ -339,6 +384,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 "start": start,
                 "end": end,
                 "control": self.control_method,
+                "explanation": "window_open" if self.is_window_open else getattr(cover_data, "state_info", "auto"),
                 "sun_motion": normal_cover.valid,
                 "manual_override": self.manager.binary_cover_manual,
                 "manual_list": self.manager.manual_controlled,
@@ -382,6 +428,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def async_handle_first_refresh(self, state: int, options):
         """Handle first refresh."""
+        if self.is_window_open:
+            self.logger.debug("Window is open! Halting first refresh movement.")
+            self.first_refresh = False
+            return
+            
         if self.control_toggle:
             for cover in self.entities:
                 if (
@@ -397,6 +448,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def async_handle_timed_refresh(self, options):
         """Handle timed refresh."""
+        if self.is_window_open:
+            self.logger.debug("Window is open! Halting timed refresh movement.")
+            self.timed_refresh = False
+            return
+            
         self.logger.debug(
             "This is a timed refresh, using sunset position: %s",
             options.get(CONF_SUNSET_POS),
@@ -418,6 +474,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def async_handle_call_service(self, entity, state: int, options):
         """Handle call service."""
+        if self.is_window_open:
+            self.logger.debug("Window is open! Halting adaptive cover movement for %s", entity)
+            return
+            
         if (
             self.check_adaptive_time
             and self.check_position_delta(entity, state, options)
@@ -456,6 +516,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     def _update_options(self, options):
         """Update options."""
         self.entities = options.get(CONF_ENTITIES, [])
+        self.window_entity = options.get(CONF_WINDOW_ENTITY)
         self.min_change = options.get(CONF_DELTA_POSITION, 1)
         self.time_threshold = options.get(CONF_DELTA_TIME, 2)
         self.start_time = options.get(CONF_START_TIME)
@@ -464,7 +525,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.end_time_entity = options.get(CONF_END_ENTITY)
         self.manual_reset = options.get(CONF_MANUAL_OVERRIDE_RESET, False)
         self.manual_duration = options.get(
-            CONF_MANUAL_OVERRIDE_DURATION, {"minutes": 15}
+            CONF_MANUAL_OVERRIDE_DURATION, {"minutes": self.dynamic_override_minutes}
         )
         self.manual_threshold = options.get(CONF_MANUAL_THRESHOLD)
         self.start_value = options.get(CONF_INTERP_START)
@@ -517,47 +578,66 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     @property
     def after_start_time(self):
         """Check if time is after start time."""
-        now = dt.datetime.now()
-        if self.start_time_entity is not None:
-            time = get_datetime_from_str(
-                get_safe_state(self.hass, self.start_time_entity)
-            )
-            self.logger.debug(
-                "Start time: %s, now: %s, now >= time: %s ", time, now, now >= time
-            )
-            self._start_time = time
-            return now >= time
-        if self.start_time is not None:
-            time = get_datetime_from_str(self.start_time)
+        now = dt_util.utcnow()
+        
+        # Logika Dni Roboczych (Workday)
+        is_workday = True
+        workday_entity = self.config_entry.options.get("workday_entity")
+        if workday_entity:
+            state = self.hass.states.get(workday_entity)
+            if state:
+                is_workday = state.state == "on"
+                
+        # Pobieranie czasu z encji UI
+        if is_workday:
+            start_str = self.config_entry.options.get("start_time_workday", "07:00:00")
+        else:
+            start_str = self.config_entry.options.get("start_time_weekend", "09:00:00")
 
-            self.logger.debug(
-                "Start time: %s, now: %s, now >= time: %s", time, now, now >= time
-            )
-            self._start_time
-            return now >= time
-        return True
+        if self.start_time_entity is not None:
+            time_local = get_datetime_from_str(get_safe_state(self.hass, self.start_time_entity))
+        else:
+            time_local = get_datetime_from_str(start_str)
+
+        # Upewniamy się, że czas otwarcia posiada strefę czasową
+        if time_local is not None and time_local.tzinfo is None:
+            time_local = dt_util.as_local(time_local)
+            
+        time_utc = dt_util.as_utc(time_local)
+
+        self.logger.debug("Start time UTC: %s, now UTC: %s", time_utc, now)
+        self._start_time = time_utc
+        return now >= time_utc
 
     @property
     def _end_time(self) -> dt.datetime | None:
-        """Get end time."""
-        time = None
+        """Get end time based on sunset or config."""
+        time_utc = None
         if self.end_time_entity is not None:
-            time = get_datetime_from_str(
+            time_local = get_datetime_from_str(
                 get_safe_state(self.hass, self.end_time_entity)
             )
-        elif self.end_time is not None:
-            time = get_datetime_from_str(self.end_time)
-            if time.time() == dt.time(0, 0):
-                time = time + dt.timedelta(days=1)
-        return time
+            if time_local is not None:
+                if time_local.tzinfo is None:
+                    time_local = dt_util.as_local(time_local)
+                time_utc = dt_util.as_utc(time_local)
+        else:
+            # Zamykanie oparte na zachodzie słońca i suwaku (offset)
+            cover_data = self.get_blind_data(options=self.config_entry.options)
+            sunset = cover_data.sun_data.sunset() # To jest już bezpieczny czas UTC
+            offset = self.config_entry.options.get("close_sunset_offset", 0)
+            if sunset:
+                time_utc = sunset + dt.timedelta(minutes=offset)
+                
+        return time_utc
 
     @property
     def before_end_time(self):
         """Check if time is before end time."""
         if self._end_time is not None:
-            now = dt.datetime.now()
+            now = dt_util.utcnow()
             self.logger.debug(
-                "End time: %s, now: %s, now < time: %s",
+                "End time UTC: %s, now UTC: %s, now < time: %s",
                 self._end_time,
                 now,
                 now < self._end_time,
@@ -577,6 +657,16 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         if position is not None:
             return position != state
         self.logger.debug("Cover is already at position %s", state)
+        return False
+        
+    @property
+    def is_window_open(self):
+        """Check if the physical window/door is open."""
+        if getattr(self, 'window_entity', None):
+            state = self.hass.states.get(self.window_entity)
+            # W Home Assistant kontaktrony (binary_sensor) mają stan 'on', gdy magnes jest oddalony (okno otwarte)
+            if state and state.state == "on":
+                return True
         return False
 
     def check_position_delta(self, entity, state: int, options):
@@ -672,6 +762,14 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options.get(CONF_OUTSIDE_THRESHOLD),
             self._lux_toggle,
             self._irradiance_toggle,
+            options.get(CONF_RAIN_ENTITY),
+            options.get(CONF_WIND_ENTITY),
+            options.get(CONF_DAWN_MONTH_START, 5),
+            options.get(CONF_DAWN_MONTH_END, 10),
+            options.get(CONF_DAWN_DURATION, 60),
+            options.get(CONF_COLD_THRESHOLD, 16),
+            options.get(CONF_WIND_THRESHOLD, 40),
+            options.get(CONF_PURGE_POS, 15),
         ]
 
     def climate_mode_data(self, options, cover_data):

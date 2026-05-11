@@ -69,12 +69,25 @@ from .const import (
     CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
+    CONF_WINDOW_ENTITY,
+    CONF_RAIN_ENTITY,
+    CONF_WIND_ENTITY,
     CONF_OUTSIDE_THRESHOLD,
+    CONF_DAWN_MONTH_START,
+    CONF_DAWN_MONTH_END,
+    CONF_DAWN_DURATION,
+    CONF_COLD_THRESHOLD,
+    CONF_WIND_THRESHOLD,
+    CONF_PURGE_POS,
     DOMAIN,
     SensorType,
     CONF_MIN_POSITION,
     CONF_ENABLE_MAX_POSITION,
     CONF_ENABLE_MIN_POSITION,
+    CONF_WORKDAY_ENTITY,
+    CONF_START_TIME_WORKDAY,
+    CONF_START_TIME_WEEKEND,
+    CONF_CLOSE_SUNSET_OFFSET,
 )
 
 # DEFAULT_NAME = "Adaptive Cover"
@@ -223,6 +236,12 @@ TILT_OPTIONS = vol.Schema(
 
 CLIMATE_OPTIONS = vol.Schema(
     {
+        vol.Optional(CONF_RAIN_ENTITY): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=["binary_sensor", "sensor"])
+        ),
+        vol.Optional(CONF_WIND_ENTITY): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain="sensor")
+        ),
         vol.Required(CONF_TEMP_ENTITY): selector.EntitySelector(
             selector.EntityFilterSelectorConfig(domain=["climate", "sensor"])
         ),
@@ -275,6 +294,12 @@ CLIMATE_OPTIONS = vol.Schema(
         ): selector.EntitySelector(
             selector.EntityFilterSelectorConfig(domain="weather")
         ),
+        vol.Optional(CONF_DAWN_MONTH_START, default=5): vol.All(vol.Coerce(int), vol.Range(min=1, max=12)),
+        vol.Optional(CONF_DAWN_MONTH_END, default=10): vol.All(vol.Coerce(int), vol.Range(min=1, max=12)),
+        vol.Optional(CONF_DAWN_DURATION, default=60): vol.All(vol.Coerce(int), vol.Range(min=0, max=300)),
+        vol.Optional(CONF_COLD_THRESHOLD, default=16): vol.All(vol.Coerce(int), vol.Range(min=-10, max=30)),
+        vol.Optional(CONF_WIND_THRESHOLD, default=40): vol.All(vol.Coerce(int), vol.Range(min=0, max=150)),
+        vol.Optional(CONF_PURGE_POS, default=15): vol.All(vol.Coerce(int), vol.Range(min=0, max=100)),
     }
 )
 
@@ -334,6 +359,15 @@ AUTOMATION_CONFIG = vol.Schema(
             vol.Coerce(int), vol.Range(min=0, max=99)
         ),
         vol.Optional(CONF_MANUAL_IGNORE_INTERMEDIATE, default=False): bool,
+        
+        vol.Optional(CONF_WORKDAY_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain="binary_sensor")
+        ),
+        # --- NASZ NOWY WYBÓR ENCJ OKNA/DRZWI BALKONOWYCH ---
+        vol.Optional(CONF_WINDOW_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["binary_sensor", "input_boolean"])
+        ),
+        # ---------------------------------------------------
         vol.Optional(CONF_END_TIME, default="00:00:00"): selector.TimeSelector(),
         vol.Optional(CONF_END_ENTITY): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
@@ -627,6 +661,19 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_IRRADIANCE_ENTITY: self.config.get(CONF_IRRADIANCE_ENTITY),
                 CONF_IRRADIANCE_THRESHOLD: self.config.get(CONF_IRRADIANCE_THRESHOLD),
                 CONF_OUTSIDE_THRESHOLD: self.config.get(CONF_OUTSIDE_THRESHOLD),
+                CONF_RAIN_ENTITY: self.config.get(CONF_RAIN_ENTITY),
+                CONF_WIND_ENTITY: self.config.get(CONF_WIND_ENTITY),
+                # --- NASZE NOWE PARAMETRY ---
+                CONF_DAWN_MONTH_START: self.config.get(CONF_DAWN_MONTH_START, 5),
+                CONF_DAWN_MONTH_END: self.config.get(CONF_DAWN_MONTH_END, 10),
+                CONF_DAWN_DURATION: self.config.get(CONF_DAWN_DURATION, 60),
+                CONF_COLD_THRESHOLD: self.config.get(CONF_COLD_THRESHOLD, 16),
+                CONF_WIND_THRESHOLD: self.config.get(CONF_WIND_THRESHOLD, 40),
+                CONF_PURGE_POS: self.config.get(CONF_PURGE_POS, 15),
+                CONF_WORKDAY_ENTITY: self.config.get(CONF_WORKDAY_ENTITY),
+                CONF_START_TIME_WORKDAY: self.config.get(CONF_START_TIME_WORKDAY, "07:00:00"),
+                CONF_START_TIME_WEEKEND: self.config.get(CONF_START_TIME_WEEKEND, "09:00:00"),
+                CONF_CLOSE_SUNSET_OFFSET: self.config.get(CONF_CLOSE_SUNSET_OFFSET, 0),
             },
         )
 
@@ -636,8 +683,6 @@ class OptionsFlowHandler(OptionsFlow):
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize options flow."""
-        # super().__init__(config_entry)
-        self.config_entry = config_entry
         self.current_config: dict = dict(config_entry.data)
         self.options = dict(config_entry.options)
         self.sensor_type: SensorType = (
@@ -662,7 +707,7 @@ class OptionsFlowHandler(OptionsFlow):
     async def async_step_automation(self, user_input: dict[str, Any] | None = None):
         """Manage automation options."""
         if user_input is not None:
-            entities = [CONF_START_ENTITY, CONF_END_ENTITY, CONF_MANUAL_THRESHOLD]
+            entities = [CONF_START_ENTITY, CONF_END_ENTITY, CONF_MANUAL_THRESHOLD, CONF_WINDOW_ENTITY, CONF_WORKDAY_ENTITY]
             self.optional_entities(entities, user_input)
             self.options.update(user_input)
             return await self._update_options()
@@ -860,6 +905,8 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_PRESENCE_ENTITY,
                 CONF_LUX_ENTITY,
                 CONF_IRRADIANCE_ENTITY,
+                CONF_RAIN_ENTITY,
+                CONF_WIND_ENTITY,
             ]
             self.optional_entities(entities, user_input)
             self.options.update(user_input)

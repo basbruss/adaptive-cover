@@ -15,12 +15,14 @@
           "delta_time": "Minimum interval between position changes",
           "start_time": "Starting time",
           "start_entity": "Entity indicating starting time",
-          "manual_override_duration": "Duration of manual override",
+          "manual_override_duration": "Manual override duration",
           "manual_override_reset": "Reset Manual override duration",
           "end_time": "End time",
           "end_entity": "Entity indicating ending time",
           "manual_threshold": "Manual override threshold",
           "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
+          "workday_entity": "Workday sensor (Optional)",
+          "window_entity": "Window/Door sensor (Optional)",
           "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
         },
         "data_description": {
@@ -28,7 +30,7 @@
           "delta_time": "Minimum time interval between position changes; minimum is 2 minutes",
           "start_time": "Starting time for each day; before this time, the cover will remain stationary",
           "start_entity": "Entity representing starting time state, overriding the fixed start time set above. Useful for automating the start time with an entity",
-          "manual_override_duration": "The duration of manual control before resetting to automatic control",
+          "manual_override_duration": "Time after which the cover will return to automatic mode after a manual adjustment. You can also easily change this on your Dashboard.",
           "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment",
           "end_time": "Ending time for each day; after this time, the cover will remain stationary",
           "end_entity": "Entity representing ending time state, overriding the fixed end time set above. Useful for automating the end time with an entity"
@@ -88,7 +90,15 @@
           "lux_threshold": "Lux threshold",
           "irradiance_entity": "Irradiance sensor (optional)",
           "irradiance_threshold": "Irradiance threshold",
-          "outside_threshold": "Minimum outside temperature for summer mode"
+          "outside_threshold": "Minimum outside temperature for summer mode",
+          "rain_entity": "Rain / precipitation sensor (optional)",
+          "wind_entity": "Wind speed sensor (optional)",
+          "dawn_month_start": "Dawn protection start month (e.g., 5 = May)",
+          "dawn_month_end": "Dawn protection end month (e.g., 10 = October)",
+          "dawn_duration": "Dawn protection duration in minutes",
+          "cold_threshold": "Cold protection threshold (°C)",
+          "wind_threshold": "Wind protection threshold (km/h)",
+          "purge_pos": "Night purge cover position (%)"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
@@ -100,7 +110,9 @@
           "lux_entity": "Use lux sensor to determine if cover should reduce glare in presence mode",
           "lux_threshold": "Threshold for lux sensor, above this value glare should be reduced",
           "irradiance_entity": "Use irradiance sensor to determine if cover should reduce glare in presence mode",
-          "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced"
+          "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced",
+          "rain_entity": "Select a dedicated rain sensor (takes priority over weather entity data)",
+          "wind_entity": "Select a dedicated wind sensor in km/h (takes priority over weather entity data)"
         },
         "description": "Add additional climate configuration variables.",
         "title": "Climate settings"
@@ -248,12 +260,14 @@
           "delta_time": "Minimum interval between position changes",
           "start_time": "Starting time",
           "start_entity": "Entity indicating starting time",
-          "manual_override_duration": "Duration of manual override",
+          "manual_override_duration": "Manual override duration",
           "manual_override_reset": "Reset Manual override duration",
           "end_time": "End time",
           "end_entity": "Entity indicating ending time",
           "manual_threshold": "Manual override threshold",
           "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
+          "workday_entity": "Workday sensor (Optional)",
+          "window_entity": "Window/Door sensor (Optional)",
           "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
         },
         "data_description": {
@@ -261,7 +275,7 @@
           "delta_time": "Minimum time interval between position changes; minimum is 2 minutes",
           "start_time": "Starting time for each day; before this time, the cover will remain stationary",
           "start_entity": "Entity representing starting time state, overriding the fixed start time set above. Useful for automating the start time with an entity",
-          "manual_override_duration": "The duration of manual control before resetting to automatic control",
+          "manual_override_duration": "Time after which the cover will return to automatic mode after a manual adjustment. You can also easily change this on your Dashboard.",
           "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment",
           "end_time": "Ending time for each day; after this time, the cover will remain stationary",
           "end_entity": "Ensure that the position is consistently adjusted to the default sunset setting by the end time. This is particularly beneficial when the end time precedes the actual sunset."
@@ -321,7 +335,15 @@
           "lux_threshold": "Lux threshold",
           "irradiance_entity": "Irradiance sensor (optional)",
           "irradiance_threshold": "Irradiance threshold",
-          "outside_threshold": "Minimum outside temperature for summer mode"
+          "outside_threshold": "Minimum outside temperature for summer mode",
+          "rain_entity": "Rain / precipitation sensor (optional)",
+          "wind_entity": "Wind speed sensor (optional)",
+          "dawn_month_start": "Dawn protection start month (e.g., 5 = May)",
+          "dawn_month_end": "Dawn protection end month (e.g., 10 = October)",
+          "dawn_duration": "Dawn protection duration in minutes",
+          "cold_threshold": "Cold protection threshold (°C)",
+          "wind_threshold": "Wind protection threshold (km/h)",
+          "purge_pos": "Night purge cover position (%)"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
@@ -333,7 +355,9 @@
           "lux_entity": "Use lux sensor to determine if cover should reduce glare in presence mode",
           "lux_threshold": "Threshold for lux sensor, above this value glare should be reduced",
           "irradiance_entity": "Use irradiance sensor to determine if cover should reduce glare in presence mode",
-          "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced"
+          "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced",
+          "rain_entity": "Select a dedicated rain sensor (takes priority over weather entity data)",
+          "wind_entity": "Select a dedicated wind sensor in km/h (takes priority over weather entity data)"
         },
         "description": "Add additional climate configuration variables.",
         "title": "Climate settings"
@@ -419,7 +443,7 @@
           "slat_depth": "Depth of each individual slat in centimeters",
           "slat_distance": "Vertical distance between two slats in centimeters",
           "default_percentage": "Default cover position as a percentage",
-          "min_position": "Minimum Position",
+          "min_position": "Minimum adjustable cover position as a percentage",
           "max_position": "Maximum adjustable cover position as a percentage",
           "fov_left": "Degrees to consider from the left side of the window center",
           "fov_right": "Degrees to consider from the right side of the window center",
@@ -475,6 +499,51 @@
       "options": {
         "mode1": "single direction (0% = closed / 100% = open)",
         "mode2": "bi-directional (0% = closed / 50% = open / 100% = closed)"
+      }
+    }
+  },
+  "entity": {
+    "time": {
+      "start_time_workday": { "name": "Opening Time (Workdays)" },
+      "start_time_weekend": { "name": "Opening Time (Weekends/Holidays)" }
+    },
+    "number": {
+      "close_sunset_offset": { "name": "Sunset Close Offset" }
+    },
+    "select": {
+      "manual_override": {
+        "name": "Override Duration",
+        "state": {
+          "none": "None (Disabled)",
+          "15_min": "15 Minutes",
+          "30_min": "30 Minutes",
+          "60_min": "1 Hour",
+          "120_min": "2 Hours",
+          "240_min": "4 Hours",
+          "sunset": "Until sunset"
+        }
+      }
+    },
+    "sensor": {
+      "algorithm_status": {
+        "schedule": {
+          "name": "Today's Schedule"
+        },
+        "name": "Algorithm Status",
+        "state": {
+          "auto": "Automatic Mode (Sun / Climate)",
+          "dawn_protection": "Dawn Protection (Closed)",
+          "rain_detected": "Rain Detected (Closed)",
+          "wind_detected": "Strong Wind (Closed)",
+          "cold_protection": "Too cold to purge (Closed)",
+          "night_purge": "Night Purge (Tilted)",
+          "max_limit": "Max Limit Forced",
+          "min_limit": "Min Limit Forced",
+          "night_mode": "Night Mode (Closed after sunset)",
+          "sun_shadow": "Open: Sun outside window (Shadow)",
+          "calculating": "Calculating...",
+          "window_open": "Window/Door Open"
+        }
       }
     }
   }
