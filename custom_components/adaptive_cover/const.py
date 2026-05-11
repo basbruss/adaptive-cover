@@ -70,6 +70,7 @@ CONF_WORKDAY_ENTITY = "workday_entity"
 CONF_START_TIME_WORKDAY = "start_time_workday"
 CONF_START_TIME_WEEKEND = "start_time_weekend"
 CONF_CLOSE_SUNSET_OFFSET = "close_sunset_offset"
+CONF_RAIN_NIGHT_ONLY = "rain_night_only"
 
 CONF_DELTA_POSITION = "delta_position"
 CONF_DELTA_TIME = "delta_time"

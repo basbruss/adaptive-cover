@@ -105,6 +105,7 @@ from .const import (
     CONF_COLD_THRESHOLD,
     CONF_WIND_THRESHOLD,
     CONF_PURGE_POS,
+    CONF_RAIN_NIGHT_ONLY,
     DOMAIN,
     LOGGER,
 )
@@ -770,6 +771,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options.get(CONF_COLD_THRESHOLD, 16),
             options.get(CONF_WIND_THRESHOLD, 40),
             options.get(CONF_PURGE_POS, 15),
+            options.get(CONF_RAIN_NIGHT_ONLY, False),
         ]
 
     def climate_mode_data(self, options, cover_data):

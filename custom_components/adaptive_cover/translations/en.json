@@ -98,7 +98,8 @@
           "dawn_duration": "Dawn protection duration in minutes",
           "cold_threshold": "Cold protection threshold (°C)",
           "wind_threshold": "Wind protection threshold (km/h)",
-          "purge_pos": "Night purge cover position (%)"
+          "purge_pos": "Night purge cover position (%)",
+          "rain_night_only": "Rain protection only at night (Ignore daytime rain)"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",
@@ -343,7 +344,8 @@
           "dawn_duration": "Dawn protection duration in minutes",
           "cold_threshold": "Cold protection threshold (°C)",
           "wind_threshold": "Wind protection threshold (km/h)",
-          "purge_pos": "Night purge cover position (%)"
+          "purge_pos": "Night purge cover position (%)",
+          "rain_night_only": "Rain protection only at night (Ignore daytime rain)"
         },
         "data_description": {
           "presence_entity": "Entity representing room or home presence status",

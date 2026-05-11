@@ -97,7 +97,8 @@
           "dawn_duration": "Czas ochrony przed świtem (w minutach)",
           "cold_threshold": "Próg ochrony przed zimnem (°C)",
           "wind_threshold": "Próg ochrony przed wiatrem (km/h)",
-          "purge_pos": "Pozycja wietrzenia nocnego (%)"
+          "purge_pos": "Pozycja wietrzenia nocnego (%)",
+          "rain_night_only": "Ochrona przed opadami tylko w nocy (Zignoruj deszcz w dzień)"
         },
         "data_description": {
           "presence_entity": "Encja reprezentująca obecność domowników (np. group.family)",
@@ -342,7 +343,8 @@
           "dawn_duration": "Czas ochrony przed świtem (w minutach)",
           "cold_threshold": "Próg ochrony przed zimnem (°C) (Zamyka rolety)",
           "wind_threshold": "Próg ochrony przed wiatrem (km/h)",
-          "purge_pos": "Pozycja rolety do wietrzenia nocnego (%)"
+          "purge_pos": "Pozycja rolety do wietrzenia nocnego (%)",
+          "rain_night_only": "Ochrona przed opadami tylko w nocy (Zignoruj deszcz w dzień)"
         },
         "data_description": {
           "presence_entity": "Jeżeli czujnik nie wykaże nikogo w domu - integracja wymusi maksymalną energooszczędność",

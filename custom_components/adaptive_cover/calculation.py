@@ -263,23 +263,50 @@ class ClimateCoverData:
     cold_threshold: float
     wind_threshold: float
     purge_pos: int
+    rain_night_only: bool
 
     @property
     def is_raining(self) -> bool:
         """Check for rain using dedicated sensor or weather entity."""
-        # 1. Sprawdź dedykowany czujnik deszczu (np. binary_sensor)
+        # --- 1. ZBIERAMY DANE: Sprawdzamy, czy fizycznie pada deszcz ---
+        is_actually_raining = False
+
+        # Sprawdź dedykowany czujnik deszczu (np. binary_sensor)
         if self.rain_entity:
             state = get_safe_state(self.hass, self.rain_entity)
             if str(state).lower() in ["on", "true", "detected", "1"]:
-                return True
-            # Jeśli to sensor liczbowy (np. mm/h), uznamy deszcz powyżej 0
-            try:
-                if float(state) > 0: return True
-            except (ValueError, TypeError): pass
+                is_actually_raining = True
+            else:
+                # Jeśli to sensor liczbowy (np. mm/h), uznamy deszcz powyżej 0
+                try:
+                    if float(state) > 0: 
+                        is_actually_raining = True
+                except (ValueError, TypeError): 
+                    pass
 
-        # 2. Fallback do encji pogody
-        weather = get_safe_state(self.hass, self.weather_entity)
-        return weather in ['rainy', 'pouring', 'lightning-rainy', 'hail', 'snowy', 'snowy-rainy']
+        # Fallback do encji pogody (jeśli czujnik opadów nie wykrył deszczu)
+        if not is_actually_raining:
+            weather = get_safe_state(self.hass, self.weather_entity)
+            if weather in ['rainy', 'pouring', 'lightning-rainy', 'hail', 'snowy', 'snowy-rainy']:
+                is_actually_raining = True
+
+        # --- 2. NOWA LOGIKA: Zignoruj deszcz, jeśli jest dzień i opcja jest włączona ---
+        if is_actually_raining:
+            # Pobieramy ustawienie z opcji (zabezpieczenie na wypadek braku klucza)
+            # Jeśli self.config to słownik/ConfigEntry, używamy metody pobierania opcji
+            night_only = self.rain_night_only
+            
+            # Sprawdzamy pozycję słońca prosto z Home Assistanta, żeby było niezawodnie
+            sun_state = self.hass.states.get('sun.sun')
+            is_daytime = sun_state and sun_state.state == 'above_horizon'
+            
+            # Jeśli włączono opcję ignorowania w dzień ORAZ słońce jest nad horyzontem
+            if night_only and is_daytime:
+                return False  # Oszukujemy system: "Słońce świeci, udajemy, że nie pada"
+            
+            return True  # W nocy lub gdy opcja jest wyłączona: mówimy prawdę (pada)
+            
+        return False
 
     @property
     def current_wind_speed(self) -> float:

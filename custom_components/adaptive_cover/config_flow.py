@@ -88,6 +88,7 @@ from .const import (
     CONF_START_TIME_WORKDAY,
     CONF_START_TIME_WEEKEND,
     CONF_CLOSE_SUNSET_OFFSET,
+    CONF_RAIN_NIGHT_ONLY,
 )
 
 # DEFAULT_NAME = "Adaptive Cover"
@@ -242,6 +243,7 @@ CLIMATE_OPTIONS = vol.Schema(
         vol.Optional(CONF_WIND_ENTITY): selector.EntitySelector(
             selector.EntityFilterSelectorConfig(domain="sensor")
         ),
+        vol.Optional(CONF_RAIN_NIGHT_ONLY, default=False): bool,
         vol.Required(CONF_TEMP_ENTITY): selector.EntitySelector(
             selector.EntityFilterSelectorConfig(domain=["climate", "sensor"])
         ),
@@ -907,6 +909,7 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_IRRADIANCE_ENTITY,
                 CONF_RAIN_ENTITY,
                 CONF_WIND_ENTITY,
+                CONF_RAIN_NIGHT_ONLY,
             ]
             self.optional_entities(entities, user_input)
             self.options.update(user_input)
