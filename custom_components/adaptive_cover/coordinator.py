@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import homeassistant.util.dt as dt_util
 import asyncio
 import datetime as dt
 from dataclasses import dataclass
@@ -178,7 +179,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             CONF_MANUAL_IGNORE_INTERMEDIATE, False
         )
         self._update_listener = None
-        self._scheduled_time = dt.datetime.now()
+        self._scheduled_time = dt_util.utcnow()
 
         self._cached_options = None
         
@@ -194,22 +195,24 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def async_timed_refresh(self, event) -> None:
         """Control state at end time."""
-
-        now = dt.datetime.now()
-        if self.end_time is not None:
-            time = self.end_time
+        now = dt_util.now()
+        time = self.end_time
         if self.end_time_entity is not None:
             time = get_safe_state(self.hass, self.end_time_entity)
 
         self.logger.debug("Checking timed refresh. End time: %s, now: %s", time, now)
 
-        time_check = now - get_datetime_from_str(time)
-        if time is not None and (time_check <= dt.timedelta(seconds=1)):
-            self.timed_refresh = True
-            self.logger.debug("Timed refresh triggered")
-            await self.async_refresh()
-        else:
-            self.logger.debug("Timed refresh, but: not equal to end time")
+        if time is not None:
+            time_obj = get_datetime_from_str(time)
+            if time_obj.tzinfo is None:
+                time_obj = dt_util.as_local(time_obj)
+            time_check = now - time_obj
+            if time_check <= dt.timedelta(seconds=1):
+                self.timed_refresh = True
+                self.logger.debug("Timed refresh triggered")
+                await self.async_refresh()
+            else:
+                self.logger.debug("Timed refresh, but: not equal to end time")
 
     def set_dynamic_override_duration(self, option: str):
         """Aktualizuje czas trwania manual override na podstawie encji Select."""
@@ -575,47 +578,66 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     @property
     def after_start_time(self):
         """Check if time is after start time."""
-        now = dt.datetime.now()
-        if self.start_time_entity is not None:
-            time = get_datetime_from_str(
-                get_safe_state(self.hass, self.start_time_entity)
-            )
-            self.logger.debug(
-                "Start time: %s, now: %s, now >= time: %s ", time, now, now >= time
-            )
-            self._start_time = time
-            return now >= time
-        if self.start_time is not None:
-            time = get_datetime_from_str(self.start_time)
+        now = dt_util.utcnow()
+        
+        # Logika Dni Roboczych (Workday)
+        is_workday = True
+        workday_entity = self.config_entry.options.get("workday_entity")
+        if workday_entity:
+            state = self.hass.states.get(workday_entity)
+            if state:
+                is_workday = state.state == "on"
+                
+        # Pobieranie czasu z encji UI
+        if is_workday:
+            start_str = self.config_entry.options.get("start_time_workday", "07:00:00")
+        else:
+            start_str = self.config_entry.options.get("start_time_weekend", "09:00:00")
 
-            self.logger.debug(
-                "Start time: %s, now: %s, now >= time: %s", time, now, now >= time
-            )
-            self._start_time
-            return now >= time
-        return True
+        if self.start_time_entity is not None:
+            time_local = get_datetime_from_str(get_safe_state(self.hass, self.start_time_entity))
+        else:
+            time_local = get_datetime_from_str(start_str)
+
+        # Upewniamy się, że czas otwarcia posiada strefę czasową
+        if time_local is not None and time_local.tzinfo is None:
+            time_local = dt_util.as_local(time_local)
+            
+        time_utc = dt_util.as_utc(time_local)
+
+        self.logger.debug("Start time UTC: %s, now UTC: %s", time_utc, now)
+        self._start_time = time_utc
+        return now >= time_utc
 
     @property
     def _end_time(self) -> dt.datetime | None:
-        """Get end time."""
-        time = None
+        """Get end time based on sunset or config."""
+        time_utc = None
         if self.end_time_entity is not None:
-            time = get_datetime_from_str(
+            time_local = get_datetime_from_str(
                 get_safe_state(self.hass, self.end_time_entity)
             )
-        elif self.end_time is not None:
-            time = get_datetime_from_str(self.end_time)
-            if time.time() == dt.time(0, 0):
-                time = time + dt.timedelta(days=1)
-        return time
+            if time_local is not None:
+                if time_local.tzinfo is None:
+                    time_local = dt_util.as_local(time_local)
+                time_utc = dt_util.as_utc(time_local)
+        else:
+            # Zamykanie oparte na zachodzie słońca i suwaku (offset)
+            cover_data = self.get_blind_data(options=self.config_entry.options)
+            sunset = cover_data.sun_data.sunset() # To jest już bezpieczny czas UTC
+            offset = self.config_entry.options.get("close_sunset_offset", 0)
+            if sunset:
+                time_utc = sunset + dt.timedelta(minutes=offset)
+                
+        return time_utc
 
     @property
     def before_end_time(self):
         """Check if time is before end time."""
         if self._end_time is not None:
-            now = dt.datetime.now()
+            now = dt_util.utcnow()
             self.logger.debug(
-                "End time: %s, now: %s, now < time: %s",
+                "End time UTC: %s, now UTC: %s, now < time: %s",
                 self._end_time,
                 now,
                 now < self._end_time,

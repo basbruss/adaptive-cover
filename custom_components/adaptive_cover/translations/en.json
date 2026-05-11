@@ -21,6 +21,7 @@
           "end_entity": "Entity indicating ending time",
           "manual_threshold": "Manual override threshold",
           "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
+          "workday_entity": "Workday sensor (Optional)",
           "window_entity": "Window/Door sensor (Optional)",
           "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
         },
@@ -110,7 +111,7 @@
           "lux_threshold": "Threshold for lux sensor, above this value glare should be reduced",
           "irradiance_entity": "Use irradiance sensor to determine if cover should reduce glare in presence mode",
           "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced",
-		      "rain_entity": "Select a dedicated rain sensor (takes priority over weather entity data)",
+          "rain_entity": "Select a dedicated rain sensor (takes priority over weather entity data)",
           "wind_entity": "Select a dedicated wind sensor in km/h (takes priority over weather entity data)"
         },
         "description": "Add additional climate configuration variables.",
@@ -265,6 +266,7 @@
           "end_entity": "Entity indicating ending time",
           "manual_threshold": "Manual override threshold",
           "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
+          "workday_entity": "Workday sensor (Optional)",
           "window_entity": "Window/Door sensor (Optional)",
           "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
         },
@@ -354,7 +356,7 @@
           "lux_threshold": "Threshold for lux sensor, above this value glare should be reduced",
           "irradiance_entity": "Use irradiance sensor to determine if cover should reduce glare in presence mode",
           "irradiance_threshold": "Threshold for irradiance sensor, above this value glare should be reduced",
-		  "rain_entity": "Select a dedicated rain sensor (takes priority over weather entity data)",
+          "rain_entity": "Select a dedicated rain sensor (takes priority over weather entity data)",
           "wind_entity": "Select a dedicated wind sensor in km/h (takes priority over weather entity data)"
         },
         "description": "Add additional climate configuration variables.",
@@ -501,6 +503,13 @@
     }
   },
   "entity": {
+    "time": {
+      "start_time_workday": { "name": "Opening Time (Workdays)" },
+      "start_time_weekend": { "name": "Opening Time (Weekends/Holidays)" }
+    },
+    "number": {
+      "close_sunset_offset": { "name": "Sunset Close Offset" }
+    },
     "select": {
       "manual_override": {
         "name": "Override Duration",
@@ -517,6 +526,9 @@
     },
     "sensor": {
       "algorithm_status": {
+        "schedule": {
+          "name": "Today's Schedule"
+        },
         "name": "Algorithm Status",
         "state": {
           "auto": "Automatic Mode (Sun / Climate)",

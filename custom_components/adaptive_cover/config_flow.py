@@ -84,6 +84,10 @@ from .const import (
     CONF_MIN_POSITION,
     CONF_ENABLE_MAX_POSITION,
     CONF_ENABLE_MIN_POSITION,
+    CONF_WORKDAY_ENTITY,
+    CONF_START_TIME_WORKDAY,
+    CONF_START_TIME_WEEKEND,
+    CONF_CLOSE_SUNSET_OFFSET,
 )
 
 # DEFAULT_NAME = "Adaptive Cover"
@@ -355,6 +359,10 @@ AUTOMATION_CONFIG = vol.Schema(
             vol.Coerce(int), vol.Range(min=0, max=99)
         ),
         vol.Optional(CONF_MANUAL_IGNORE_INTERMEDIATE, default=False): bool,
+        
+        vol.Optional(CONF_WORKDAY_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain="binary_sensor")
+        ),
         # --- NASZ NOWY WYBÓR ENCJ OKNA/DRZWI BALKONOWYCH ---
         vol.Optional(CONF_WINDOW_ENTITY): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["binary_sensor", "input_boolean"])
@@ -662,6 +670,10 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_COLD_THRESHOLD: self.config.get(CONF_COLD_THRESHOLD, 16),
                 CONF_WIND_THRESHOLD: self.config.get(CONF_WIND_THRESHOLD, 40),
                 CONF_PURGE_POS: self.config.get(CONF_PURGE_POS, 15),
+                CONF_WORKDAY_ENTITY: self.config.get(CONF_WORKDAY_ENTITY),
+                CONF_START_TIME_WORKDAY: self.config.get(CONF_START_TIME_WORKDAY, "07:00:00"),
+                CONF_START_TIME_WEEKEND: self.config.get(CONF_START_TIME_WEEKEND, "09:00:00"),
+                CONF_CLOSE_SUNSET_OFFSET: self.config.get(CONF_CLOSE_SUNSET_OFFSET, 0),
             },
         )
 
@@ -695,7 +707,7 @@ class OptionsFlowHandler(OptionsFlow):
     async def async_step_automation(self, user_input: dict[str, Any] | None = None):
         """Manage automation options."""
         if user_input is not None:
-            entities = [CONF_START_ENTITY, CONF_END_ENTITY, CONF_MANUAL_THRESHOLD, CONF_WINDOW_ENTITY]
+            entities = [CONF_START_ENTITY, CONF_END_ENTITY, CONF_MANUAL_THRESHOLD, CONF_WINDOW_ENTITY, CONF_WORKDAY_ENTITY]
             self.optional_entities(entities, user_input)
             self.options.update(user_input)
             return await self._update_options()

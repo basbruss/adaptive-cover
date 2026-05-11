@@ -21,6 +21,7 @@
           "end_entity": "Encja określająca czas zakończenia",
           "manual_threshold": "Próg ignorowania ręcznej zmiany",
           "manual_ignore_intermediate": "Ignoruj pozycje pośrednie podczas ręcznego sterowania (otwieranie i zamykanie)",
+          "workday_entity": "Sesnor dni roboczych (Opcjonalnie)",
           "window_entity": "Czujnik otwarcia okna / balkonu (Opcjonalnie)",
           "return_sunset": "Zawsze ustawiaj domyślną pozycję po zachodzie słońca; Przydatne, gdy czas zakończenia wypada przed faktycznym zachodem słońca"
         },
@@ -264,6 +265,7 @@
           "end_entity": "Encja czasu zakończenia",
           "manual_threshold": "Próg ignorowania ręcznej zmiany",
           "manual_ignore_intermediate": "Ignoruj pozycje pośrednie (otwieranie/zamykanie) podczas ręcznej kontroli",
+          "workday_entity": "Sensor dni roboczych (Opcjonalnie)",
           "window_entity": "Czujnik otwarcia okna / balkonu (Opcjonalnie)",
           "return_sunset": "Upewnij się, że roleta zawsze powróci do nocnej pozycji docelowej na koniec dnia"
         },
@@ -501,6 +503,13 @@
     }
   },
   "entity": {
+    "time": {
+      "start_time_workday": { "name": "Otwarcie (Dni robocze)" },
+      "start_time_weekend": { "name": "Otwarcie (Dni wolne/Weekend)" }
+    },
+    "number": {
+      "close_sunset_offset": { "name": "Przesunięcie zachodu (Zamykanie)" }
+    },
     "select": {
       "manual_override": {
         "name": "Czas blokady ręcznej",
@@ -517,6 +526,9 @@
     },
     "sensor": {
       "algorithm_status": {
+        "schedule": {
+          "name": "Harmonogram na dzisiaj"
+        },
         "name": "Status algorytmu",
         "state": {
           "auto": "Tryb automatyczny (Słońce / Klimat)",

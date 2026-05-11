@@ -23,7 +23,7 @@ from .const import (
 )
 from .coordinator import AdaptiveDataUpdateCoordinator
 
-PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.BINARY_SENSOR, Platform.BUTTON, Platform.SELECT]
+PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.BINARY_SENSOR, Platform.BUTTON, Platform.SELECT, Platform.TIME, Platform.NUMBER]
 CONF_SUN = ["sun.sun"]
 
 
