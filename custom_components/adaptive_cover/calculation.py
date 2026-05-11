@@ -14,7 +14,53 @@ from .helpers import get_domain, get_safe_state
 from .sun import SunData
 from .config_context_adapter import ConfigContextAdapter
 
+# --- Geometric accuracy constants ---
+EDGE_CASE_LOW_ELEVATION = 2.0
+EDGE_CASE_HIGH_ELEVATION = 88.0
+EDGE_CASE_EXTREME_GAMMA = 85
+SAFETY_MARGIN_GAMMA_THRESHOLD = 45
+SAFETY_MARGIN_GAMMA_MAX = 0.2
+SAFETY_MARGIN_LOW_ELEV_THRESHOLD = 10
+SAFETY_MARGIN_LOW_ELEV_MAX = 0.15
+SAFETY_MARGIN_HIGH_ELEV_THRESHOLD = 75
+SAFETY_MARGIN_HIGH_ELEV_MAX = 0.1
+WINDOW_DEPTH_GAMMA_THRESHOLD = 10
+MIN_TAN_ELEVATION_CLAMP = 0.05
+MIN_COS_GAMMA_CLAMP = 0.01
+
+class SafetyMarginCalculator:
+    @staticmethod
+    def calculate(gamma: float, sol_elev: float) -> float:
+        margin = 1.0
+        gamma_abs = abs(gamma)
+        if gamma_abs > SAFETY_MARGIN_GAMMA_THRESHOLD:
+            t = (gamma_abs - SAFETY_MARGIN_GAMMA_THRESHOLD) / (90 - SAFETY_MARGIN_GAMMA_THRESHOLD)
+            t = float(np.clip(t, 0, 1))
+            smooth_t = t * t * (3 - 2 * t)
+            margin += SAFETY_MARGIN_GAMMA_MAX * smooth_t
+        if sol_elev < SAFETY_MARGIN_LOW_ELEV_THRESHOLD:
+            t = (SAFETY_MARGIN_LOW_ELEV_THRESHOLD - sol_elev) / SAFETY_MARGIN_LOW_ELEV_THRESHOLD
+            margin += SAFETY_MARGIN_LOW_ELEV_MAX * float(np.clip(t, 0, 1))
+        elif sol_elev > SAFETY_MARGIN_HIGH_ELEV_THRESHOLD:
+            t = (sol_elev - SAFETY_MARGIN_HIGH_ELEV_THRESHOLD) / (90 - SAFETY_MARGIN_HIGH_ELEV_THRESHOLD)
+            margin += SAFETY_MARGIN_HIGH_ELEV_MAX * float(np.clip(t, 0, 1))
+        return float(margin)
+
+class EdgeCaseHandler:
+    @staticmethod
+    def check_and_handle(sol_elev: float, gamma: float, distance: float, h_win: float) -> tuple[bool, float]:
+        if sol_elev < EDGE_CASE_LOW_ELEVATION:
+            return (True, h_win)
+        if abs(gamma) > EDGE_CASE_EXTREME_GAMMA:
+            return (True, h_win)
+        if sol_elev > EDGE_CASE_HIGH_ELEVATION:
+            simple_height = distance * np.tan(np.radians(sol_elev))
+            return (True, float(np.clip(simple_height, 0, h_win)))
+        return (False, 0.0)
+
 def state_attr(hass, entity_id: str, attr_name: str):
+    if not entity_id:
+        return None
     state = hass.states.get(entity_id)
     if state is None:
         return None
@@ -225,6 +271,11 @@ class NormalCoverState:
             self.cover.logger.debug("No sun in window: using default value (%s)", state)
 
         result = np.clip(state, 0, 100)
+        
+        # Ochrona przed zaokrąglaniem w dół do 0 gdy słońce w oknie
+        if dsv:
+            result = max(result, 1)
+
         if self.cover.apply_max_position and result > self.cover.max_pos:
             return self.cover.max_pos
         if self.cover.apply_min_position and result < self.cover.min_pos:
@@ -317,7 +368,9 @@ class ClimateCoverData:
             except (ValueError, TypeError): pass
             
         # Fallback do atrybutu weather_entity
-        return float(state_attr(self.hass, self.weather_entity, "wind_speed") or 0)
+        if self.weather_entity:
+            return float(state_attr(self.hass, self.weather_entity, "wind_speed") or 0)
+        return 0.0
     
     @property
     def outside_temperature(self):
@@ -331,7 +384,7 @@ class ClimateCoverData:
                 self.outside_entity,
             )
             # W tym trybie nie mamy prognozy z pojedynczego sensora, przypisujemy temp do max_forecast
-            self.max_forecast_temp = float(temp) if temp else None
+            self.max_forecast_temp = float(temp) if temp is not None else None
 
         # Jeśli użyto integracji pogody (np. weather.home)
         elif self.weather_entity:
@@ -344,9 +397,12 @@ class ClimateCoverData:
                 # Bierzemy prognozowaną temperaturę na pierwszy dzień/godzinę z listy
                 # (Zazwyczaj jest to dzisiejsze maksimum w prognozach dziennych)
                 forecast_temp = forecast_data[0].get("temperature")
-                self.max_forecast_temp = float(forecast_temp) if forecast_temp is not None else float(temp)
+                if forecast_temp is not None:
+                    self.max_forecast_temp = float(forecast_temp)
+                else:
+                    self.max_forecast_temp = float(temp) if temp is not None else None
             else:
-                self.max_forecast_temp = float(temp) if temp else None
+                self.max_forecast_temp = float(temp) if temp is not None else None
                 
         return temp
 
@@ -367,9 +423,9 @@ class ClimateCoverData:
     def get_current_temperature(self) -> float:
         """Get temperature."""
         if self.temp_switch:
-            if self.outside_temperature:
+            if self.outside_temperature is not None:
                 return float(self.outside_temperature)
-        if self.inside_temperature:
+        if self.inside_temperature is not None:
             return float(self.inside_temperature)
 
     @property
@@ -434,8 +490,8 @@ class ClimateCoverData:
             predictive_heat = self.max_forecast_temp > (self.temp_summer_outside + 2.0)
 
         # Jest "Lato" (czyli zamykamy rolety), jeśli wewnątrz już jest gorąco ALBO na zewnątrz będzie bardzo gorąco.
-        # Warunkiem koniecznym jest, że na zewnątrz faktycznie JEST cieplej/prognozowane cieplej, żeby nie zamknąć rolet zimą.
-        is_it = (already_hot_inside or predictive_heat) and self.outside_high
+        # Warunkiem koniecznym dla already_hot_inside jest, że na zewnątrz faktycznie JEST cieplej/prognozowane cieplej, żeby nie zamknąć rolet zimą.
+        is_it = (already_hot_inside and self.outside_high) or predictive_heat
 
         self.logger.debug(
             "PREDICTIVE is_summer(): Already Hot? %s | Predictive Heat Expected? %s (Max Forecast: %s) -> Result: %s",
@@ -652,6 +708,10 @@ class ClimateCoverState(NormalCoverState):
         if self.climate_data.blind_type == "cover_tilt":
             result = self.tilt_state()
             
+        # Ochrona przed zaokrąglaniem w dół do 0 gdy słońce w oknie i brak innej ochrony klimatycznej
+        if self.cover.direct_sun_valid and self.cover.state_info == "auto":
+            result = max(result, 1)
+            
         if self.cover.apply_max_position and result > self.cover.max_pos:
             self.cover.state_info = "max_limit"
             return self.cover.max_pos
@@ -672,16 +732,39 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
 
     distance: float
     h_win: float
+    window_depth: float = 0.0
+    sill_height: float = 0.0
 
     def calculate_position(self) -> float:
-        """Calculate blind height."""
-        # calculate blind height
-        blind_height = np.clip(
-            (self.distance / cos(rad(self.gamma))) * tan(rad(self.sol_elev)),
-            0,
-            self.h_win,
+        """Calculate blind height with enhanced geometric accuracy."""
+        is_edge_case, edge_position = EdgeCaseHandler.check_and_handle(
+            self.sol_elev, self.gamma, self.distance, self.h_win
         )
-        return blind_height
+        if is_edge_case:
+            return edge_position
+
+        effective_distance = self.distance
+
+        if self.window_depth > 0 and abs(self.gamma) > WINDOW_DEPTH_GAMMA_THRESHOLD:
+            depth_contribution = self.window_depth * float(sin(rad(abs(self.gamma))))
+            effective_distance += depth_contribution
+
+        if self.sill_height > 0:
+            sill_offset = self.sill_height / max(float(tan(rad(self.sol_elev))), MIN_TAN_ELEVATION_CLAMP)
+            effective_distance -= sill_offset
+
+        if effective_distance < 0:
+            effective_distance = 0.0
+
+        cos_gamma = float(cos(rad(self.gamma)))
+        cos_gamma_clamped = max(abs(cos_gamma), MIN_COS_GAMMA_CLAMP) * (1 if cos_gamma >= 0 else -1)
+        path_length = effective_distance / cos_gamma_clamped
+        base_height = path_length * float(tan(rad(self.sol_elev)))
+
+        safety_margin = SafetyMarginCalculator.calculate(self.gamma, self.sol_elev)
+        adjusted_height = base_height * safety_margin
+        
+        return float(np.clip(adjusted_height, 0, self.h_win))
 
     def calculate_percentage(self) -> float:
         """Convert blind height to percentage or default value."""

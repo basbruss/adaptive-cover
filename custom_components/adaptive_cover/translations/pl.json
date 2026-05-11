@@ -40,6 +40,8 @@
         "data": {
           "set_azimuth": "Azymut okna",
           "window_height": "Wysokość okna",
+          "window_depth": "Głębokość osadzenia okna",
+          "sill_height": "Wysokość parapetu",
           "distance_shaded_area": "Strefa odblasku (Zacienienie)",
           "default_percentage": "Domyślna pozycja",
           "min_position": "Minimalna pozycja",
@@ -62,6 +64,8 @@
         "data_description": {
           "set_azimuth": "Określ kierunek geograficzny okna (w stopniach)",
           "window_height": "Określ wysokość okna w metrach",
+          "window_depth": "Odległość od ściany zewnętrznej do szyby okna (tworzy dodatkowy cień z boku)",
+          "sill_height": "Wysokość parapetu od podłogi w metrach (słońce padające poniżej tej wysokości nie wchodzi do pokoju)",
           "distance_shaded_area": "Obiekty w tej odległości od rolety będą otrzymywać bezpośrednie światło słoneczne.",
           "default_percentage": "Domyślne rozwinięcie rolety w procentach",
           "min_position": "Minimalne dozwolone otwarcie rolety w procentach",
@@ -129,6 +133,8 @@
           "set_azimuth": "Azymut okna",
           "length_awning": "Długość Markizy",
           "window_height": "Wysokość zawieszenia",
+          "window_depth": "Głębokość osadzenia okna",
+          "sill_height": "Wysokość parapetu",
           "angle": "Kąt nachylenia markizy",
           "distance_shaded_area": "Strefa odblasku (Zacienienie)",
           "default_percentage": "Domyślna pozycja",
@@ -152,6 +158,8 @@
         "data_description": {
           "set_azimuth": "Określ azymut",
           "window_height": "Ustaw wysokość zawieszenia markizy w stosunku do zacienianej powierzchni",
+          "window_depth": "Odległość od ściany zewnętrznej do szyby okna (tworzy dodatkowy cień z boku)",
+          "sill_height": "Wysokość parapetu od podłogi w metrach (słońce padające poniżej tej wysokości nie wchodzi do pokoju)",
           "length_awning": "Całkowita długość wysięgu markizy w metrach",
           "angle": "Kąt nachylenia zamocowanej markizy (od ściany w stronę ziemi)",
           "distance_shaded_area": "Obiekty w tej odległości od rolety będą otrzymywać bezpośrednie światło słoneczne",
@@ -285,6 +293,8 @@
         "data": {
           "set_azimuth": "Azymut okna",
           "window_height": "Wysokość okna",
+          "window_depth": "Głębokość osadzenia okna",
+          "sill_height": "Wysokość parapetu",
           "distance_shaded_area": "Strefa odblasku (Zacienienie)",
           "default_percentage": "Domyślna pozycja",
           "min_position": "Minimalna pozycja",
@@ -307,6 +317,8 @@
         "data_description": {
           "set_azimuth": "Podaj azymut",
           "window_height": "Wysokość okna w metrach",
+          "window_depth": "Odległość od ściany zewnętrznej do szyby okna (tworzy dodatkowy cień z boku)",
+          "sill_height": "Wysokość parapetu od podłogi w metrach (słońce padające poniżej tej wysokości nie wchodzi do pokoju)",
           "distance_shaded_area": "Zacienienie od rolety w metrach (np. 0.5 chroni biurko przy oknie)",
           "default_percentage": "Standardowa pozycja w pochmurne dni",
           "min_position": "Roleta nie opuści się bardziej niż",
@@ -376,6 +388,8 @@
           "set_azimuth": "Azymut okna",
           "length_awning": "Długość Markizy",
           "window_height": "Wysokość markizy",
+          "window_depth": "Głębokość osadzenia okna",
+          "sill_height": "Wysokość parapetu",
           "angle": "Kąt opadania",
           "distance_shaded_area": "Strefa odblasku (Zacienienie)",
           "default_percentage": "Domyślna pozycja",
@@ -399,6 +413,8 @@
         "data_description": {
           "set_azimuth": "Podaj azymut",
           "window_height": "Wysokość w metrach nad podłożem",
+          "window_depth": "Odległość od ściany zewnętrznej do szyby okna (tworzy dodatkowy cień z boku)",
+          "sill_height": "Wysokość parapetu od podłogi w metrach (słońce padające poniżej tej wysokości nie wchodzi do pokoju)",
           "length_awning": "Jak daleko markiza wysuwa się w poziomie",
           "angle": "Kąt między ścianą a materiałem",
           "distance_shaded_area": "Odległość chronionego obszaru",

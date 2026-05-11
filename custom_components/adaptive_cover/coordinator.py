@@ -59,6 +59,8 @@ from .const import (
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
     CONF_HEIGHT_WIN,
+    CONF_WINDOW_DEPTH,
+    CONF_SILL_HEIGHT,
     CONF_INTERP,
     CONF_INTERP_END,
     CONF_INTERP_LIST,
@@ -176,6 +178,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.manager = AdaptiveCoverManager(self.manual_duration, self.logger)
         self.wait_for_target = {}
         self.target_call = {}
+        self.verify_tasks = {}
         self.ignore_intermediate_states = self.config_entry.options.get(
             CONF_MANUAL_IGNORE_INTERMEDIATE, False
         )
@@ -492,11 +495,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         await self.async_set_manual_position(entity, state)
 
     async def async_set_manual_position(self, entity, state):
-        """Call service to set cover position."""
+        """Call service to set cover position with verification."""
         if self.check_position(entity, state):
             service = SERVICE_SET_COVER_POSITION
-            service_data = {}
-            service_data[ATTR_ENTITY_ID] = entity
+            service_data = {ATTR_ENTITY_ID: entity}
 
             if self._cover_type == "cover_tilt":
                 service = SERVICE_SET_COVER_TILT_POSITION
@@ -506,13 +508,52 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
             self.wait_for_target[entity] = True
             self.target_call[entity] = state
-            self.logger.debug(
-                "Set wait for target %s and target call %s",
-                self.wait_for_target,
-                self.target_call,
-            )
             self.logger.debug("Run %s with data %s", service, service_data)
+            
+            # 1. Anuluj poprzednie sprawdzanie dla tej rolety, jeśli istnieje
+            if entity in self.verify_tasks:
+                self.verify_tasks[entity].cancel()
+                
+            # 2. Wyślij komendę do silnika
             await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
+            
+            # 3. Uruchom weryfikację w tle (Czeka 45s na dojazd, ponawia max 2 razy)
+            task = self.hass.async_create_task(
+                self.async_verify_and_retry(entity, state, service, service_data, wait_time=45, max_retries=2)
+            )
+            self.verify_tasks[entity] = task
+
+    async def async_verify_and_retry(self, entity, target_state, service, service_data, wait_time=45, max_retries=2):
+        """Verify if cover reached the target and retry if needed."""
+        for attempt in range(1, max_retries + 1):
+            # Czekamy, aż roleta fizycznie dojedzie na miejsce
+            await asyncio.sleep(wait_time)
+            
+            # Jeśli w międzyczasie użytkownik użył przycisku na ścianie - przerywamy walkę z nim!
+            if self.manager.is_cover_manual(entity):
+                self.logger.debug("Manual override detected for %s during verification. Cancelling retry.", entity)
+                self.wait_for_target[entity] = False
+                return
+
+            # Jeśli flaga wait_for_target zniknęła z systemu - roleta dojechała pomyślnie!
+            if not self.wait_for_target.get(entity):
+                self.logger.debug("Position verified successfully for %s on attempt %s", entity, attempt)
+                return
+                
+            # Podwójne upewnienie się - pobieramy jej obecną fizyczną pozycję
+            current_pos = self._get_current_position(entity)
+            if current_pos == target_state:
+                self.wait_for_target[entity] = False
+                self.logger.debug("Position implicitly verified for %s", entity)
+                return
+                
+            # Skoro tu jesteśmy, roleta nie dojechała (zgubiła zasięg itp.). Ponawiamy!
+            self.logger.warning("Position verification failed for %s. Current: %s, Target: %s. Retrying attempt %s/%s", 
+                              entity, current_pos, target_state, attempt, max_retries)
+            await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
+            
+        self.logger.error("Failed to set position for %s after %s retries.", entity, max_retries)
+        self.wait_for_target[entity] = False
 
     def _update_options(self, options):
         """Update options."""
@@ -792,6 +833,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         return [
             options.get(CONF_DISTANCE),
             options.get(CONF_HEIGHT_WIN),
+            options.get(CONF_WINDOW_DEPTH, 0.0),
+            options.get(CONF_SILL_HEIGHT, 0.0),
         ]
 
     def horizontal_data(self, options):

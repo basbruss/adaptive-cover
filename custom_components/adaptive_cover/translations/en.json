@@ -40,6 +40,8 @@
         "data": {
           "set_azimuth": "Window Azimuth",
           "window_height": "Window Height",
+          "window_depth": "Window Depth (Inset)",
+          "sill_height": "Sill Height",
           "distance_shaded_area": "Glare Zone",
           "default_percentage": "Default Position",
           "min_position": "Minimum Position",
@@ -62,6 +64,8 @@
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
           "window_height": "Specify window height in meters",
+          "window_depth": "Distance from wall to the window pane in meters (creates additional side shadow)",
+          "sill_height": "Height of the window sill from the floor in meters",
           "distance_shaded_area": "Objects within this distance from the cover recieve direct sunlight. Distance measured horizontally from the bottom of the cover when the cover is fully extended.",
           "default_percentage": "Default cover position as a percentage",
           "min_position": "Minimum adjustable cover position as a percentage",
@@ -130,6 +134,8 @@
           "set_azimuth": "Window Azimuth",
           "length_awning": "Awning Span Length",
           "window_height": "Awning Height",
+          "window_depth": "Window Depth (Inset)",
+          "sill_height": "Sill Height",
           "angle": "Awning Angle",
           "distance_shaded_area": "Glare Zone",
           "default_percentage": "Default Position",
@@ -153,6 +159,8 @@
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
           "window_height": "Adjust the height of the awning from the level of the workarea",
+          "window_depth": "Distance from wall to the window pane in meters (creates additional side shadow)",
+          "sill_height": "Height of the window sill from the floor in meters",
           "length_awning": "Total span length in meters",
           "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
           "distance_shaded_area": "Objects within this distance from the cover recieve direct sunlight",
@@ -286,6 +294,8 @@
         "data": {
           "set_azimuth": "Window Azimuth",
           "window_height": "Window Height",
+          "window_depth": "Window Depth (Inset)",
+          "sill_height": "Sill Height",
           "distance_shaded_area": "Glare Zone",
           "default_percentage": "Default Position",
           "min_position": "Minimum Position",
@@ -308,6 +318,8 @@
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
           "window_height": "Specify window height in meters",
+          "window_depth": "Distance from wall to the window pane in meters (creates additional side shadow)",
+          "sill_height": "Height of the window sill from the floor in meters",
           "distance_shaded_area": "Objects within this distance from the cover recieve direct sunlight. Distance measured horizontally from the bottom of the cover when the cover is fully extended.",
           "default_percentage": "Default cover position as a percentage",
           "min_position": "Minimum adjustable cover position as a percentage",
@@ -376,6 +388,8 @@
           "set_azimuth": "Window Azimuth",
           "length_awning": "Awning Span Length",
           "window_height": "Awning Height",
+          "window_depth": "Window Depth (Inset)",
+          "sill_height": "Sill Height",
           "angle": "Awning Angle",
           "distance_shaded_area": "Glare Zone",
           "default_percentage": "Default Position",
@@ -399,6 +413,8 @@
         "data_description": {
           "set_azimuth": "Specify the Azimuth",
           "window_height": "Adjust the height of the awning from the level of the workarea",
+          "window_depth": "Distance from wall to the window pane in meters (creates additional side shadow)",
+          "sill_height": "Height of the window sill from the floor in meters",
           "length_awning": "Total span length in meters",
           "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
           "distance_shaded_area": "Objects within this distance from the cover recieve direct sunlight",

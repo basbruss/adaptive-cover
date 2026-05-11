@@ -32,6 +32,8 @@ from .const import (
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
     CONF_HEIGHT_WIN,
+    CONF_WINDOW_DEPTH,
+    CONF_SILL_HEIGHT,
     CONF_INTERP,
     CONF_INTERP_END,
     CONF_INTERP_LIST,
@@ -185,6 +187,16 @@ VERTICAL_OPTIONS = vol.Schema(
         vol.Required(CONF_DISTANCE, default=0.5): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.1, max=2, step=0.1, mode="slider", unit_of_measurement="m"
+            )
+        ),
+        vol.Optional(CONF_WINDOW_DEPTH, default=0.0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.0, max=5.0, step=0.05, mode="slider", unit_of_measurement="m"
+            )
+        ),
+        vol.Optional(CONF_SILL_HEIGHT, default=0.0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.0, max=3.0, step=0.05, mode="slider", unit_of_measurement="m"
             )
         ),
     }
@@ -609,6 +621,8 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_AZIMUTH: self.config.get(CONF_AZIMUTH),
                 CONF_HEIGHT_WIN: self.config.get(CONF_HEIGHT_WIN),
                 CONF_DISTANCE: self.config.get(CONF_DISTANCE),
+                CONF_WINDOW_DEPTH: self.config.get(CONF_WINDOW_DEPTH, 0.0),
+                CONF_SILL_HEIGHT: self.config.get(CONF_SILL_HEIGHT, 0.0),
                 CONF_DEFAULT_HEIGHT: self.config.get(CONF_DEFAULT_HEIGHT),
                 CONF_MAX_POSITION: self.config.get(CONF_MAX_POSITION),
                 CONF_MIN_POSITION: self.config.get(CONF_MIN_POSITION),

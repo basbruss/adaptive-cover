@@ -9,6 +9,8 @@ from homeassistant.core import HomeAssistant, split_entity_id
 
 def get_safe_state(hass: HomeAssistant, entity_id: str):
     """Get a safe state value if not available."""
+    if not entity_id:
+        return None
     state = hass.states.get(entity_id)
     if not state or state.state in ["unknown", "unavailable"]:
         return None
