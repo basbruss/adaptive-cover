@@ -732,8 +732,8 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
 
     distance: float
     h_win: float
-    window_depth: float = 0.0
-    sill_height: float = 0.0
+    window_depth: float
+    sill_height: float
 
     def calculate_position(self) -> float:
         """Calculate blind height with enhanced geometric accuracy."""
