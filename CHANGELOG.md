@@ -4,6 +4,43 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.7.2] — 2026-05-15
+
+### Bug fixes
+
+- **Guard `None` sur lux / irradiance** (`calculation.py`) — `float(value)` levait une `TypeError` quand le capteur lux ou irradiance était indisponible (`get_safe_state()` retournait `None`). Un contrôle explicite `if value is None: return False` est maintenant appliqué avant la conversion, évitant tout crash silencieux. (upstream PR #458)
+
+- **`OptionsFlow.config_entry` lecture seule depuis HA 2025.12** (`config_flow.py`) — HA 2024.12 avait déprécié l'assignation de `self.config_entry` dans un `OptionsFlow` ; HA 2025.12 en a fait une propriété en lecture seule (core#155958), provoquant `AttributeError` à chaque reconfiguration de l'intégration. La ligne `self.config_entry = config_entry` est supprimée — le framework injecte automatiquement la valeur. (upstream PR #437/#438/#364/#348)
+
+### Traductions
+
+- **Espagnol (`es.json`)** — correction d'une erreur dans la traduction espagnole. (upstream PR #457)
+
+### Dépendances
+
+- `homeassistant` : `2023.11.1` → `2026.5.1`
+- `python` : `^3.11` → `^3.12`
+- `hass-nabucasa` : `0.75.1` → `2.2.0`
+- `pandas` : `~=2.2` → `~=3.0`
+- `pre-commit` : `4.0.1` → `4.6.0`
+- `pre-commit-hooks` : `5.0.0` → `6.0.0`
+- `pylint` : `4.0.2` → `4.0.5`
+- `ruff` : `0.9.1` → `0.15.13`
+- `pip` : `>=24.1.1,<25.4` → `>=26.0.0`
+- `colorlog` : `~=6.8` → `~=6.10`
+- `pvlib` : `~=0.11` → `~=0.15`
+- `matplotlib` : `~=3.9` → `~=3.10`
+- `ipykernel` : `~=6.29` → `~=7.2`
+
+### Documentation
+
+- README anglais et français entièrement réécrits : schéma Mermaid du flowchart de décision, tableaux de variables complets avec valeurs par défaut et plages, section Modes détaillée, entités v1.7.x, suppression de la section Blueprint dépréciée.
+- Badge Home Assistant `2026.05+` ajouté dans les deux README.
+- `README.fr.md` ajouté à la racine du dépôt.
+- `CHANGELOG.md` ajouté à la racine du dépôt.
+
+---
+
 ## [1.7.1] — 2026-05-14
 
 ### Bug fixes
