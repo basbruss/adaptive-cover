@@ -316,3 +316,15 @@ L'intégration crée également une **entité volet global** par entrée de conf
 ### Simulation
 
 ![simulation](custom_components/adaptive_cover/simulation/sim_plot.png)
+
+---
+
+## Contributeurs
+
+| | Contributeur | Rôle |
+|---|---|---|
+| 🧑‍💻 | **[Kamahat](https://github.com/kamahat)** | Mainteneur du fork, développement, correctifs |
+| 🤖 | **[Claude Sonnet 4.6](https://claude.ai)** (Anthropic) | Revue de code, correctifs, documentation EN/FR, changelog |
+| ⭐ | **[Bas Brussee (@basbruss)](https://github.com/basbruss)** | Auteur original |
+
+Voir [CONTRIBUTORS.md](CONTRIBUTORS.md) pour la liste complète incluant les contributeurs de la communauté.

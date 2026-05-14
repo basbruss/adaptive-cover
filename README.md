@@ -314,3 +314,15 @@ The integration also creates a **global cover entity** for each config entry:
 ### Simulation
 
 ![combined_simulation](custom_components/adaptive_cover/simulation/sim_plot.png)
+
+---
+
+## Contributors
+
+| | Contributor | Role |
+|---|---|---|
+| 🧑‍💻 | **[Kamahat](https://github.com/kamahat)** | Fork maintainer, feature development, bug fixes |
+| 🤖 | **[Claude Sonnet 4.6](https://claude.ai)** (Anthropic) | Code review, bug fixes, EN/FR documentation, changelog |
+| ⭐ | **[Bas Brussee (@basbruss)](https://github.com/basbruss)** | Original author |
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md) for the full list including community contributors.
