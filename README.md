@@ -33,7 +33,6 @@ This integration builds upon the template sensor from this forum post [Automatic
   - [Entities](#entities)
   - [Features Planned](#features-planned)
     - [Simulation](#simulation)
-    - [Blueprint (deprecated since v1.0.0)](#blueprint-deprecated-since-v100)
 
 ## Features
 
@@ -89,57 +88,71 @@ Each type has its own specific parameters to setup a sensor. To setup the sensor
 
 ## Modes
 
-This component supports two strategy modes: A `basic` mode and a `climate comfort/energy saving` mode that works with presence and temperature detection.
+This component supports two strategy modes: a `basic` mode and a `climate` (comfort/energy saving) mode that works with presence and temperature detection.
 
 ```mermaid
-  graph TD
+flowchart TD
+    START(["☀️ Sun data update"])
 
-  A[("fa:fa-sun Sundata")]
-  A --> B["Basic Mode"]
-  A --> C["Climate Mode"]
+    START --> TIME{"Within active\ntime window?"}
+    TIME -- No --> SUNSET["🌙 Return sunset /\ndefault position"]
 
-  subgraph "Basic Mode"
-      B --> BA("Sun within field of view")
+    TIME -- Yes --> CTRL{"Toggle Control\nswitch ON?"}
+    CTRL -- No --> DEFAULT["↩️ Return default\nposition"]
 
-      BA --> |No| BC{{Default}}
-      BC --> BE("Time between sunset and sunrise?")
-      BE --> |Yes| BF["Return default"]
-      BE --> |No| BG["Return Sunset default"]
+    CTRL -- Yes --> MANUAL{"Manual override\nactive?"}
+    MANUAL -- Yes --> HOLD["🔒 Hold current\nposition"]
 
-      BA --> |Yes| BD("Elevation above 0?")
-      BD --> |Yes| BH{{"Calculated Position"}}
-      BD --> |No| BC
-  end
+    MANUAL -- No --> SUN{"Sun in field of view\nAND elevation > 0?"}
+    SUN -- No --> DEFAULT
 
-  subgraph "Climate Mode"
-      C --> CA("Check Presence")
-  end
+    SUN -- Yes --> CLMODE{"Climate\nMode?"}
 
-  subgraph "Occupants"
-      CA --> |True| CB("Temperature above maximum comfort (summer)?")
+    %% ── BASIC MODE ────────────────────────────────
+    CLMODE -- No --> CALC["📐 Calculate optimal\nposition from sun geometry"]
+    CALC --> LIMITS
 
-      CB --> |Yes| CD("Transparent blind?")
-      CB --> |No| CE("Lux/Irradiance below threshold or Weather is not sunny?")
+    %% ── CLIMATE MODE ──────────────────────────────
+    CLMODE -- Yes --> LIGHT{"Lux / Irradiance\nabove threshold\nOR weather sunny?"}
 
-      CD --> |Yes| CF["Return fully closed (0%)"]
-      CD --> |No| B
+    LIGHT -- "No (dim light)" --> WCHECK{"Temp < temp_low\n❄️ winter threshold?"}
+    WCHECK -- Yes --> OPEN["🪟 Open fully (100%)\nsolar gain"]
+    WCHECK -- No --> DEFAULT
 
-      CE --> |Yes| CG("Temperature below minimum comfort (winter) and sun infront of window and elevation > 0?")
-      CE --> |No| B
+    LIGHT -- "Yes (bright)" --> PRESENCE{"Presence\nsensor?"}
 
-      CG --> |Yes| CH["Return fully open (100%)"]
-      CG --> |No| BC
-  end
+    %% ── NO OCCUPANTS ──────────────────────────────
+    PRESENCE -- "No occupants" --> S_NO{"Temp > temp_high\n🌡️ summer threshold?"}
+    S_NO -- Yes --> CLOSE["🪟 Close fully (0%)\nblock heat"]
+    S_NO -- No --> W_NO{"Temp < temp_low\n❄️ winter threshold?"}
+    W_NO -- Yes --> OPEN
+    W_NO -- No --> DEFAULT
 
-  subgraph "No Occupants"
-      CA --> |False| CC("Sun infront of window and elevation > 0?")
-      CC --> |No| BC
-      CC --> |Yes| CI("Temperature above maximum comfort (summer)?")
-      CI --> |Yes| CF
-      CI --> |No| CJ("Temperature below minimum comfort (winter)")
-      CJ --> |Yes| CH
-      CJ --> |No| BC
-  end
+    %% ── OCCUPANTS PRESENT ─────────────────────────
+    PRESENCE -- "Occupants present" --> S_YES{"Temp > temp_high\n🌡️ summer threshold?"}
+    S_YES -- Yes --> TRANSP{"Transparent\nblind?"}
+    TRANSP -- Yes --> CLOSE
+    TRANSP -- No --> CALC
+
+    S_YES -- No --> CALC
+
+    %% ── COMMON FINAL STEPS ────────────────────────
+    LIMITS["🔧 Apply min / max position limits\n+ blind spot correction"]
+    OPEN --> LIMITS
+    CLOSE --> LIMITS
+
+    LIMITS --> DELTA{"Position change\n> delta threshold?"}
+    DELTA -- No --> HOLD
+    DELTA -- Yes --> RESULT(["✅ Apply new position\nto cover(s)"])
+
+    %% ── STYLES ────────────────────────────────────
+    style CLOSE fill:#f28b82,color:#000
+    style OPEN  fill:#81c995,color:#000
+    style CALC  fill:#78b7f5,color:#000
+    style RESULT fill:#34a853,color:#fff
+    style HOLD  fill:#fbbc04,color:#000
+    style SUNSET fill:#aecbfa,color:#000
+    style DEFAULT fill:#e8eaed,color:#000
 ```
 
 ### Basic mode
@@ -269,12 +282,21 @@ These entities are always available:
 | `switch.{type}_manual_override_{name}` | `on` | Enables detection of manual overrides. A cover is marked if its position differs from the calculated one, resetting to adaptive control after a set duration. |
 | `button.{type}_reset_manual_override_{name}` | `on` | Resets manual override tags for all covers; if `switch.{type}_toggle_control_{name}` is on, it also restores blinds to their correct positions. |
 
-When climate mode is setup you will also get these entities:
+When climate mode is configured you will also get these entities:
 
 | Entities                                   | Default | Description                                                                                                 |
 | ------------------------------------------ | ------- | ----------------------------------------------------------------------------------------------------------- |
 | `switch.{type}_climate_mode_{name}`        | `on`    | Enables climate mode strategy; otherwise, defaults to the standard strategy.                                |
-| `switch.{type}_outside_temperature_{name}` | `on`    | Switches between inside and outside temperatures as the basis for determining the climate control strategy. |
+| `switch.{type}_outside_temperature_{name}` | `off`   | Use outside temperature instead of inside temperature for summer threshold comparison.                      |
+| `switch.{type}_lux_{name}`                 | `on`    | Enable lux threshold check (visible only when a lux entity is configured).                                  |
+| `switch.{type}_irradiance_{name}`          | `on`    | Enable irradiance threshold check (visible only when an irradiance entity is configured).                   |
+| `sensor.{type}_climate_debug_{name}`       |         | Diagnostic sensor exposing every intermediate value of the climate decision tree (active branch, all temperatures, thresholds, lux/irradiance flags). |
+
+The integration also creates a **global cover entity** for each config entry:
+
+| Entity               | Description                                                                                                             |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `cover.{name}`       | Aggregate entity controlling all covers in the group. Open/close/set position acts on all covers and flags them as manual. `turn_on` re-enables adaptive control; `turn_off` disables it. |
 
 ![entities](https://github.com/basbruss/adaptive-cover/blob/main/images/entities.png)
 
@@ -291,8 +313,3 @@ When climate mode is setup you will also get these entities:
 ### Simulation
 
 ![combined_simulation](custom_components/adaptive_cover/simulation/sim_plot.png)
-
-### Blueprint (deprecated since v1.0.0)
-
-This integration provides the option to download a blueprint to control the covers automatically by the provide sensor.
-By selecting the option the blueprints will be added to your local blueprints folder.
