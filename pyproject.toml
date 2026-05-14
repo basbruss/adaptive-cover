@@ -17,18 +17,18 @@ name = "adaptive_cover"
 packages = []
 readme = "README.md"
 repository = "https://github.com/kamahat/adaptive-cover"
-version = "0.0.0"
+version = "1.7.1"
 
 [tool.poetry.dependencies]
-homeassistant = "2023.11.1"
-python = "^3.11"
+homeassistant = "2026.5.1"
+python = "^3.12"
 
 [tool.poetry.group.dev.dependencies]
-hass-nabucasa = "0.75.1"
-pre-commit = "4.0.1"
-pre-commit-hooks = "5.0.0"
-pylint = "4.0.2"
-ruff = "0.9.1"
+hass-nabucasa = "2.2.0"
+pre-commit = "4.6.0"
+pre-commit-hooks = "6.0.0"
+pylint = "4.0.5"
+ruff = "0.15.13"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/kamahat/adaptive-cover/issues"
