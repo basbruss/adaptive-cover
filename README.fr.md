@@ -2,278 +2,316 @@
 
 🇬🇧 [English documentation](README.md)
 
-[![Version](https://img.shields.io/badge/version-1.7.1-blue)](CHANGELOG.md)
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1+-green)](https://www.home-assistant.io)
+![Version](https://img.shields.io/github/v/release/kamahat/adaptive-cover?style=for-the-badge)
 
-Positionnez automatiquement vos volets (stores, banne, jalousie) en fonction de la position du soleil par rapport à chaque fenêtre. L'intégration calcule la position optimale pour bloquer le rayonnement direct tout en conservant la luminosité ambiante, et propose un mode climatique pour réagir aux conditions de température.
+![logo](https://github.com/basbruss/adaptive-cover/blob/main/images/logo.png#gh-light-mode-only)
+![logo](https://github.com/basbruss/adaptive-cover/blob/main/images/dark_logo.png#gh-dark-mode-only)
 
----
+Cette intégration personnalisée positionne automatiquement vos volets (stores, banne, jalousie) en fonction de la position du soleil par rapport à chaque fenêtre. Elle calcule la position optimale pour bloquer le rayonnement direct tout en conservant la luminosité ambiante, et propose un mode climatique pour réagir aux conditions de température.
 
-## Types de volets
+Basée sur le capteur template de ce fil de forum : [Automatic Blinds](https://community.home-assistant.io/t/automatic-blinds-sunscreen-control-based-on-sun-platform/)
 
-| Type | Description |
-|------|-------------|
-| **Store vertical** | Store enrouleur ou rideau — position en % (0 = ouvert, 100 = fermé) |
-| **Banne horizontale** | Banne extérieure déployée horizontalement |
-| **Jalousie (tilt)** | Store vénitien avec réglage de l'angle des lames |
+- [Adaptive Cover](#adaptive-cover--documentation-française)
+  - [Fonctionnalités](#fonctionnalités)
+  - [Installation](#installation)
+    - [HACS (recommandé)](#hacs-recommandé)
+    - [Manuelle](#manuelle)
+  - [Configuration initiale](#configuration-initiale)
+  - [Types de volets](#types-de-volets)
+  - [Modes de fonctionnement](#modes-de-fonctionnement)
+    - [Mode basique](#mode-basique)
+    - [Mode climatique](#mode-climatique)
+      - [Stratégies climatiques](#stratégies-climatiques)
+  - [Paramètres](#paramètres)
+    - [Communs](#communs)
+    - [Vertical](#vertical)
+    - [Horizontal](#horizontal)
+    - [Jalousie (tilt)](#jalousie-tilt)
+    - [Automatisation](#automatisation)
+    - [Climatique](#climatique)
+    - [Zone aveugle](#zone-aveugle)
+  - [Entités](#entités)
+  - [Fonctionnalités planifiées](#fonctionnalités-planifiées)
+    - [Simulation](#simulation)
 
----
+## Fonctionnalités
+
+- Appareils distincts pour les volets `vertical`, `horizontal` et `jalousie`
+- Deux modes avec stratégies multiples : [Modes (`basique`, `climatique`)](#modes-de-fonctionnement)
+- Capteur binaire indiquant quand le soleil est face à la fenêtre
+- Capteurs d'heure de début et de fin d'ensoleillement
+- Détection automatique du contrôle manuel
+
+- **Mode Climatique**
+
+  - Fonctionnement basé sur les conditions météo
+  - Fonctionnement basé sur la présence
+  - Interrupteur pour activer/désactiver le mode climatique
+  - Capteur indiquant la stratégie active (`hiver`, `intermédiaire`, `été`)
+  - Capteur de diagnostic exposant toutes les valeurs intermédiaires de décision
+
+- **Contrôle adaptatif**
+
+  - Activation/désactivation du contrôle
+  - Contrôle de plusieurs volets simultanément
+  - Heure de début pour éviter d'ouvrir les volets pendant le sommeil
+  - Intervalle minimum entre deux changements de position
+  - Delta minimum de position pour déclencher un changement
 
 ## Installation
 
 ### HACS (recommandé)
 
-1. Dans HACS, aller dans **Intégrations → Dépôts personnalisés**
-2. Ajouter `https://github.com/basbruss/adaptive-cover` (catégorie : Intégration)
-3. Rechercher *Adaptive Cover* et installer
-4. Redémarrer Home Assistant
+Ajouter `https://github.com/kamahat/adaptive-cover` comme dépôt personnalisé dans HACS.
+Rechercher et télécharger *Adaptive Cover* dans HACS.
+
+Redémarrer Home Assistant et ajouter l'intégration.
 
 ### Manuelle
 
-1. Copier le dossier `adaptive_cover` dans `config/custom_components/`
-2. Redémarrer Home Assistant
+Télécharger le dossier `adaptive_cover` depuis ce dépôt GitHub.
+Le copier dans `config/custom_components/`.
 
----
+Redémarrer Home Assistant et ajouter l'intégration.
 
-## Configuration
+## Configuration initiale
 
-Ajouter l'intégration via **Paramètres → Appareils & Services → Ajouter une intégration → Adaptive Cover**.
+Adaptive Cover prend en charge trois types de volets : `Vertical`, `Horizontal` et `Jalousie (Vénitien)`.
+Chaque type possède ses propres paramètres. Pour configurer un capteur, il faut d'abord déterminer l'azimut de la fenêtre via [Open Street Map Compass](https://osmcompass.com/).
 
-### Base (obligatoire)
+## Types de volets
 
-| Option | Description |
-|--------|-------------|
-| **Nom** | Libellé du groupe de volets |
-| **Type de volet** | Vertical / Horizontal / Jalousie |
-| **Azimut** | Direction de la fenêtre en degrés (0 = N, 90 = E, 180 = S, 270 = O) |
-| **Champ de vision gauche / droite** | Plage angulaire (°) de part et d'autre de la normale de la fenêtre où le soleil tape |
-| **Hauteur de la fenêtre** | Hauteur en mètres |
-| **Profondeur de la zone ombragée** | Profondeur (m) à maintenir à l'ombre |
-| **Position par défaut** | Position de repli (%) quand le soleil est hors du champ de vision |
+|              | Vertical                      | Horizontal                      | Jalousie                        |
+| ------------ | ----------------------------- | ------------------------------- | ------------------------------- |
+|              | ![vertical](images/image.png) | ![horizontal](images/image-2.png) | ![jalousie](images/image-1.png) |
+| **Mouvement** | Haut / Bas                   | Déploiement / Rétractation      | Inclinaison des lames           |
+|              | [paramètres](#vertical)       | [paramètres](#horizontal)       | [paramètres](#jalousie-tilt)    |
 
-### Groupe de volets
+## Modes de fonctionnement
 
-| Option | Description |
-|--------|-------------|
-| **Volets** | Une ou plusieurs entités `cover.*` contrôlées par cette entrée |
+Ce composant propose deux modes : un mode `basique` et un mode `climatique` (confort / économie d'énergie) qui intègre la présence et la température.
 
-### Fenêtre temporelle
+```mermaid
+flowchart TD
+    START(["☀️ Mise à jour données solaires"])
 
-| Option | Description |
-|--------|-------------|
-| **Heure de début / entité** | Heure la plus tôt pour le contrôle adaptatif (statique ou `input_datetime`) |
-| **Heure de fin / entité** | Heure la plus tardive |
-| **Décalage lever du soleil** | Décalage en minutes par rapport au lever du soleil (positif = plus tard) |
-| **Position au coucher** | Position à appliquer au coucher du soleil |
-| **Décalage coucher** | Minutes avant/après le coucher pour appliquer la position |
-| **Retour au coucher** | Restaurer la position par défaut au lieu d'appliquer la position coucher |
+    START --> TIME{"Dans la fenêtre\nhoraire active ?"}
+    TIME -- Non --> SUNSET["🌙 Position coucher /\nposition par défaut"]
 
-### Limites de position
+    TIME -- Oui --> CTRL{"Interrupteur\nContrôle ON ?"}
+    CTRL -- Non --> DEFAULT["↩️ Retour position\npar défaut"]
 
-| Option | Description |
-|--------|-------------|
-| **Activer position min** | Empêche le volet de descendre sous un seuil |
-| **Position minimale** | Seuil bas (%) |
-| **Activer position max** | Empêche le volet de monter au-dessus d'un seuil |
-| **Position maximale** | Seuil haut (%) |
+    CTRL -- Oui --> MANUAL{"Contrôle manuel\nactif ?"}
+    MANUAL -- Oui --> HOLD["🔒 Maintien position\ncourante"]
 
-### Zone aveugle (Blind Spot)
+    MANUAL -- Non --> SUN{"Soleil dans le champ\nde vision ET élévation > 0 ?"}
+    SUN -- Non --> DEFAULT
 
-Évite que le volet ne s'arrête dans une plage d'azimut où le soleil passe directement à travers l'espace entre les lames ou arrive à un angle extrême.
+    SUN -- Oui --> CLMODE{"Mode\nClimatique ?"}
 
-| Option | Description |
-|--------|-------------|
-| **Activer la zone aveugle** | Active la fonctionnalité |
-| **Zone aveugle gauche / droite** | Plage d'azimut (°) définissant la zone aveugle |
-| **Élévation de la zone aveugle** | Élévation solaire minimale (°) pour que la zone aveugle s'applique |
+    %% ── MODE BASIQUE ──────────────────────────────
+    CLMODE -- Non --> CALC["📐 Calcul position optimale\npar géométrie solaire"]
+    CALC --> LIMITS
 
-### Options spécifiques à la jalousie (tilt)
+    %% ── MODE CLIMATIQUE ───────────────────────────
+    CLMODE -- Oui --> LIGHT{"Lux / Irradiance\nau-dessus du seuil\nOU météo ensoleillée ?"}
 
-| Option | Description |
-|--------|-------------|
-| **Profondeur de lame** | Profondeur physique d'une lame (mm) |
-| **Espacement des lames** | Espace entre les lames (mm) |
-| **Mode tilt** | `basic` — angle uniquement ; `enhanced` — ajuste aussi la position verticale |
+    LIGHT -- "Non (lumière faible)" --> WCHECK{"Temp < temp_basse\n❄️ seuil hiver ?"}
+    WCHECK -- Oui --> OPEN["🪟 Ouverture totale (100%)\napports solaires"]
+    WCHECK -- Non --> DEFAULT
 
-### Store transparent
+    LIGHT -- "Oui (lumineux)" --> PRESENCE{"Capteur\nde présence ?"}
 
-Quand cette option est activée, l'intégration tient compte de la lumière directe qui traverse un store semi-transparent et ajuste la position en conséquence.
+    %% ── SANS OCCUPANTS ────────────────────────────
+    PRESENCE -- "Aucun occupant" --> S_NO{"Temp > temp_haute\n🌡️ seuil été ?"}
+    S_NO -- Oui --> CLOSE["🪟 Fermeture totale (0%)\nbloquer la chaleur"]
+    S_NO -- Non --> W_NO{"Temp < temp_basse\n❄️ seuil hiver ?"}
+    W_NO -- Oui --> OPEN
+    W_NO -- Non --> DEFAULT
 
-### Interpolation
+    %% ── OCCUPANTS PRÉSENTS ────────────────────────
+    PRESENCE -- "Occupants présents" --> S_YES{"Temp > temp_haute\n🌡️ seuil été ?"}
+    S_YES -- Oui --> TRANSP{"Store\ntransparent ?"}
+    TRANSP -- Oui --> CLOSE
+    TRANSP -- Non --> CALC
 
-Permet de mapper la position calculée (basée sur le soleil) sur une courbe personnalisée plutôt que sur une échelle linéaire 0–100.
+    S_YES -- Non --> CALC
 
-| Option | Description |
-|--------|-------------|
-| **Activer l'interpolation** | Active la fonctionnalité |
-| **Début / fin de l'interpolation** | Plage d'angle solaire sur laquelle l'interpolation s'applique |
-| **Liste d'interpolation** | Valeurs de position séparées par des virgules pour la courbe personnalisée |
+    %% ── ÉTAPES FINALES COMMUNES ───────────────────
+    LIMITS["🔧 Application limites min / max\n+ correction zone aveugle"]
+    OPEN --> LIMITS
+    CLOSE --> LIMITS
+
+    LIMITS --> DELTA{"Changement de position\n> seuil delta ?"}
+    DELTA -- Non --> HOLD
+    DELTA -- Oui --> RESULT(["✅ Application nouvelle position\nsur le(s) volet(s)"])
+
+    %% ── STYLES ────────────────────────────────────
+    style CLOSE fill:#f28b82,color:#000
+    style OPEN  fill:#81c995,color:#000
+    style CALC  fill:#78b7f5,color:#000
+    style RESULT fill:#34a853,color:#fff
+    style HOLD  fill:#fbbc04,color:#000
+    style SUNSET fill:#aecbfa,color:#000
+    style DEFAULT fill:#e8eaed,color:#000
+```
+
+### Mode basique
+
+Ce mode utilise la position calculée quand le soleil se trouve dans la plage d'azimut définie pour la fenêtre. Sinon, il revient à la valeur par défaut ou à la valeur après coucher selon l'heure de la journée.
 
 ### Mode climatique
 
-À activer via **Paramètres → Appareils & Services → Configurer** après la création de l'entrée.
+Ce mode calcule la position en tenant compte de paramètres supplémentaires : présence, température intérieure, température de confort minimale, température de confort maximale et météo (optionnel).
+Il se décline en deux stratégies : [Avec présence](#stratégies-climatiques) et [Sans présence](#stratégies-climatiques).
 
-Quand le mode climatique est actif, l'intégration choisit l'une des trois stratégies suivantes :
+#### Stratégies climatiques
 
-| Branche | Condition | Comportement |
-|---------|-----------|--------------|
-| **Été** | Temp. extérieure (ou de référence) > `temp_haute` ET soleil dans le champ de vision | Fermeture pour bloquer la chaleur |
-| **Hiver** | Temp. intérieure < `temp_basse` | Ouverture pour profiter des apports solaires passifs |
-| **Intermédiaire** | Aucune des conditions ci-dessus | Suivi standard de la position solaire |
+- **Sans présence** :
+  L'apport de lumière naturelle n'est pas un objectif en l'absence d'occupants.
 
-| Option | Description |
-|--------|-------------|
-| **Entité de température** | Capteur de température intérieure |
-| **Entité de température extérieure** | Capteur de température extérieure (optionnel) |
-| **Entité météo** | Entité météo HA utilisée comme source de température en l'absence de capteur |
-| **Temp basse** | Seuil hiver (°C) — en dessous, ouverture pour gains solaires |
-| **Temp haute** | Seuil été (°C) — au-dessus, fermeture pour bloquer la chaleur |
-| **Utiliser la température extérieure** | Comparer la temp. extérieure à `temp_haute` |
-| **Conditions météo** | États météo considérés comme « ensoleillé » |
-| **Entité de présence** | Ignore le mode climatique si personne n'est à la maison |
+  - **En dessous de la température de confort minimale** :
+    Si le soleil est au-dessus de l'horizon et que la température intérieure est sous le seuil minimal, le volet s'ouvre complètement (ou les lames s'orientent parallèlement aux rayons du soleil pour une jalousie) afin de maximiser les apports solaires passifs.
 
-### Seuil lumineux
+  - **Au-dessus de la température de confort maximale** :
+    L'objectif est de ne pas réchauffer davantage la pièce. Tous les volets se ferment complètement pour bloquer tout rayonnement.<br><br>
+    Si la température est entre les deux seuils, la position revient à la valeur par défaut selon l'heure.
 
-| Option | Description |
-|--------|-------------|
-| **Entité lux** | Capteur d'éclairement (`sensor.*`) |
-| **Seuil lux** | En dessous de cette valeur (lx), le volet s'ouvre quelles que soient les conditions |
-| **Entité irradiance** | Capteur d'irradiance solaire (`sensor.*`) |
-| **Seuil irradiance** | En dessous de cette valeur (W/m²), le volet s'ouvre |
+- **Avec présence** (ou sans entité de présence configurée) :
+  L'objectif est de réduire l'éblouissement tout en laissant entrer la lumière naturelle. Le calcul suit le modèle basique pour les volets horizontaux et verticaux.<br><br>
+  Si une entité météo est configurée, les calculs s'appliquent uniquement si l'état météo correspond à un ensoleillement direct. Les états par défaut sont `sunny`, `windy`, `partlycloudy` et `cloudy`, modifiables dans les options météo. Sinon, la position revient à la valeur par défaut.<br><br>
+  Pour les jalousies, l'inclinaison est ajustée à 45° quand la température dépasse le seuil maximal, ce qui est [reconnu comme optimal](https://www.mdpi.com/1996-1073/13/7/1731).
 
-### Contrôle manuel
+## Paramètres
 
-| Option | Description |
-|--------|-------------|
-| **Durée du contrôle manuel** | Minutes de pause du contrôle adaptatif après un déplacement manuel |
-| **Réinitialisation du contrôle manuel** | Heure à laquelle le mode manuel est automatiquement réinitialisé |
-| **Seuil de déplacement manuel** | Delta de position (%) considéré comme un déplacement manuel |
-| **Ignorer les positions intermédiaires** | Ne considère comme manuels que les déplacements totalement ouvert/fermé |
+### Communs
 
----
+| Paramètre | Défaut | Plage | Description |
+| --------- | ------ | ----- | ----------- |
+| Entités | [] | | Entités `cover.*` contrôlées par l'intégration |
+| Azimut de la fenêtre | 180 | 0-359 | Direction de la fenêtre (trouvable via [Open Street Map Compass](https://osmcompass.com/)) |
+| Position par défaut | 60 | 0-100 | Position en l'absence d'éblouissement direct |
+| Position minimale | 100 | 0-99 | Position d'ouverture minimale du volet |
+| Position maximale | 100 | 1-100 | Position d'ouverture maximale du volet |
+| Champ de vision gauche | 90 | 1-90 | Angle de vision non obstrué à gauche de la normale de la fenêtre (°) |
+| Champ de vision droite | 90 | 1-90 | Angle de vision non obstrué à droite de la normale de la fenêtre (°) |
+| Élévation minimale | Aucune | 0-90 | Élévation solaire minimale prise en compte (°) |
+| Élévation maximale | Aucune | 1-90 | Élévation solaire maximale prise en compte (°) |
+| Position après coucher | 0 | 0-100 | Position du volet du coucher au lever du soleil |
+| Décalage coucher | 0 | | Minutes avant/après le coucher du soleil |
+| Décalage lever | 0 | | Minutes avant/après le lever du soleil |
+| État inversé | Faux | | Calcule l'état inversé pour les volets fermés à 100% |
 
-## Entités créées
+### Vertical
 
-Chaque entrée de configuration crée un appareil contenant les entités suivantes :
+| Paramètre | Défaut | Plage | Description |
+| --------- | ------ | ----- | ----------- |
+| Hauteur de fenêtre | 2,1 | 0,1-6 | Longueur du volet entièrement déployé |
+| Zone d'éblouissement | 0,5 | 0,1-2 | Distance (m) depuis le bas du volet où la lumière directe pénètre encore |
 
-### Capteurs
+### Horizontal
 
-| Entité | Description |
-|--------|-------------|
-| `sensor.cover_position_<nom>` | Position cible calculée (%) |
-| `sensor.start_sun_<nom>` | Horodatage d'entrée du soleil dans le champ de vision |
-| `sensor.end_sun_<nom>` | Horodatage de sortie du soleil du champ de vision |
-| `sensor.control_method_<nom>` | Branche de contrôle active (`sun` / `climate` / `manual`) |
-| `sensor.climate_debug_<nom>` *(diagnostic)* | Instantané complet de tous les paramètres de la décision climatique |
+| Paramètre | Défaut | Plage | Description |
+| --------- | ------ | ----- | ----------- |
+| Hauteur de banne | 2 | 0,1-6 | Hauteur entre la zone de travail et le point de fixation de la banne |
+| Longueur de banne | 2,1 | 0,3-6 | Longueur de la banne entièrement déployée |
+| Angle de banne | 0 | 0-45 | Angle de la banne par rapport au mur |
+| Zone d'éblouissement | 0,5 | 0,1-2 | Distance où la lumière directe atteint encore la zone |
 
-### Interrupteurs
+### Jalousie (tilt)
+
+| Paramètre | Défaut | Plage | Description |
+| --------- | ------ | ----- | ----------- |
+| Profondeur de lame | 3 | 0,1-15 | Largeur de chaque lame |
+| Espacement des lames | 2 | 0,1-15 | Distance verticale entre deux lames en position horizontale |
+| Mode tilt | Bidirectionnel | | `basic` : angle uniquement ; `enhanced` : angle + position verticale |
+
+### Automatisation
+
+| Paramètre | Défaut | Plage | Description |
+| --------- | ------ | ----- | ----------- |
+| Delta de position minimum | 1 | 1-90 | Changement de position minimal avant qu'un nouveau changement puisse intervenir |
+| Delta de temps minimum | 2 | | Intervalle minimal entre deux changements de position (minutes) |
+| Heure de début | `"00:00:00"` | | Heure la plus tôt pour un ajustement |
+| Entité heure de début | Aucune | | Remplace `heure de début` si défini |
+| Durée du contrôle manuel | `15 min` | | Durée minimale de maintien du mode manuel |
+| Réinitialisation du timer manuel | Faux | | Remet le timer à zéro à chaque changement en mode manuel |
+| Seuil de contrôle manuel | Aucun | 1-99 | Changement de position minimal reconnu comme manuel |
+| Ignorer les états intermédiaires | Faux | | Ignorer les événements avec état `opening` ou `closing` |
+| Heure de fin | `"00:00:00"` | | Heure la plus tardive pour un ajustement |
+| Entité heure de fin | Aucune | | Remplace `heure de fin` si défini |
+| Ajuster à l'heure de fin | `Faux` | | Forcer le retour à la position par défaut à l'heure de fin |
+
+### Climatique
+
+| Paramètre | Défaut | Plage | Exemple | Description |
+| --------- | ------ | ----- | ------- | ----------- |
+| Entité température intérieure | `Aucune` | | `climate.salon` \| `sensor.temp_interieur` | |
+| Température de confort minimale | 21 | 0-86 | | Seuil hiver — en dessous, ouverture pour apports solaires |
+| Température de confort maximale | 25 | 0-86 | | Seuil été — au-dessus, fermeture pour bloquer la chaleur |
+| Entité température extérieure | `Aucune` | | `sensor.temp_exterieur` | |
+| Seuil température extérieure | `Aucun` | | | Si la température extérieure est sous ce seuil, le mode été ne s'active pas |
+| Entité de présence | `Aucune` | | | |
+| Entité météo | `Aucune` | | `weather.maison` | Peut aussi servir de source de température extérieure |
+| Entité lux | `Aucune` | | `sensor.lux` | Mesure d'éclairement en lux |
+| Seuil lux | `1000` | | | En mode non-été : au-dessus du seuil, utilise la position optimale ; sinon, position par défaut ou ouverture totale en hiver |
+| Entité irradiance | `Aucune` | | `sensor.irradiance` | Mesure d'irradiance solaire |
+| Seuil irradiance | `300` | | | En mode non-été : au-dessus du seuil, utilise la position optimale ; sinon, position par défaut ou ouverture totale en hiver |
+
+### Zone aveugle
+
+| Paramètre | Défaut | Plage | Description |
+| --------- | ------ | ----- | ----------- |
+| Zone aveugle gauche | Aucune | 0-max(fov_droite, 180) | Point de départ de la zone aveugle dans le champ de vision (0 = azimut fenêtre − fov gauche) |
+| Zone aveugle droite | Aucune | 1-max(fov_droite, 180) | Point de fin de la zone aveugle |
+| Élévation zone aveugle | Aucune | 0-90 | Élévation solaire minimale pour que la zone aveugle s'applique |
+
+## Entités
+
+L'intégration crée dynamiquement plusieurs entités selon les fonctionnalités activées.
+
+Ces entités sont toujours disponibles :
 
 | Entité | Défaut | Description |
-|--------|--------|-------------|
-| `switch.toggle_control_<nom>` | ON | Activer / désactiver le positionnement adaptatif |
-| `switch.manual_override_<nom>` | ON | Mettre en pause le contrôle adaptatif (activé automatiquement lors d'un déplacement manuel) |
-| `switch.climate_mode_<nom>` | ON | Basculer le mode climatique (visible uniquement si configuré) |
-| `switch.outside_temperature_<nom>` | OFF | Utiliser la temp. extérieure pour la détection été |
-| `switch.lux_<nom>` | ON | Activer le seuil lux |
-| `switch.irradiance_<nom>` | ON | Activer le seuil d'irradiance |
+| ------ | ------ | ----------- |
+| `sensor.{type}_cover_position_{nom}` | | Position cible calculée (%) en fonction de la position solaire, de la météo et de la température |
+| `sensor.{type}_control_method_{nom}` | `intermediate` | Stratégie de contrôle active : `winter`, `summer`, `intermediate` |
+| `sensor.{type}_start_sun_{nom}` | | Heure d'entrée du soleil dans le champ de vision (mise à jour toutes les 5 min) |
+| `sensor.{type}_end_sun_{nom}` | | Heure de sortie du soleil du champ de vision (mise à jour toutes les 5 min) |
+| `binary_sensor.{type}_manual_override_{nom}` | `off` | Indique si un contrôle manuel est actif sur l'un des volets |
+| `binary_sensor.{type}_sun_infront_{nom}` | `off` | Indique si le soleil est face à la fenêtre dans le champ de vision défini |
+| `switch.{type}_toggle_control_{nom}` | `on` | Active le contrôle adaptatif. Quand activé, les volets s'ajustent automatiquement sauf en cas de contrôle manuel |
+| `switch.{type}_manual_override_{nom}` | `on` | Active la détection des contrôles manuels. Un volet est marqué si sa position diffère du calcul, avec retour automatique après la durée configurée |
+| `button.{type}_reset_manual_override_{nom}` | | Réinitialise les marqueurs manuels pour tous les volets ; si `toggle_control` est actif, remet aussi les volets à la position calculée |
 
-### Capteur binaire
+Quand le mode climatique est configuré, ces entités supplémentaires sont créées :
+
+| Entité | Défaut | Description |
+| ------ | ------ | ----------- |
+| `switch.{type}_climate_mode_{nom}` | `on` | Active la stratégie climatique ; sinon, revient à la stratégie standard |
+| `switch.{type}_outside_temperature_{nom}` | `off` | Utilise la température extérieure au lieu de l'intérieure pour la détection du mode été |
+| `switch.{type}_lux_{nom}` | `on` | Active le seuil lux (visible uniquement si une entité lux est configurée) |
+| `switch.{type}_irradiance_{nom}` | `on` | Active le seuil d'irradiance (visible uniquement si une entité irradiance est configurée) |
+| `sensor.{type}_climate_debug_{nom}` | | Capteur de diagnostic exposant toutes les valeurs intermédiaires de l'arbre de décision climatique (branche active, toutes les températures, seuils, indicateurs lux/irradiance) |
+
+L'intégration crée également une **entité volet global** par entrée de configuration :
 
 | Entité | Description |
-|--------|-------------|
-| `binary_sensor.manual_control_<nom>` | `ON` si au moins un volet du groupe est en contrôle manuel |
+| ------ | ----------- |
+| `cover.{nom}` | Entité agrégée contrôlant tous les volets du groupe. Open/close/set_position agit sur tous les volets et les marque comme manuels. `turn_on` réactive le contrôle adaptatif ; `turn_off` le désactive |
 
-### Bouton
+![entités](https://github.com/basbruss/adaptive-cover/blob/main/images/entities.png)
 
-| Entité | Description |
-|--------|-------------|
-| `button.reset_manual_control_<nom>` | Réinitialise immédiatement le contrôle manuel pour tous les volets |
+## Fonctionnalités planifiées
 
-### Volet global
+- Contrôles de dérogation manuelle
 
-| Entité | Description |
-|--------|-------------|
-| `cover.<nom>` | Volet agrégé — open/close/set_position agit sur **tous** les volets du groupe ; `turn_on` / `turn_off` active ou désactive le contrôle adaptatif |
+  - ~~Durée avant retour au contrôle adaptatif~~
+  - ~~Bouton de réinitialisation~~
+  - Attendre le prochain changement manuel / non adaptatif
 
----
+- ~~Algorithme de contrôle du rayonnement et/ou de l'éclairement~~
 
-## Capteur de diagnostic climatique
+### Simulation
 
-Le capteur `sensor.climate_debug_<nom>` (visible dans la section *Diagnostic* de l'appareil) expose toutes les valeurs intermédiaires utilisées dans l'arbre de décision climatique.
-
-| Attribut | Type | Description |
-|----------|------|-------------|
-| `is_winter` | bool | Temp. intérieure < `temp_basse` |
-| `is_summer` | bool | Temp. de référence > `temp_haute` ET soleil dans le champ de vision |
-| `is_presence` | bool | Capteur de présence actif |
-| `sun_in_window` | bool | Azimut du soleil dans le champ de vision |
-| `temp_inside` | float | Valeur brute du capteur intérieur |
-| `temp_outside` | float | Valeur brute du capteur extérieur |
-| `temp_used_winter` | float | Valeur comparée à `temp_basse` |
-| `temp_used_summer` | float | Valeur comparée à `temp_haute` |
-| `temp_low` | float | Seuil hiver configuré |
-| `temp_high` | float | Seuil été configuré |
-| `temp_switch` | bool | Temp. extérieure utilisée pour la détection été |
-| `is_sunny` | bool | Météo correspond aux états « ensoleillé » configurés |
-| `lux_below_threshold` | bool | Capteur lux sous le seuil |
-| `irradiance_below_threshold` | bool | Capteur irradiance sous le seuil |
-| `active_branch` | str | `summer` / `winter` / `intermediate` |
-
----
-
-## Entité volet global
-
-Le volet global agrège tous les volets physiques d'une entrée de configuration en une seule entité contrôlable :
-
-- **Ouvrir / Fermer / Définir position** — déplace tous les volets et les marque comme *manuels* pour que le contrôle adaptatif ne les écrase pas immédiatement.
-- **`cover.turn_on`** — réactive le contrôle adaptatif et efface tous les indicateurs manuels.
-- **`cover.turn_off`** — désactive le contrôle adaptatif.
-- **État** — rapporte la position moyenne ; `fermé` si tous les volets sont à 0 %.
-
----
-
-## Exemples d'automatisation
-
-### Réactiver le contrôle adaptatif chaque matin
-
-```yaml
-automation:
-  - alias: "Réinitialiser les volets au lever du soleil"
-    trigger:
-      - platform: sun
-        event: sunrise
-    action:
-      - service: cover.turn_on
-        target:
-          entity_id: cover.salon
-```
-
-### Bouton de tableau de bord
-
-```yaml
-type: button
-name: Volets — mode adaptatif
-tap_action:
-  action: toggle
-entity: switch.toggle_control_salon
-```
-
----
-
-## Dépannage
-
-| Symptôme | Cause probable | Solution |
-|----------|---------------|----------|
-| Le volet ne bouge pas | `switch.toggle_control` est OFF | Activer l'interrupteur |
-| Volet bloqué en mode manuel | Contrôle manuel actif | Appuyer sur le bouton de réinitialisation ou attendre la durée configurée |
-| Les interrupteurs passent à OFF après redémarrage | Bug résolu en v1.7.1 | Mettre à jour vers la dernière version |
-| Attributs de température indisponibles | Helper `state_attr` supprimé dans les versions récentes de HA | Résolu en v1.7.1 |
-| Branche climatique toujours « intermediate » | Pas d'entité de température configurée | Ajouter un capteur de température dans les options |
-
----
-
-## Liens
-
-- [Journal des modifications](CHANGELOG.md)
-- [Signaler un bug](https://github.com/basbruss/adaptive-cover/issues)
-- [Communauté Home Assistant](https://community.home-assistant.io)
+![simulation](custom_components/adaptive_cover/simulation/sim_plot.png)
