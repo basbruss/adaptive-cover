@@ -3,6 +3,7 @@
 🇬🇧 [English documentation](README.md)
 
 ![Version](https://img.shields.io/github/v/release/kamahat/adaptive-cover?style=for-the-badge)
+![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.05%2B-41BDF5?style=for-the-badge&logo=homeassistant&logoColor=white)
 
 ![logo](https://github.com/basbruss/adaptive-cover/blob/main/images/logo.png#gh-light-mode-only)
 ![logo](https://github.com/basbruss/adaptive-cover/blob/main/images/dark_logo.png#gh-dark-mode-only)
