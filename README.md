@@ -1,3 +1,5 @@
+🇫🇷 [Documentation en français](README.fr.md)
+
 ![Version](https://img.shields.io/github/v/release/kamahat/adaptive-cover?style=for-the-badge)
 
 ![logo](https://github.com/basbruss/adaptive-cover/blob/main/images/logo.png#gh-light-mode-only)
