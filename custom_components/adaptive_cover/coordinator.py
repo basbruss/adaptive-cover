@@ -101,14 +101,6 @@ from .const import (
 from .helpers import get_datetime_from_str, get_last_updated, get_safe_state
 
 
-def _state_attr(hass: HomeAssistant, entity_id: str, attribute: str):
-    """Return an attribute value from a state, or None if unavailable."""
-    state = hass.states.get(entity_id)
-    if state is None:
-        return None
-    return state.attributes.get(attribute)
-
-
 @dataclass
 class StateChangedData:
     """StateChangedData class."""
@@ -590,10 +582,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         return True
 
     def _get_current_position(self, entity) -> int | None:
-        """Get current position of cover."""
-        if self._cover_type == "cover_tilt":
-            return _state_attr(self.hass, entity, "current_tilt_position")
-        return _state_attr(self.hass, entity, "current_position")
+        """Get current position of cover (single state lookup)."""
+        state = self.hass.states.get(entity)
+        if state is None:
+            return None
+        attr = "current_tilt_position" if self._cover_type == "cover_tilt" else "current_position"
+        return state.attributes.get(attr)
 
     def check_position(self, entity, state):
         """Check if position is different as state."""
@@ -645,11 +639,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     @property
     def pos_sun(self):
-        """Fetch information for sun position."""
-        return [
-            _state_attr(self.hass, "sun.sun", "azimuth"),
-            _state_attr(self.hass, "sun.sun", "elevation"),
-        ]
+        """Fetch sun azimuth + elevation in a single state lookup."""
+        state = self.hass.states.get("sun.sun")
+        if state is None:
+            return [None, None]
+        attrs = state.attributes
+        return [attrs.get("azimuth"), attrs.get("elevation")]
 
     def common_data(self, options):
         """Update shared parameters."""

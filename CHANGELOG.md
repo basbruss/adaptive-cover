@@ -4,6 +4,31 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.8.0] — 2026-05-15
+
+### Breaking change
+
+- **Singleton « Tous les volets » entity** (`cover.py`) — previously each config entry exposed its own `cover.tous_les_volets_<name>` aggregate, producing as many redundant entities as there were entries (even when an entry only had one cover). The integration now exposes a **single** integration-level entity `cover.adaptive_cover_tous_les_volets` that aggregates every cover across every Adaptive Cover entry.
+
+  *Migration:* old per-entry aggregates (e.g. `cover.avr_chambre_adultes_tous_les_volets_avr_adulte`, `cover.avr_aline_tous_les_volets_avr_aline`) will be removed automatically by HA. Any automations referencing them must be updated to use the new singleton.
+
+### Performance
+
+- **`pos_sun`** (`coordinator.py`) — sun azimuth and elevation now share a single `hass.states.get("sun.sun")` lookup instead of two.
+- **`_get_current_position`** (`coordinator.py`) — cover position read in one state lookup (was two indirect lookups via `_state_attr`).
+- **`AdaptiveCoverAll._collect_positions`** (`cover.py`) — a single pass over `hass.states` for both `is_closed` and `current_cover_position` (previously two full passes per attribute access).
+
+### Refactor
+
+- **`state_attr` centralised** in `helpers.py` — removes the duplicated `_state_attr()` definitions previously living in `coordinator.py` and `calculation.py`. Single source of truth, easier to test.
+- **`async_unload_entry`** (`__init__.py`) — when the last config entry is unloaded, the internal global-cover flag is now cleared, so re-adding an entry properly re-registers the singleton.
+
+### Robustness
+
+- **`_collect_positions`** (`cover.py`) — wraps `int(pos)` in `try/except` to defensively skip covers reporting non-numeric `current_position` (e.g. transient `unknown` strings).
+
+---
+
 ## [1.7.2] — 2026-05-15
 
 ### Bug fixes

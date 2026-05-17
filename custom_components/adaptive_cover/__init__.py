@@ -97,9 +97,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
+    """Unload a config entry.
+
+    When the last config entry is removed, also clear the internal flag that
+    tracks the singleton global cover registration, so that adding a new entry
+    later will register a fresh global cover.
+    """
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        hass.data[DOMAIN].pop(entry.entry_id)
+        hass.data[DOMAIN].pop(entry.entry_id, None)
+        # If only internal bookkeeping keys remain (those starting with "_"),
+        # reset the global flag so the singleton can be re-registered later.
+        remaining = [k for k in hass.data.get(DOMAIN, {}) if not str(k).startswith("_")]
+        if not remaining:
+            hass.data[DOMAIN].pop("_global_cover_added", None)
 
     return unload_ok
 

@@ -16,6 +16,19 @@ def get_safe_state(hass: HomeAssistant, entity_id: str) -> str | None:
     return state.state
 
 
+def state_attr(hass: HomeAssistant, entity_id: str, attribute: str):
+    """Return an attribute of a state, or None if state/attribute is missing.
+
+    Replacement for the deprecated ``homeassistant.helpers.template.state_attr``
+    (removed in HA core). Reads directly from ``hass.states`` — single lookup,
+    no template engine.
+    """
+    state = hass.states.get(entity_id)
+    if state is None:
+        return None
+    return state.attributes.get(attribute)
+
+
 def get_domain(entity: str) -> str | None:
     """Return the domain part of an entity_id."""
     if entity is not None:

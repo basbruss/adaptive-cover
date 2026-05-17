@@ -12,17 +12,9 @@ from homeassistant.core import HomeAssistant
 from numpy import cos, sin, tan
 from numpy import radians as rad
 
-from .helpers import get_domain, get_safe_state
+from .helpers import get_domain, get_safe_state, state_attr
 from .sun import SunData
 from .config_context_adapter import ConfigContextAdapter
-
-
-def _state_attr(hass: HomeAssistant, entity_id: str, attribute: str):
-    """Return an attribute value from a state, or None if unavailable."""
-    state = hass.states.get(entity_id)
-    if state is None:
-        return None
-    return state.attributes.get(attribute)
 
 
 @dataclass
@@ -270,7 +262,7 @@ class ClimateCoverData:  # pylint: disable=too-many-instance-attributes
                 self.outside_entity,
             )
         elif self.weather_entity:
-            temp = _state_attr(self.hass, self.weather_entity, "temperature")
+            temp = state_attr(self.hass, self.weather_entity, "temperature")
         return temp
 
     @property
@@ -283,7 +275,7 @@ class ClimateCoverData:  # pylint: disable=too-many-instance-attributes
                     self.temp_entity,
                 )
             else:
-                temp = _state_attr(self.hass, self.temp_entity, "current_temperature")
+                temp = state_attr(self.hass, self.temp_entity, "current_temperature")
             return temp
 
     @property
