@@ -82,6 +82,13 @@ STRATEGY_MODES = [
 ]
 
 
+# Marker stored in ``ConfigEntry.data`` for the singleton "All Blinds" hub
+# entry. Hub entries have no per-cover configuration; they expose only the
+# aggregate ``cover.*`` entity that controls every other Adaptive Cover entry.
+CONF_IS_HUB = "is_hub"
+ALL_BLINDS_TITLE = "All Blinds"
+
+
 class SensorType:
     """Possible modes for a number selector."""
 

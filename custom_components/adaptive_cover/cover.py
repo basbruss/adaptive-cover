@@ -1,12 +1,19 @@
-"""Singleton global cover aggregating every Adaptive Cover config entry.
+"""Aggregate cover entity for the singleton 'All Blinds' hub config entry.
 
-A single ``cover.adaptive_cover_all`` entity is registered for the integration
-as a whole (not per config entry). It controls every cover declared across
-all Adaptive Cover entries in one place.
+The Adaptive Cover integration uses TWO kinds of config entries:
 
-The previous behaviour created one ``Tous les volets – <name>`` entity per
-config entry, which produced redundant aggregates (one per single-cover
-entry). This module replaces that with a true integration-level singleton.
+  * **Regular entries** — one per cover group (Vertical / Horizontal / Tilt).
+    These expose all the usual sensors, switches, buttons and per-entry
+    diagnostics. The ``cover`` platform is a no-op for these entries.
+
+  * **Hub entry** — a single singleton entry (marked ``entry.data['is_hub']``)
+    that exposes ONE aggregate ``cover.*`` entity. This entity controls every
+    cover declared in every regular entry: open / close / set position, plus
+    ``turn_on`` / ``turn_off`` to globally enable or disable adaptive control.
+
+The hub entry is created from the integration's config flow via the
+"All Blinds" menu option and behaves like any other config entry — it can be
+removed, renamed, or recreated independently.
 """
 
 from __future__ import annotations
@@ -24,13 +31,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, LOGGER
-
-# Internal flag stored in ``hass.data[DOMAIN]`` to ensure the singleton entity
-# is registered exactly once across all config entries.
-_GLOBAL_FLAG = "_global_cover_added"
-_GLOBAL_UNIQUE_ID = f"{DOMAIN}_all_covers"
-_GLOBAL_DEVICE_ID = "all_covers"
+from .const import CONF_IS_HUB, DOMAIN, LOGGER
 
 
 async def async_setup_entry(
@@ -38,32 +39,36 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Register the singleton global cover on the first entry setup.
+    """Register the aggregate cover entity, but only for the hub entry.
 
-    Subsequent ``async_setup_entry`` calls (for other config entries) skip
-    registration. The singleton iterates ``hass.data[DOMAIN]`` at runtime to
-    discover all coordinators currently loaded.
+    Regular per-cover entries don't register anything on the ``cover``
+    platform — they only expose sensors / switches / etc.
     """
-    data = hass.data.setdefault(DOMAIN, {})
-    if data.get(_GLOBAL_FLAG):
-        return  # already registered by an earlier entry
-    data[_GLOBAL_FLAG] = True
-    async_add_entities([AdaptiveCoverAll(hass)], update_before_add=True)
+    if not config_entry.data.get(CONF_IS_HUB):
+        return
+    async_add_entities([AdaptiveCoverAll(hass, config_entry)], update_before_add=True)
 
 
 def _iter_coordinators(hass: HomeAssistant):
     """Yield every Adaptive Cover coordinator currently loaded.
 
-    Skips internal bookkeeping keys (anything starting with ``_``).
+    Skips:
+      - internal bookkeeping keys (anything starting with ``_``)
+      - hub entries (no coordinator stored, but defensive in case the layout
+        ever changes)
     """
     for key, value in hass.data.get(DOMAIN, {}).items():
         if isinstance(key, str) and key.startswith("_"):
+            continue
+        # value is the coordinator for regular entries; hub entries never
+        # store anything under their entry_id (see __init__.async_setup_entry).
+        if value is None:
             continue
         yield value
 
 
 class AdaptiveCoverAll(CoverEntity):
-    """Aggregate cover entity controlling every Adaptive Cover config entry.
+    """Aggregate cover entity controlling every Adaptive Cover regular entry.
 
     Behaviour:
       - ``open_cover`` / ``close_cover`` / ``set_cover_position``
@@ -84,20 +89,21 @@ class AdaptiveCoverAll(CoverEntity):
         | CoverEntityFeature.STOP
         | CoverEntityFeature.SET_POSITION
     )
-    _attr_unique_id = _GLOBAL_UNIQUE_ID
     _attr_name = "Tous les volets"
-    _attr_device_info = DeviceInfo(
-        identifiers={(DOMAIN, _GLOBAL_DEVICE_ID)},
-        name="Adaptive Cover",
-        manufacturer="Adaptive Cover",
-    )
 
-    def __init__(self, hass: HomeAssistant) -> None:
-        """Store hass reference; no per-entry state."""
+    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+        """Tie this entity to the hub config entry's own device."""
         self.hass = hass
+        self._config_entry = config_entry
+        self._attr_unique_id = f"{config_entry.entry_id}_all_blinds"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, config_entry.entry_id)},
+            name="All Blinds",
+            manufacturer="Adaptive Cover",
+        )
 
     # ------------------------------------------------------------------
-    # Internal helpers (single pass over hass.states)
+    # Internal helpers — single pass over hass.states, no recomputation.
     # ------------------------------------------------------------------
 
     def _all_cover_ids(self) -> list[str]:
@@ -114,18 +120,19 @@ class AdaptiveCoverAll(CoverEntity):
 
     def _collect_positions(self) -> list[int]:
         """One ``hass.states.get`` per cover; skip missing / non-int values."""
-        states = self.hass.states  # local alias removes attr lookups in loop
+        states = self.hass.states  # local alias avoids repeated attr lookups
         positions: list[int] = []
         for entity_id in self._all_cover_ids():
             state = states.get(entity_id)
             if state is None:
                 continue
             pos = state.attributes.get("current_position")
-            if pos is not None:
-                try:
-                    positions.append(int(pos))
-                except (TypeError, ValueError):
-                    continue
+            if pos is None:
+                continue
+            try:
+                positions.append(int(pos))
+            except (TypeError, ValueError):
+                continue
         return positions
 
     # ------------------------------------------------------------------
@@ -150,7 +157,7 @@ class AdaptiveCoverAll(CoverEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Expose adaptive-control state aggregated from every entry."""
+        """Expose aggregated adaptive-control state."""
         coords = list(_iter_coordinators(self.hass))
         if not coords:
             return {

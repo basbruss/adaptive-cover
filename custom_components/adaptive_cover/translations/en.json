@@ -3,6 +3,12 @@
   "config": {
     "step": {
       "user": {
+        "menu_options": {
+          "cover_entry": "Add a cover group (Vertical / Horizontal / Tilt)",
+          "all_blinds": "Add 'All Blinds' aggregator (one per integration)"
+        }
+      },
+      "cover_entry": {
         "data": {
           "name": "Name",
           "blueprint": "Add blueprint to HomeAssistant",
@@ -228,6 +234,10 @@
         "title": "Range Adjustment",
         "description": "Adjust the values at which your Cover effectively opens or closes. Ideal for Covers that don't fully open at 0% or close at 100%. \n The first two sliders are for a 2 point adjustment, the list options are for a multiple point adjustment"
       }
+    },
+    "abort": {
+      "single_instance_allowed": "Only one 'All Blinds' aggregator can be configured.",
+      "hub_no_options": "The 'All Blinds' aggregator has no per-cover options."
     }
   },
   "options": {
@@ -461,6 +471,9 @@
         "title": "Range Adjustment",
         "description": "Adjust the values at which your Cover effectively opens or closes. Ideal for Covers that don't fully open at 0% or close at 100%. \n The first two sliders are for a 2 point adjustment, the list options are for a multiple point adjustment"
       }
+    },
+    "abort": {
+      "hub_no_options": "The 'All Blinds' aggregator has no per-cover options."
     }
   },
   "selector": {

@@ -4,6 +4,30 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.8.1] — 2026-05-15
+
+### Breaking change — "All Blinds" is now a dedicated config entry
+
+Following user feedback after v1.8.0: the singleton aggregate cover was implicitly attached to whichever config entry happened to be loaded first, which made the integration layout asymmetric (the "Adaptive Cover" device appeared under one or two random per-cover entries).
+
+The aggregate is now exposed via its own **dedicated config entry** "All Blinds", visible at the same level as the per-cover entries.
+
+- **`config_flow.py`** — the initial step is now a menu offering:
+  - *Add a cover group* (Vertical / Horizontal / Tilt) — original behaviour
+  - *Add 'All Blinds' aggregator* — creates the hub entry (one per integration)
+- **`__init__.py`** — hub entries skip coordinator creation and only set up the `cover` platform. Regular entries unchanged.
+- **`cover.py`** — the aggregate `cover.tous_les_volets` is registered only when the hub entry is set up. Regular entries no longer create any cover entity.
+- **Options flow** — opening the hub entry's options shows an abort dialog ("no per-cover options").
+- **Re-entry guard** — only one hub entry is allowed per integration; a second attempt aborts cleanly with `single_instance_allowed`.
+
+*Migration:* old per-entry aggregates (`cover.<name>_tous_les_volets_...`) are removed when v1.8.0 was used. After upgrading to v1.8.1, click "Add entry → Add 'All Blinds' aggregator" to recreate the singleton with a clean device layout.
+
+### Translations
+
+- **EN / FR** — added `user.menu_options`, `cover_entry`, and `abort.*` strings for both new flows.
+
+---
+
 ## [1.8.0] — 2026-05-15
 
 ### Breaking change

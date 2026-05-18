@@ -75,6 +75,8 @@ from .const import (
     CONF_MIN_POSITION,
     CONF_ENABLE_MAX_POSITION,
     CONF_ENABLE_MIN_POSITION,
+    CONF_IS_HUB,
+    ALL_BLINDS_TITLE,
 )
 
 # DEFAULT_NAME = "Adaptive Cover"
@@ -387,8 +389,14 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         return OptionsFlowHandler()
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None):
-        """Handle the initial step."""
-        # errors = {}
+        """Initial step — menu to pick between a cover entry or the All-Blinds hub."""
+        return self.async_show_menu(
+            step_id="user",
+            menu_options=["cover_entry", "all_blinds"],
+        )
+
+    async def async_step_cover_entry(self, user_input: dict[str, Any] | None = None):
+        """Collect name + cover type for a regular Adaptive Cover entry."""
         if user_input:
             self.config = user_input
             if self.config[CONF_MODE] == SensorType.BLIND:
@@ -397,7 +405,23 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 return await self.async_step_horizontal()
             if self.config[CONF_MODE] == SensorType.TILT:
                 return await self.async_step_tilt()
-        return self.async_show_form(step_id="user", data_schema=CONFIG_SCHEMA)
+        return self.async_show_form(step_id="cover_entry", data_schema=CONFIG_SCHEMA)
+
+    async def async_step_all_blinds(self, user_input: dict[str, Any] | None = None):
+        """Create the singleton 'All Blinds' hub entry (no per-cover options).
+
+        Refuses creation if a hub entry already exists. The hub aggregates
+        every other Adaptive Cover entry into one ``cover.*`` entity.
+        """
+        # Only one hub allowed
+        for existing in self._async_current_entries():
+            if existing.data.get(CONF_IS_HUB):
+                return self.async_abort(reason="single_instance_allowed")
+        return self.async_create_entry(
+            title=ALL_BLINDS_TITLE,
+            data={"name": ALL_BLINDS_TITLE, CONF_IS_HUB: True},
+            options={},
+        )
 
     async def async_step_vertical(self, user_input: dict[str, Any] | None = None):
         """Show basic config for vertical blinds."""
@@ -659,6 +683,10 @@ class OptionsFlowHandler(OptionsFlow):
                 self.current_config.get(CONF_SENSOR_TYPE) or SensorType.BLIND
             )
             self._options_initialized = True
+
+        # Hub entries (All Blinds aggregator) have no per-cover options.
+        if self.current_config.get(CONF_IS_HUB):
+            return self.async_abort(reason="hub_no_options")
 
         options = ["automation", "blind"]
         if self.options[CONF_CLIMATE_MODE]:

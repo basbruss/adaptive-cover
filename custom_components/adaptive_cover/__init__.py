@@ -13,6 +13,7 @@ from .const import (
     CONF_END_ENTITY,
     CONF_ENTITIES,
     CONF_IRRADIANCE_ENTITY,
+    CONF_IS_HUB,
     CONF_LUX_ENTITY,
     CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
@@ -23,6 +24,7 @@ from .const import (
 )
 from .coordinator import AdaptiveDataUpdateCoordinator
 
+# Full platform list — used by regular per-cover config entries.
 PLATFORMS = [
     Platform.SENSOR,
     Platform.SWITCH,
@@ -30,6 +32,11 @@ PLATFORMS = [
     Platform.BUTTON,
     Platform.COVER,
 ]
+
+# Platforms used by the singleton "All Blinds" hub entry: only the aggregate
+# cover entity. No sensors / switches / button etc. for the hub.
+HUB_PLATFORMS = [Platform.COVER]
+
 CONF_SUN = ["sun.sun"]
 
 
@@ -43,9 +50,21 @@ async def async_initialize_integration(
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Adaptive Cover from a config entry."""
+    """Set up Adaptive Cover from a config entry.
+
+    Hub entries (the singleton "All Blinds" aggregator, identified by
+    ``entry.data["is_hub"] is True``) skip coordinator creation and only
+    forward to the ``cover`` platform. Regular entries follow the full
+    setup path.
+    """
 
     hass.data.setdefault(DOMAIN, {})
+
+    # Hub entry — no coordinator, no listeners, only the singleton cover entity.
+    if entry.data.get(CONF_IS_HUB):
+        await hass.config_entries.async_forward_entry_setups(entry, HUB_PLATFORMS)
+        entry.async_on_unload(entry.add_update_listener(_async_update_listener))
+        return True
 
     coordinator = AdaptiveDataUpdateCoordinator(hass)
     _temp_entity = entry.options.get(CONF_TEMP_ENTITY)
@@ -97,20 +116,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry.
-
-    When the last config entry is removed, also clear the internal flag that
-    tracks the singleton global cover registration, so that adding a new entry
-    later will register a fresh global cover.
-    """
-    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+    """Unload a config entry — handles both regular and hub entries."""
+    platforms = HUB_PLATFORMS if entry.data.get(CONF_IS_HUB) else PLATFORMS
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, platforms)
+    if unload_ok:
+        # Regular entries store their coordinator under ``entry.entry_id``;
+        # hub entries don't (no coordinator). ``pop(..., None)`` covers both.
         hass.data[DOMAIN].pop(entry.entry_id, None)
-        # If only internal bookkeeping keys remain (those starting with "_"),
-        # reset the global flag so the singleton can be re-registered later.
-        remaining = [k for k in hass.data.get(DOMAIN, {}) if not str(k).startswith("_")]
-        if not remaining:
-            hass.data[DOMAIN].pop("_global_cover_added", None)
-
     return unload_ok
 
 
