@@ -23,8 +23,10 @@ from .const import (
     CONF_SENSOR_TYPE,
     CONF_WEATHER_ENTITY,
     DOMAIN,
+    LOGGER,
 )
 from .coordinator import AdaptiveDataUpdateCoordinator
+from .helpers import iter_regular_coordinators
 
 
 async def async_setup_entry(
@@ -32,12 +34,14 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Register switches for regular (per-cover) entries only.
+    """Register switches.
 
-    Hub entries (``data['is_hub'] == True``) no longer expose any switch —
-    the hub control is handled by the select platform (``select.py``).
+    Hub entries expose a single ``AdaptiveControlAllSwitch`` named "Les volets"
+    (FR) / "Blinds" (EN) that Alexa understands with "active" / "désactive".
+    Regular entries expose the usual per-entry switches.
     """
     if config_entry.data.get(CONF_IS_HUB):
+        async_add_entities([AdaptiveControlAllSwitch(hass, config_entry)])
         return
 
     coordinator: AdaptiveDataUpdateCoordinator = hass.data[DOMAIN][
@@ -211,4 +215,67 @@ class AdaptiveCoverSwitch(
             await self.async_turn_on(added=True)
         else:
             await self.async_turn_off(added=True)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# All-Blinds hub switch — Alexa "active / désactive les volets"
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class AdaptiveControlAllSwitch(SwitchEntity):
+    """ON/OFF switch on the "All Blinds" hub device.
+
+    Designed for Alexa voice control:
+      - "Alexa, active les volets"   → turn ON  → adaptive positioning enabled,
+                                                    manual overrides cleared.
+      - "Alexa, désactive les volets" → turn OFF → adaptive positioning disabled,
+                                                    covers stay in place.
+
+    ``is_on`` reflects an *AND* across every regular entry's ``control_toggle``:
+    reads as ON only when adaptive control is active on all entries.
+    """
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "hub_control"
+    _attr_should_poll = True  # cheap: reads booleans on coordinators
+    _attr_icon = "mdi:auto-mode"
+
+    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+        """Bind to the hub config entry's device."""
+        self.hass = hass
+        self._config_entry = config_entry
+        self._attr_unique_id = f"{config_entry.entry_id}_adaptive_control_all"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, config_entry.entry_id)},
+            name="All Blinds",
+            manufacturer="Adaptive Cover",
+        )
+
+    @property
+    def is_on(self) -> bool:
+        """True when adaptive control is enabled on every regular entry."""
+        coords = list(iter_regular_coordinators(self.hass))
+        if not coords:
+            return False
+        return all(getattr(c, "control_toggle", False) for c in coords)
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable adaptive control on every entry; clear manual overrides."""
+        LOGGER.debug("AdaptiveControlAllSwitch: turning ON")
+        for coord in iter_regular_coordinators(self.hass):
+            coord.control_toggle = True
+            manager = getattr(coord, "manager", None)
+            if manager is not None:
+                for entity_id in getattr(coord, "entities", None) or ():
+                    manager.reset(entity_id)
+            await coord.async_refresh()
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Disable adaptive control on every entry."""
+        LOGGER.debug("AdaptiveControlAllSwitch: turning OFF")
+        for coord in iter_regular_coordinators(self.hass):
+            coord.control_toggle = False
+            await coord.async_refresh()
+        self.async_write_ha_state()
 

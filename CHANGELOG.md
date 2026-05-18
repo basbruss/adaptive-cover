@@ -4,6 +4,26 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.8.6] — 2026-05-18
+
+### Alexa voice control
+
+Complete Alexa voice control for the "All Blinds" hub device via native entity types:
+
+| Phrase | Entité | Type |
+|---|---|---|
+| *"Alexa, active les volets"* | switch **Les volets** ON | Switch |
+| *"Alexa, désactive les volets"* | switch **Les volets** OFF | Switch |
+| *"Alexa, ouvre les volets"* | cover **Tous les volets** open | Cover (existant) |
+| *"Alexa, ferme les volets"* | cover **Tous les volets** close | Cover (existant) |
+
+- **`switch.py`** — `AdaptiveControlAllSwitch` re-added for hub entries with translation key `hub_control` (FR: "Les volets", EN: "Blinds"). ON enables adaptive control + clears manual overrides; OFF disables it.
+- **`scene.py`** — simplified to two scenes only: **Volets ouverts** and **Volets fermés** (position shortcuts for automations). Scenes `auto` and `off` removed — covered by the switch.
+- **`__init__.py`** — `HUB_PLATFORMS` now includes `Platform.SWITCH` alongside cover, select and scene.
+- **Translations** — added `entity.switch.hub_control` (FR: "Les volets") ; scene keys reduced to `scene_all_open` / `scene_all_closed`.
+
+---
+
 ## [1.8.5] — 2026-05-18
 
 ### New feature
