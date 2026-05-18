@@ -32,8 +32,11 @@ This integration builds upon the template sensor from this forum post [Automatic
     - [Climate](#climate)
     - [Blindspot](#blindspot)
   - [Entities](#entities)
+    - [Per-cover entry entities](#per-cover-entry-entities)
+    - [All Blinds hub entities](#all-blinds-hub-entities)
+  - [All Blinds hub device](#all-blinds-hub-device)
+    - [Voice control (Alexa / Google / Assist)](#voice-control)
   - [Features Planned](#features-planned)
-    - [Simulation](#simulation)
 
 ## Features
 
@@ -49,6 +52,7 @@ This integration builds upon the template sensor from this forum post [Automatic
   - Presence based operation
   - Switch to toggle climate mode
   - Sensor for displaying the operation modus (`winter`,`intermediate`,`summer`)
+  - Diagnostic sensor exposing all intermediate climate decision values
 
 - **Adaptive Control**
 
@@ -56,13 +60,21 @@ This integration builds upon the template sensor from this forum post [Automatic
   - Control multiple covers
   - Set start time to prevent opening blinds while you are asleep
   - Set minimum interval time between position changes
-  - set minimum percentage change
+  - Set minimum percentage change
+
+- **All Blinds hub device** *(v1.8+)*
+
+  - Single aggregate cover entity controlling every blind at once
+  - 4-state control select (Auto / Off / All open / All closed)
+  - ON/OFF switch for Alexa voice control ("Alexa, turn on / turn off the blinds")
+  - Scene shortcuts for automations
+  - Native Alexa, Google Assistant and Assist support
 
 ## Installation
 
 ### HACS (Recommended)
 
-Add <https://github.com/basbruss/adaptive-cover> as custom repository to HACS.
+Add <https://github.com/kamahat/adaptive-cover> as custom repository to HACS.
 Search and download Adaptive Cover within HACS.
 
 Restart Home-Assistant and add the integration.
@@ -78,6 +90,10 @@ Restart Home-Assistant and add the integration.
 
 Adaptive Cover supports (for now) three types of covers/blinds; `Vertical` and `Horizontal` and `Venetian (Tilted)` blinds.
 Each type has its own specific parameters to setup a sensor. To setup the sensor you first need to find out the azimuth of the window(s). This can be done by finding your location on [Open Street Map Compass](https://osmcompass.com/).
+
+When adding the integration for the first time, a menu is shown:
+- **Add a cover group** — configure a Vertical, Horizontal or Tilt blind group (one per window or room).
+- **Add 'All Blinds' aggregator** — creates the singleton hub device that controls all groups at once. Created automatically on first setup if not yet present.
 
 ## Cover Types
 
@@ -163,7 +179,7 @@ This mode uses the calculated position when the sun is within the specified azim
 ### Climate mode
 
 This mode calculates the position based on extra parameters for presence, indoor temperature, minimal comfort temperature, maximum comfort temperature and weather (optional).
-This mode is split up in two types of strategies; [Presence](https://github.com/basbruss/adaptive-cover?tab=readme-ov-file#presence) and [No Presence](https://github.com/basbruss/adaptive-cover?tab=readme-ov-file#no-presence).
+This mode is split up in two types of strategies; [Presence](#climate-strategies) and [No Presence](#climate-strategies).
 
 #### Climate strategies
 
@@ -207,7 +223,7 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 | Variables         | Default | Range | Description                                                                                 |
 | ----------------- | ------- | ----- | ------------------------------------------------------------------------------------------- |
 | Window Height     | 2.1     | 0.1-6 | Length of fully extended cover/window                                                       |
-| Glare Zone        | 0.5     | 0.1-2 | Objects within this distance of the cover recieve direct sunlight. Measured horizontally from the bottom of the cover when fully extended |
+| Glare Zone        | 0.5     | 0.1-2 | Objects within this distance of the cover receive direct sunlight. Measured horizontally from the bottom of the cover when fully extended |
 
 ### Horizontal
 
@@ -216,7 +232,7 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 | Awning Height              | 2       | 0.1-6 | Height from work area to awning mounting point |
 | Awning Length (horizontal) | 2.1     | 0.3-6 | Length of the awning when fully extended       |
 | Awning Angle               | 0       | 0-45  | Angle of the awning from the wall              |
-| Glare Zone                 | 0.5     | 0.1-2 | Objects within this distance of the cover recieve direct sunlight |
+| Glare Zone                 | 0.5     | 0.1-2 | Objects within this distance of the cover receive direct sunlight |
 
 ### Tilt
 
@@ -239,7 +255,7 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 | Manual Override Threshold                  | None         | 1-99  | Minimal position change to be recognized as manual change                                      |
 | Manual Override ignore intermediate states | False        |       | Ignore StateChangedEvents that have state `opening` or `closing`                               |
 | End Time                                   | `"00:00:00"` |       | Latest time a cover can be adjusted each day                                                   |
-| End Time Entity                            | None         |       | The latest moment a cover may be changed . _Overrides the `end_time` value_                    |
+| End Time Entity                            | None         |       | The latest moment a cover may be changed. _Overrides the `end_time` value_                     |
 | Adjust at end time                         | `False`      |       | Make sure to always update the position to the default setting at the end time.                |
 
 ### Climate
@@ -254,52 +270,83 @@ This mode is split up in two types of strategies; [Presence](https://github.com/
 | Presence Entity               | `None`  |       |                                               |                                                                                                                                                      |
 | Weather Entity                | `None`  |       | `weather.home`                                | Can also serve as outdoor temperature sensor                                                                                                         |
 | Lux Entity                    | `None`  |       | `sensor.lux`                                  | Returns measured lux                                                                                                                                 |
-| Lux Threshold                 | `1000`  |       |                                               | "In non-summer, above threshold, use optimal position. Otherwise, default position or fully open in winter."                                         |
+| Lux Threshold                 | `1000`  |       |                                               | In non-summer, above threshold, use optimal position. Otherwise, default position or fully open in winter.                                           |
 | Irradiance Entity             | `None`  |       | `sensor.irradiance`                           | Returns measured irradiance                                                                                                                          |
-| Irradiance Threshold          | `300`   |       |                                               | "In non-summer, above threshold, use optimal position. Otherwise, default position or fully open in winter."                                         |
+| Irradiance Threshold          | `300`   |       |                                               | In non-summer, above threshold, use optimal position. Otherwise, default position or fully open in winter.                                           |
 
 ### Blindspot
 
 | Variables            | Default | Range                 | Example | Description                                                                                                          |
 | -------------------- | ------- | --------------------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
 | Blind Spot Left      | None    | 0-max(fov_right, 180) |         | Start point of the blind spot on the predefined field of view, where 0 is equal to the window azimuth - fov left.    |
-| Blind Spot Right     | None    | 1-max(fov_right, 180) |         | End point of the blind spot on the predefined field of view, where 1 is equal to the window azimuth - fov left + 1 . |
+| Blind Spot Right     | None    | 1-max(fov_right, 180) |         | End point of the blind spot on the predefined field of view.                                                         |
 | Blind Spot Elevation | None    | 0-90                  |         | Minimal elevation of the sun for the blindspot area.                                                                 |
 
 ## Entities
 
+### Per-cover entry entities
+
 The integration dynamically adds multiple entities based on the used features.
 
-These entities are always available:
-| Entities | Default | Description |
-| --------------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+These entities are always available for each cover group:
+
+| Entity | Default | Description |
+| ------ | ------- | ----------- |
 | `sensor.{type}_cover_position_{name}` | | Reflects the current state determined by predefined settings and factors such as sun position, weather, and temperature |
-| `sensor.{type}_control_method_{name}` | `intermediate` | Indicates the active control strategy based on weather conditions. Options include `winter`, `summer`, and `intermediate` |
-| `sensor.{type}_start_sun_{name}` | | Shows the starting time when the sun enters the window's view, with an interval of every 5 minutes. |
-| `sensor.{type}_end_sun_{name}` | | Indicates the ending time when the sun exits the window's view, with an interval of every 5 minutes. |
-| `binary_sensor.{type}_manual_override_{name}` | `off` | Indicates if manual override is engaged for any blinds. |
-| `binary_sensor.{type}_sun_infront_{name}` | `off` | Indicates whether the sun is in front of the window within the designated field of view. |
-| `switch.{type}_toggle_control_{name}` | `on` | Activates the adaptive control feature. When enabled, blinds adjust based on calculated position, unless manually overridden. |
-| `switch.{type}_manual_override_{name}` | `on` | Enables detection of manual overrides. A cover is marked if its position differs from the calculated one, resetting to adaptive control after a set duration. |
-| `button.{type}_reset_manual_override_{name}` | `on` | Resets manual override tags for all covers; if `switch.{type}_toggle_control_{name}` is on, it also restores blinds to their correct positions. |
+| `sensor.{type}_control_method_{name}` | `intermediate` | Indicates the active control strategy: `winter`, `summer`, `intermediate` |
+| `sensor.{type}_start_sun_{name}` | | Shows the starting time when the sun enters the window's view (updated every 5 min) |
+| `sensor.{type}_end_sun_{name}` | | Indicates the ending time when the sun exits the window's view (updated every 5 min) |
+| `binary_sensor.{type}_manual_override_{name}` | `off` | Indicates if manual override is engaged for any blind |
+| `binary_sensor.{type}_sun_infront_{name}` | `off` | Indicates whether the sun is in front of the window within the field of view |
+| `switch.{type}_toggle_control_{name}` | `on` | Activates the adaptive control feature |
+| `switch.{type}_manual_override_{name}` | `on` | Enables detection of manual overrides |
+| `button.{type}_reset_manual_override_{name}` | | Resets manual override tags for all covers in the group |
 
 When climate mode is configured you will also get these entities:
 
-| Entities                                   | Default | Description                                                                                                 |
-| ------------------------------------------ | ------- | ----------------------------------------------------------------------------------------------------------- |
-| `switch.{type}_climate_mode_{name}`        | `on`    | Enables climate mode strategy; otherwise, defaults to the standard strategy.                                |
-| `switch.{type}_outside_temperature_{name}` | `off`   | Use outside temperature instead of inside temperature for summer threshold comparison.                      |
-| `switch.{type}_lux_{name}`                 | `on`    | Enable lux threshold check (visible only when a lux entity is configured).                                  |
-| `switch.{type}_irradiance_{name}`          | `on`    | Enable irradiance threshold check (visible only when an irradiance entity is configured).                   |
-| `sensor.{type}_climate_debug_{name}`       |         | Diagnostic sensor exposing every intermediate value of the climate decision tree (active branch, all temperatures, thresholds, lux/irradiance flags). |
+| Entity | Default | Description |
+| ------ | ------- | ----------- |
+| `switch.{type}_climate_mode_{name}` | `on` | Enables climate mode strategy |
+| `switch.{type}_outside_temperature_{name}` | `off` | Use outside temperature for summer threshold comparison |
+| `switch.{type}_lux_{name}` | `on` | Enable lux threshold check (visible only when a lux entity is configured) |
+| `switch.{type}_irradiance_{name}` | `on` | Enable irradiance threshold check (visible only when an irradiance entity is configured) |
+| `sensor.{type}_climate_debug_{name}` | | Diagnostic sensor exposing every intermediate value of the climate decision tree (active branch, temperatures, thresholds, lux/irradiance flags) |
 
-The integration also creates a **global cover entity** for each config entry:
+### All Blinds hub entities
 
-| Entity               | Description                                                                                                             |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `cover.{name}`       | Aggregate entity controlling all covers in the group. Open/close/set position acts on all covers and flags them as manual. `turn_on` re-enables adaptive control; `turn_off` disables it. |
+The **All Blinds** device (auto-created on first setup) exposes:
+
+| Entity | Name | Description |
+| ------ | ---- | ----------- |
+| `cover.*` | **Les volets** | Aggregate cover — controls every blind at once. Open/close/set position moves all covers and activates manual override. |
+| `switch.*` | **Les volets** | ON/OFF switch for adaptive control across all entries. **ON** enables adaptive positioning and clears manual overrides; **OFF** disables it. |
+| `select.*` | **Control mode** | 4-state dropdown: **Auto** (adaptive ON + overrides cleared) / **Off** / **All open** (100%) / **All closed** (0%). State restored on HA restart. |
+| `scene.*_all_open` | **Blinds open** | Sets all covers to 100% with manual override. |
+| `scene.*_all_closed` | **Blinds closed** | Sets all covers to 0% with manual override. |
 
 ![entities](https://github.com/basbruss/adaptive-cover/blob/main/images/entities.png)
+
+## All Blinds hub device
+
+The **All Blinds** entry is a singleton aggregator automatically created when the integration first loads. It has its own device card in the HA UI and does not interfere with individual cover group settings.
+
+It can also be added manually: **Settings → Integrations → Adaptive Cover → Add entry → Add 'All Blinds' aggregator**.
+
+### Voice control
+
+The hub device is designed for native voice assistant integration — no custom routines needed:
+
+| Voice phrase | Entity triggered | Action |
+|---|---|---|
+| *"Alexa, turn on the blinds"* | switch **Les volets** ON | Adaptive control enabled, manual overrides cleared |
+| *"Alexa, turn off the blinds"* | switch **Les volets** OFF | Adaptive control disabled |
+| *"Alexa, open the blinds"* | cover **Les volets** open | All covers → 100% |
+| *"Alexa, close the blinds"* | cover **Les volets** close | All covers → 0% |
+
+> Alexa routes commands by verb type: `turn on/off` → switch, `open/close` → cover.  
+> The same entity names work with **Google Assistant** and **Assist**.
+
+To re-sync Alexa after upgrading: say *"Alexa, discover my devices"* or go to the Alexa app → Devices → More → Discover devices.
 
 ## Features Planned
 
@@ -311,10 +358,6 @@ The integration also creates a **global cover entity** for each config entry:
 
 - ~~Algorithm to control radiation and/or illumination~~
 
-### Simulation
-
-![combined_simulation](custom_components/adaptive_cover/simulation/sim_plot.png)
-
 ---
 
 ## Contributors
@@ -322,7 +365,7 @@ The integration also creates a **global cover entity** for each config entry:
 | | Contributor | Role |
 |---|---|---|
 | 🧑‍💻 | **[Kamahat](https://github.com/kamahat)** | Fork maintainer, feature development, bug fixes |
-| 🤖 | **[Claude Sonnet 4.6](https://claude.ai)** (Anthropic) | Code review, bug fixes, EN/FR documentation, changelog |
+| 🤖 | **[Claude Opus 4.7](https://claude.ai)** (Anthropic) | Code review, bug fixes, EN/FR documentation, changelog |
 | ⭐ | **[Bas Brussee (@basbruss)](https://github.com/basbruss)** | Original author |
 
 See [CONTRIBUTORS.md](CONTRIBUTORS.md) for the full list including community contributors.

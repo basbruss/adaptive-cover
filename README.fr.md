@@ -32,8 +32,11 @@ Basée sur le capteur template de ce fil de forum : [Automatic Blinds](https://c
     - [Climatique](#climatique)
     - [Zone aveugle](#zone-aveugle)
   - [Entités](#entités)
+    - [Entités par groupe de volets](#entités-par-groupe-de-volets)
+    - [Entités du hub Tous les volets](#entités-du-hub-tous-les-volets)
+  - [Appareil « Tous les volets »](#appareil--tous-les-volets-)
+    - [Contrôle vocal (Alexa / Google / Assist)](#contrôle-vocal)
   - [Fonctionnalités planifiées](#fonctionnalités-planifiées)
-    - [Simulation](#simulation)
 
 ## Fonctionnalités
 
@@ -59,6 +62,14 @@ Basée sur le capteur template de ce fil de forum : [Automatic Blinds](https://c
   - Intervalle minimum entre deux changements de position
   - Delta minimum de position pour déclencher un changement
 
+- **Appareil « Tous les volets »** *(v1.8+)*
+
+  - Entité volet agrégée contrôlant tous les volets en même temps
+  - Sélecteur 4 états (Auto / Arrêt / Tous ouverts / Tous fermés)
+  - Interrupteur ON/OFF pour contrôle vocal Alexa
+  - Scènes raccourcis pour les automatisations
+  - Support natif Alexa, Google Assistant et Assist
+
 ## Installation
 
 ### HACS (recommandé)
@@ -79,6 +90,10 @@ Redémarrer Home Assistant et ajouter l'intégration.
 
 Adaptive Cover prend en charge trois types de volets : `Vertical`, `Horizontal` et `Jalousie (Vénitien)`.
 Chaque type possède ses propres paramètres. Pour configurer un capteur, il faut d'abord déterminer l'azimut de la fenêtre via [Open Street Map Compass](https://osmcompass.com/).
+
+Lors du premier ajout de l'intégration, un menu propose deux options :
+- **Ajouter un groupe de volets** — configure un groupe Vertical, Horizontal ou Jalousie (une entrée par fenêtre ou pièce).
+- **Ajouter l'agrégateur « Tous les volets »** — crée l'appareil hub singleton qui contrôle tous les groupes en même temps. Créé automatiquement au premier démarrage si absent.
 
 ## Types de volets
 
@@ -269,9 +284,11 @@ Il se décline en deux stratégies : [Avec présence](#stratégies-climatiques) 
 
 ## Entités
 
+### Entités par groupe de volets
+
 L'intégration crée dynamiquement plusieurs entités selon les fonctionnalités activées.
 
-Ces entités sont toujours disponibles :
+Ces entités sont toujours disponibles pour chaque groupe de volets :
 
 | Entité | Défaut | Description |
 | ------ | ------ | ----------- |
@@ -281,27 +298,55 @@ Ces entités sont toujours disponibles :
 | `sensor.{type}_end_sun_{nom}` | | Heure de sortie du soleil du champ de vision (mise à jour toutes les 5 min) |
 | `binary_sensor.{type}_manual_override_{nom}` | `off` | Indique si un contrôle manuel est actif sur l'un des volets |
 | `binary_sensor.{type}_sun_infront_{nom}` | `off` | Indique si le soleil est face à la fenêtre dans le champ de vision défini |
-| `switch.{type}_toggle_control_{nom}` | `on` | Active le contrôle adaptatif. Quand activé, les volets s'ajustent automatiquement sauf en cas de contrôle manuel |
-| `switch.{type}_manual_override_{nom}` | `on` | Active la détection des contrôles manuels. Un volet est marqué si sa position diffère du calcul, avec retour automatique après la durée configurée |
-| `button.{type}_reset_manual_override_{nom}` | | Réinitialise les marqueurs manuels pour tous les volets ; si `toggle_control` est actif, remet aussi les volets à la position calculée |
+| `switch.{type}_toggle_control_{nom}` | `on` | Active le contrôle adaptatif |
+| `switch.{type}_manual_override_{nom}` | `on` | Active la détection des contrôles manuels |
+| `button.{type}_reset_manual_override_{nom}` | | Réinitialise les marqueurs manuels pour tous les volets du groupe |
 
 Quand le mode climatique est configuré, ces entités supplémentaires sont créées :
 
 | Entité | Défaut | Description |
 | ------ | ------ | ----------- |
-| `switch.{type}_climate_mode_{nom}` | `on` | Active la stratégie climatique ; sinon, revient à la stratégie standard |
-| `switch.{type}_outside_temperature_{nom}` | `off` | Utilise la température extérieure au lieu de l'intérieure pour la détection du mode été |
+| `switch.{type}_climate_mode_{nom}` | `on` | Active la stratégie climatique |
+| `switch.{type}_outside_temperature_{nom}` | `off` | Utilise la température extérieure pour la détection du mode été |
 | `switch.{type}_lux_{nom}` | `on` | Active le seuil lux (visible uniquement si une entité lux est configurée) |
 | `switch.{type}_irradiance_{nom}` | `on` | Active le seuil d'irradiance (visible uniquement si une entité irradiance est configurée) |
-| `sensor.{type}_climate_debug_{nom}` | | Capteur de diagnostic exposant toutes les valeurs intermédiaires de l'arbre de décision climatique (branche active, toutes les températures, seuils, indicateurs lux/irradiance) |
+| `sensor.{type}_climate_debug_{nom}` | | Capteur de diagnostic exposant toutes les valeurs intermédiaires de l'arbre de décision climatique |
 
-L'intégration crée également une **entité volet global** par entrée de configuration :
+### Entités du hub Tous les volets
 
-| Entité | Description |
-| ------ | ----------- |
-| `cover.{nom}` | Entité agrégée contrôlant tous les volets du groupe. Open/close/set_position agit sur tous les volets et les marque comme manuels. `turn_on` réactive le contrôle adaptatif ; `turn_off` le désactive |
+L'appareil **Tous les volets** (créé automatiquement au premier démarrage) expose :
+
+| Entité | Nom | Description |
+| ------ | --- | ----------- |
+| `cover.*` | **Les volets** | Volet agrégé — contrôle tous les volets en même temps. Ouverture/fermeture/position agit sur tous les volets et active la dérogation manuelle. |
+| `switch.*` | **Les volets** | Interrupteur ON/OFF du contrôle adaptatif sur toutes les entrées. **ON** active le positionnement adaptatif et efface les dérogations manuelles ; **OFF** le désactive. |
+| `select.*` | **Mode de contrôle** | Sélecteur 4 états : **Auto** (adaptatif ON + dérogations effacées) / **Arrêt** / **Tous ouverts** (100%) / **Tous fermés** (0%). État restauré au redémarrage de HA. |
+| `scene.*_all_open` | **Volets ouverts** | Met tous les volets à 100% avec dérogation manuelle. |
+| `scene.*_all_closed` | **Volets fermés** | Met tous les volets à 0% avec dérogation manuelle. |
 
 ![entités](https://github.com/basbruss/adaptive-cover/blob/main/images/entities.png)
+
+## Appareil « Tous les volets »
+
+L'entrée **Tous les volets** est un agrégateur singleton créé automatiquement au premier chargement de l'intégration. Il possède sa propre carte dans l'interface HA et n'interfère pas avec les paramètres individuels de chaque groupe.
+
+Il peut aussi être ajouté manuellement : **Paramètres → Intégrations → Adaptive Cover → Ajouter une entrée → Ajouter l'agrégateur « Tous les volets »**.
+
+### Contrôle vocal
+
+L'appareil hub est conçu pour une intégration native avec les assistants vocaux — aucune routine personnalisée nécessaire :
+
+| Commande vocale | Entité déclenchée | Action |
+|---|---|---|
+| *« Alexa, active les volets »* | switch **Les volets** ON | Contrôle adaptatif activé, dérogations effacées |
+| *« Alexa, désactive les volets »* | switch **Les volets** OFF | Contrôle adaptatif désactivé |
+| *« Alexa, ouvre les volets »* | cover **Les volets** open | Tous les volets → 100% |
+| *« Alexa, ferme les volets »* | cover **Les volets** close | Tous les volets → 0% |
+
+> Alexa route les commandes par type d'entité : `active/désactive` → switch, `ouvre/ferme` → cover.  
+> Les mêmes noms d'entités fonctionnent avec **Google Assistant** et **Assist**.
+
+Pour forcer la re-synchronisation Alexa après une mise à jour : dites *« Alexa, découvre mes appareils »* ou allez dans l'app Alexa → Appareils → Plus → Découvrir des appareils.
 
 ## Fonctionnalités planifiées
 
@@ -313,10 +358,6 @@ L'intégration crée également une **entité volet global** par entrée de conf
 
 - ~~Algorithme de contrôle du rayonnement et/ou de l'éclairement~~
 
-### Simulation
-
-![simulation](custom_components/adaptive_cover/simulation/sim_plot.png)
-
 ---
 
 ## Contributeurs
@@ -324,7 +365,7 @@ L'intégration crée également une **entité volet global** par entrée de conf
 | | Contributeur | Rôle |
 |---|---|---|
 | 🧑‍💻 | **[Kamahat](https://github.com/kamahat)** | Mainteneur du fork, développement, correctifs |
-| 🤖 | **[Claude Sonnet 4.6](https://claude.ai)** (Anthropic) | Revue de code, correctifs, documentation EN/FR, changelog |
+| 🤖 | **[Claude Opus 4.7](https://claude.ai)** (Anthropic) | Revue de code, correctifs, documentation EN/FR, changelog |
 | ⭐ | **[Bas Brussee (@basbruss)](https://github.com/basbruss)** | Auteur original |
 
 Voir [CONTRIBUTORS.md](CONTRIBUTORS.md) pour la liste complète incluant les contributeurs de la communauté.
