@@ -45,9 +45,9 @@ PLATFORMS = [
     Platform.COVER,
 ]
 
-# Platforms used by the singleton "All Blinds" hub entry: aggregate cover +
-# a 4-state select that controls every entry at once (Auto/Off/All Open/All Closed).
-HUB_PLATFORMS = [Platform.COVER, Platform.SELECT]
+# Platforms used by the singleton "All Blinds" hub entry: aggregate cover,
+# a 4-state select (UI dropdown) and 4 scene entities (Alexa / voice control).
+HUB_PLATFORMS = [Platform.COVER, Platform.SELECT, Platform.SCENE]
 
 CONF_SUN = ["sun.sun"]
 

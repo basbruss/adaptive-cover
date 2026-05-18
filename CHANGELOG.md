@@ -4,6 +4,22 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.8.5] — 2026-05-18
+
+### New feature
+
+- **4 scene entities on the hub** (`scene.py`) — the "All Blinds" device now exposes four `SceneEntity` objects alongside the existing control-mode select. Scenes are natively supported by Alexa, Google Assistant and Assist:
+  - **Auto** (`scene.all_blinds_auto`) — enables adaptive positioning; clears all manual overrides.
+  - **Arrêt / Off** (`scene.all_blinds_off`) — disables adaptive positioning; covers stay in place.
+  - **Tous ouverts / All open** (`scene.all_blinds_all_open`) — moves every cover to 100 %; manual override activated.
+  - **Tous fermés / All closed** (`scene.all_blinds_all_closed`) — moves every cover to 0 %; manual override activated.
+  Voice example: *"Alexa, activate Tous fermés"*
+- **`helpers.py`** — `iter_regular_coordinators()` extracted as a shared helper (was duplicated in `select.py`); imported by both `select.py` and `scene.py`.
+- **`__init__.py`** — `HUB_PLATFORMS` now includes `Platform.SCENE`.
+- **Translations** (`en.json` / `fr.json`) — added `entity.scene.*` section with localized names for all four scenes.
+
+---
+
 ## [1.8.4] — 2026-05-18
 
 ### New feature

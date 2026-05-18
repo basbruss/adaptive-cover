@@ -10,6 +10,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import CONF_IS_HUB, DOMAIN, LOGGER
+from .helpers import iter_regular_coordinators
 
 # The four modes exposed on the All-Blinds hub device.
 MODE_AUTO = "auto"
@@ -18,19 +19,6 @@ MODE_ALL_OPEN = "all_open"
 MODE_ALL_CLOSED = "all_closed"
 
 HUB_SELECT_OPTIONS = [MODE_AUTO, MODE_OFF, MODE_ALL_OPEN, MODE_ALL_CLOSED]
-
-
-def _iter_regular_coordinators(hass: HomeAssistant):
-    """Yield every Adaptive Cover coordinator (regular entries only).
-
-    Skips internal bookkeeping keys (``_*``) and any ``None`` placeholders.
-    """
-    for key, value in hass.data.get(DOMAIN, {}).items():
-        if isinstance(key, str) and key.startswith("_"):
-            continue
-        if value is None:
-            continue
-        yield value
 
 
 async def async_setup_entry(
@@ -112,7 +100,7 @@ class AdaptiveControlModeSelect(RestoreEntity, SelectEntity):
 
     async def _apply_auto(self) -> None:
         """Enable adaptive control and clear all manual overrides."""
-        for coord in _iter_regular_coordinators(self.hass):
+        for coord in iter_regular_coordinators(self.hass):
             coord.control_toggle = True
             manager = getattr(coord, "manager", None)
             if manager is not None:
@@ -122,13 +110,13 @@ class AdaptiveControlModeSelect(RestoreEntity, SelectEntity):
 
     async def _apply_off(self) -> None:
         """Disable adaptive control everywhere — covers stay in place."""
-        for coord in _iter_regular_coordinators(self.hass):
+        for coord in iter_regular_coordinators(self.hass):
             coord.control_toggle = False
             await coord.async_refresh()
 
     async def _apply_position(self, position: int) -> None:
         """Set every cover to *position* % and activate manual override."""
-        for coord in _iter_regular_coordinators(self.hass):
+        for coord in iter_regular_coordinators(self.hass):
             for entity_id in getattr(coord, "entities", None) or ():
                 await coord.async_set_position(entity_id, position)
             await coord.async_refresh()

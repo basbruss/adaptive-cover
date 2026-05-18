@@ -56,3 +56,20 @@ def get_last_updated(entity_id: str, hass: HomeAssistant) -> dt.datetime | None:
 
 # CLEAN: get_timedelta_str, check_time_passed, dt_check_time_passed removed
 # No usages found in the project (dead code confirmed by static analysis)
+
+
+def iter_regular_coordinators(hass: HomeAssistant):
+    """Yield every Adaptive Cover coordinator (regular entries only).
+
+    Skips internal bookkeeping keys (``_*``) and any ``None`` placeholders
+    so callers never receive the hub entry or migration flags.
+    Imported by ``select.py`` and ``scene.py`` to avoid duplication.
+    """
+    from .const import DOMAIN  # local import to avoid circular dependency
+
+    for key, value in hass.data.get(DOMAIN, {}).items():
+        if isinstance(key, str) and key.startswith("_"):
+            continue
+        if value is None:
+            continue
+        yield value

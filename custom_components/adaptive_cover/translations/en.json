@@ -502,6 +502,12 @@
           "all_closed": "All closed"
         }
       }
+    },
+    "scene": {
+      "scene_auto": { "name": "Auto" },
+      "scene_off": { "name": "Off" },
+      "scene_all_open": { "name": "All open" },
+      "scene_all_closed": { "name": "All closed" }
     }
   }
 }
