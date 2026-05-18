@@ -490,5 +490,18 @@
           "mode2": "bidirectionnel (0% = fermé / 50% = ouvert / 100% = fermé)"
         }
       }
+    },
+    "entity": {
+      "select": {
+        "adaptive_control_mode": {
+          "name": "Mode de contrôle",
+          "state": {
+            "auto": "Auto",
+            "off": "Arrêt",
+            "all_open": "Tous ouverts",
+            "all_closed": "Tous fermés"
+          }
+        }
+      }
     }
   }

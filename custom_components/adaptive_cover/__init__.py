@@ -46,8 +46,8 @@ PLATFORMS = [
 ]
 
 # Platforms used by the singleton "All Blinds" hub entry: aggregate cover +
-# a single "Adaptive Control" switch that toggles every entry at once.
-HUB_PLATFORMS = [Platform.COVER, Platform.SWITCH]
+# a 4-state select that controls every entry at once (Auto/Off/All Open/All Closed).
+HUB_PLATFORMS = [Platform.COVER, Platform.SELECT]
 
 CONF_SUN = ["sun.sun"]
 

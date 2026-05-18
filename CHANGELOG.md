@@ -4,6 +4,22 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.8.4] — 2026-05-18
+
+### New feature
+
+- **4-state control select on the hub** (`select.py`) — the "All Blinds" device now exposes a **Control mode** select entity replacing the former ON/OFF switch. Four options:
+  - **Auto** — enables adaptive positioning on every regular entry and clears any active manual overrides.
+  - **Off** — disables adaptive positioning everywhere; covers stay in their current position.
+  - **All open** — moves every cover to 100 % and activates manual override (reverts automatically after the configured override duration).
+  - **All closed** — moves every cover to 0 % and activates manual override (same revert behaviour).
+  State is restored across HA restarts.
+- **`__init__.py`** — `HUB_PLATFORMS` now includes `Platform.SELECT` instead of `Platform.SWITCH`.
+- **`switch.py`** — hub early-return and `AdaptiveControlAllSwitch` class removed; the switch platform now only registers entities for regular (per-cover) entries.
+- **Translations** (`en.json` / `fr.json`) — added `entity.select.adaptive_control_mode` with localized state labels for all four options.
+
+---
+
 ## [1.8.3] — 2026-05-15
 
 ### New feature
