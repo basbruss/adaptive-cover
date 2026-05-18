@@ -45,9 +45,9 @@ PLATFORMS = [
     Platform.COVER,
 ]
 
-# Platforms used by the singleton "All Blinds" hub entry: only the aggregate
-# cover entity. No sensors / switches / button etc. for the hub.
-HUB_PLATFORMS = [Platform.COVER]
+# Platforms used by the singleton "All Blinds" hub entry: aggregate cover +
+# a single "Adaptive Control" switch that toggles every entry at once.
+HUB_PLATFORMS = [Platform.COVER, Platform.SWITCH]
 
 CONF_SUN = ["sun.sun"]
 

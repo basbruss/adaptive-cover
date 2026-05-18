@@ -4,6 +4,15 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.8.3] — 2026-05-15
+
+### New feature
+
+- **Adaptive Control switch on the hub** (`switch.py`) — the "All Blinds" device now exposes an `Adaptive Control` switch in addition to the aggregate cover. Flipping it ON enables adaptive positioning on every regular entry and clears any active manual overrides; flipping it OFF disables adaptive positioning everywhere. State is an *AND* across every entry — the switch reads ON only when adaptive control is active on all of them. Visible directly in the device card UI.
+- **`__init__.py`** — `HUB_PLATFORMS` now includes `Platform.SWITCH` so the hub entry sets up its switch alongside the cover.
+
+---
+
 ## [1.8.2] — 2026-05-15
 
 ### Bug fixes / migration
