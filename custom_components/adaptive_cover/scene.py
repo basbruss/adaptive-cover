@@ -74,7 +74,8 @@ class AdaptiveCoverScene(Scene):
         self.hass = hass
         self._mode = mode
         self._attr_name = self._NAMES[mode]
-        self._attr_unique_id = f"{config_entry.entry_id}_scene_{mode}"
+        # Suffix "_v2" forces fresh entity registry entry (old entry had device prefix in name)
+        self._attr_unique_id = f"{config_entry.entry_id}_scene_{mode}_v2"
         self._attr_device_info = device_info
 
     async def async_activate(self, **kwargs) -> None:

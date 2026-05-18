@@ -4,6 +4,18 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.8.8] — 2026-05-18
+
+### Bug fix — Alexa shows "All Blinds Volets ouverts" for scenes
+
+Alexa cached the scene names created before v1.8.7 ("All Blinds Volets ouverts") and did not refresh them even after re-discovery, because it matched the entities by their existing unique IDs.
+
+Fix: `unique_id` of both hub scenes now carries a `_v2` suffix, forcing HA to create fresh entity registry entries with the correct names ("Volets ouverts" / "Volets fermés"). Alexa will see them as new scenes on the next discovery.
+
+> **Note**: the old orphan scene entries (`scene.all_blinds_volets_ouverts` / `scene.all_blinds_volets_fermes`) can be deleted from HA's entity registry after upgrading (Settings → Entities → filter "all_blinds").
+
+---
+
 ## [1.8.7] — 2026-05-18
 
 ### Bug fix — Alexa shows "All Blinds …" prefix
