@@ -492,9 +492,6 @@
       }
     },
     "entity": {
-      "switch": {
-        "hub_control": { "name": "Les volets" }
-      },
       "select": {
         "adaptive_control_mode": {
           "name": "Mode de contrôle",
@@ -505,10 +502,6 @@
             "all_closed": "Tous fermés"
           }
         }
-      },
-      "scene": {
-        "scene_all_open": { "name": "Volets ouverts" },
-        "scene_all_closed": { "name": "Volets fermés" }
       }
     }
   }

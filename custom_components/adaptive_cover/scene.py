@@ -56,7 +56,12 @@ class AdaptiveCoverScene(Scene):
     ``all_closed`` → every cover to 0 %,   manual override activated.
     """
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False  # full name set directly — no device prefix in Alexa
+
+    _NAMES = {
+        "all_open":   "Volets ouverts",   # Alexa: "allume Volets ouverts"
+        "all_closed": "Volets fermés",    # Alexa: "allume Volets fermés"
+    }
 
     def __init__(
         self,
@@ -68,7 +73,7 @@ class AdaptiveCoverScene(Scene):
         """Initialise the scene for *mode* (``all_open`` / ``all_closed``)."""
         self.hass = hass
         self._mode = mode
-        self._attr_translation_key = f"scene_{mode}"
+        self._attr_name = self._NAMES[mode]
         self._attr_unique_id = f"{config_entry.entry_id}_scene_{mode}"
         self._attr_device_info = device_info
 

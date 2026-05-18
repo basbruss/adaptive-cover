@@ -80,7 +80,7 @@ class AdaptiveCoverAll(CoverEntity):
       - ``current_cover_position`` → average position across all covers.
     """
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False  # full name set directly — no device prefix in Alexa
     _attr_should_poll = False
     _attr_device_class = CoverDeviceClass.BLIND
     _attr_supported_features = (
@@ -89,7 +89,7 @@ class AdaptiveCoverAll(CoverEntity):
         | CoverEntityFeature.STOP
         | CoverEntityFeature.SET_POSITION
     )
-    _attr_name = "Tous les volets"
+    _attr_name = "Les volets"  # Alexa: "ouvre / ferme les volets"
 
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Tie this entity to the hub config entry's own device."""

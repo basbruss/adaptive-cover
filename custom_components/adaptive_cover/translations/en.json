@@ -492,9 +492,6 @@
     }
   },
   "entity": {
-    "switch": {
-      "hub_control": { "name": "Blinds" }
-    },
     "select": {
       "adaptive_control_mode": {
         "name": "Control mode",
@@ -505,10 +502,6 @@
           "all_closed": "All closed"
         }
       }
-    },
-    "scene": {
-      "scene_all_open": { "name": "Blinds open" },
-      "scene_all_closed": { "name": "Blinds closed" }
     }
   }
 }

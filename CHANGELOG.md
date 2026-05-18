@@ -4,6 +4,25 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.8.7] — 2026-05-18
+
+### Bug fix — Alexa shows "All Blinds …" prefix
+
+Alexa was displaying entity names prefixed with the device name ("All Blinds Tous les volets", "All Blinds Les volets") because all hub entities had `_attr_has_entity_name = True`, which instructs HA to prepend the device name to the friendly name.
+
+Fix: all hub-device entities now use `_attr_has_entity_name = False` with explicit French names. Alexa reads the name directly, without the device prefix.
+
+| Entity | Before | After |
+|---|---|---|
+| Cover | "All Blinds Tous les volets" | **"Les volets"** |
+| Switch | "All Blinds Les volets" | **"Les volets"** |
+| Scene all_open | "All Blinds Volets ouverts" | **"Volets ouverts"** |
+| Scene all_closed | "All Blinds Volets fermés" | **"Volets fermés"** |
+
+Cover and switch share the name "Les volets" — Alexa routes correctly by verb type (open/close → cover; active/désactive → switch). Translation keys for switch and scene names removed (hardcoded French names).
+
+---
+
 ## [1.8.6] — 2026-05-18
 
 ### Alexa voice control

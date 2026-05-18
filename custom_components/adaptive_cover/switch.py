@@ -235,9 +235,9 @@ class AdaptiveControlAllSwitch(SwitchEntity):
     reads as ON only when adaptive control is active on all entries.
     """
 
-    _attr_has_entity_name = True
-    _attr_translation_key = "hub_control"
-    _attr_should_poll = True  # cheap: reads booleans on coordinators
+    _attr_has_entity_name = False  # full name set directly — no device prefix in Alexa
+    _attr_name = "Les volets"      # Alexa: "active / désactive les volets"
+    _attr_should_poll = True       # cheap: reads booleans on coordinators
     _attr_icon = "mdi:auto-mode"
 
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
