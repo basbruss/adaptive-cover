@@ -4,6 +4,16 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.8.2] — 2026-05-15
+
+### Bug fixes / migration
+
+- **Auto-cleanup of v1.8.0 leftover device** (`__init__.py`) — v1.8.0 created an implicit aggregate device with identifier `(DOMAIN, "all_covers")` attached to whichever config entry happened to load first. v1.8.1 stopped creating it but left the orphan record in HA's device registry, so users still saw a phantom "Adaptive Cover" device under their first one or two regular entries. v1.8.2 explicitly removes that device on first setup after upgrade (one-shot, idempotent).
+- **Auto-bootstrap of the hub entry** (`__init__.py` + `config_flow.py`) — when no `is_hub` config entry exists, the integration now creates one automatically on first setup of any regular entry, via an `import`-source flow. No more "where's the All-Blinds entry?" — it just appears.
+- **`async_step_import`** added to `ConfigFlowHandler` so the bootstrap can run without showing a UI popup; reuses the `single_instance_allowed` guard.
+
+---
+
 ## [1.8.1] — 2026-05-15
 
 ### Breaking change — "All Blinds" is now a dedicated config entry

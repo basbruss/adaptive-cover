@@ -423,6 +423,15 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             options={},
         )
 
+    async def async_step_import(self, import_data: dict[str, Any]):
+        """Programmatic hub bootstrap from ``__init__._async_bootstrap_hub_entry``.
+
+        Same single-instance guard as the manual ``all_blinds`` step.
+        """
+        if not import_data.get(CONF_IS_HUB):
+            return self.async_abort(reason="unknown")
+        return await self.async_step_all_blinds()
+
     async def async_step_vertical(self, user_input: dict[str, Any] | None = None):
         """Show basic config for vertical blinds."""
         self.type_blind = SensorType.BLIND
