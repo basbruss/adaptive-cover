@@ -17,7 +17,7 @@ name = "adaptive_cover"
 packages = []
 readme = "README.md"
 repository = "https://github.com/kamahat/adaptive-cover"
-version = "1.8.9"
+version = "1.8.10"
 
 [tool.poetry.dependencies]
 homeassistant = "2026.5.1"

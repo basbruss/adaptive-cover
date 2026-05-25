@@ -529,10 +529,13 @@ class ClimateCoverState(NormalCoverState):
     def normal_without_presence(self) -> int:
         """Determine state for horizontal and vertical covers without occupants.
 
-        When nobody is home covers are always closed (0 %) — regardless of
-        sun position, season or temperature thresholds.
+        When nobody is home covers close to the **minimum configured position**
+        regardless of sun position, season or the "apply min only when sun is
+        in window" flag (``min_pos_bool``).  Falls back to 0 % when no minimum
+        position is configured.
         """
-        return 0
+        min_pos = self.cover.min_pos
+        return min_pos if min_pos is not None else 0
 
     def tilt_with_presence(self, degrees: int) -> int:
         """Determine state for tilted blinds with occupants."""
@@ -550,15 +553,17 @@ class ClimateCoverState(NormalCoverState):
     def tilt_without_presence(self, degrees: int) -> int:
         """Determine state for tilted blinds without occupants.
 
-        When nobody is home slats are always closed (0 %) — regardless of
-        sun position, season or temperature thresholds.
+        When nobody is home slats close to the **minimum configured position**
+        regardless of sun position, season or the ``min_pos_bool`` flag.
+        Falls back to 0 % when no minimum position is configured.
         """
         # assert isinstance: tilt_without_presence is only called
         # when blind_type == "cover_tilt", so self.cover is always
         # AdaptiveTiltCover (has beta and mode). The assert lets the linter
         # (pylint/mypy) narrow the type without using cast().
         assert isinstance(self.cover, AdaptiveTiltCover)
-        return 0
+        min_pos = self.cover.min_pos
+        return min_pos if min_pos is not None else 0
 
     def tilt_state(self):
         """Add tilt specific controls."""

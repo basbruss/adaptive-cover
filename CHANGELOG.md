@@ -4,6 +4,23 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.8.10] — 2026-05-25
+
+### Improvement — absent mode closes to minimum position
+
+When nobody is home (`presence_entity = off`), covers now close to the **configured minimum position** (`min_pos`) instead of 0 %.
+
+The "apply min position only when sun is in front of the window" flag (`min_pos_bool`) is intentionally ignored in absent mode — privacy and energy savings take priority over the sun-tracking condition.
+
+| Scenario | Before (v1.8.9) | After (v1.8.10) |
+|---|---|---|
+| Away, min_pos = 20 % | 0 % (fully closed) | **20 %** (min position) |
+| Away, no min_pos configured | 0 % | 0 % (unchanged) |
+
+Applies to vertical/horizontal covers (`normal_without_presence`) and tilt blinds (`tilt_without_presence`).
+
+---
+
 ## [1.8.9] — 2026-05-25
 
 ### Bug fix — covers do not close when presence sensor is OFF
