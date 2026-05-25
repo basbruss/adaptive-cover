@@ -28,10 +28,22 @@ from homeassistant.components.cover import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_IS_HUB, DOMAIN, LOGGER
+from .const import CONF_IS_HUB, CONF_SENSOR_TYPE, DOMAIN, LOGGER
+from .coordinator import AdaptiveDataUpdateCoordinator
+
+# unique_id suffix used by the per-entry cover entity (v1.8.11+)
+_ENTRY_COVER_SUFFIX = "_entry_cover"
+
+_SENSOR_TYPE_LABEL = {
+    "cover_blind": "Vertical",
+    "cover_awning": "Horizontal",
+    "cover_tilt": "Tilt",
+}
 
 
 async def async_setup_entry(
@@ -39,14 +51,136 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Register the aggregate cover entity, but only for the hub entry.
+    """Register cover entities.
 
-    Regular per-cover entries don't register anything on the ``cover``
-    platform — they only expose sensors / switches / etc.
+    Hub entry   → singleton aggregate ``AdaptiveCoverAll`` (all groups).
+    Regular entry → per-entry aggregate ``AdaptiveCoverEntry`` (this group only).
     """
-    if not config_entry.data.get(CONF_IS_HUB):
+    if config_entry.data.get(CONF_IS_HUB):
+        async_add_entities([AdaptiveCoverAll(hass, config_entry)], update_before_add=True)
         return
-    async_add_entities([AdaptiveCoverAll(hass, config_entry)], update_before_add=True)
+
+    # ── Regular entry ─────────────────────────────────────────────────────────
+    coordinator: AdaptiveDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+
+    # Clean up orphan cover entities left behind by v1.7.x (before the hub
+    # entry was introduced). Those entities shared the same device but had
+    # different unique_ids (e.g. "{entry_id}" with no suffix).
+    _cleanup_orphan_cover_entities(hass, config_entry)
+
+    async_add_entities(
+        [AdaptiveCoverEntry(config_entry, coordinator)],
+        update_before_add=True,
+    )
+
+
+def _cleanup_orphan_cover_entities(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+    """Remove legacy cover entities from a regular entry's device.
+
+    v1.7.x registered one cover entity per config entry (aggregate of that
+    entry's covers). v1.8.1 moved the aggregate to the hub entry and
+    stopped creating anything on the cover platform for regular entries.
+    This left orphan ``cover.*`` entities in the entity registry pointing
+    to the regular-entry device.
+
+    We now create ``AdaptiveCoverEntry`` (unique_id ending with
+    ``_entry_cover``); any other cover entity on the same device is an
+    orphan from a previous version and is removed here.
+    """
+    ent_reg = er.async_get(hass)
+    expected_unique_id = f"{config_entry.entry_id}{_ENTRY_COVER_SUFFIX}"
+
+    entries = er.async_entries_for_config_entry(ent_reg, config_entry.entry_id)
+    for entry in entries:
+        if entry.domain == "cover" and entry.unique_id != expected_unique_id:
+            LOGGER.info(
+                "Removing orphan cover entity %s (unique_id=%s) from entry %s",
+                entry.entity_id,
+                entry.unique_id,
+                config_entry.entry_id,
+            )
+            ent_reg.async_remove(entry.entity_id)
+
+
+class AdaptiveCoverEntry(
+    CoordinatorEntity[AdaptiveDataUpdateCoordinator], CoverEntity
+):
+    """Per-entry aggregate cover entity.
+
+    Controls all physical covers declared in this Adaptive Cover config entry.
+    Reported position is the coordinator's calculated adaptive position
+    (same value as the Cover Position sensor).
+
+    This entity is the "main" entity of the regular-entry device — it provides
+    direct cover control (open / close / set position) scoped to this group.
+    """
+
+    _attr_has_entity_name = True
+    _attr_name = None           # main feature entity: display name = device name
+    _attr_should_poll = False
+    _attr_device_class = CoverDeviceClass.BLIND
+    _attr_supported_features = (
+        CoverEntityFeature.OPEN
+        | CoverEntityFeature.CLOSE
+        | CoverEntityFeature.STOP
+        | CoverEntityFeature.SET_POSITION
+    )
+
+    def __init__(
+        self,
+        config_entry: ConfigEntry,
+        coordinator: AdaptiveDataUpdateCoordinator,
+    ) -> None:
+        """Bind this entity to the regular entry's device."""
+        super().__init__(coordinator=coordinator)
+        sensor_type = config_entry.data.get(CONF_SENSOR_TYPE, "cover_blind")
+        device_name = _SENSOR_TYPE_LABEL.get(sensor_type, "Cover")
+        self._attr_unique_id = f"{config_entry.entry_id}{_ENTRY_COVER_SUFFIX}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, config_entry.entry_id)},
+            name=device_name,
+        )
+        self._coordinator = coordinator
+
+    # ── State ─────────────────────────────────────────────────────────────────
+
+    @property
+    def current_cover_position(self) -> int | None:
+        """Adaptive position calculated by the coordinator (0-100)."""
+        try:
+            return int(self.coordinator.data.states["state"])
+        except (TypeError, ValueError, KeyError):
+            return None
+
+    @property
+    def is_closed(self) -> bool | None:
+        """True when the adaptive position is 0 %."""
+        pos = self.current_cover_position
+        return None if pos is None else pos == 0
+
+    # ── Actions ───────────────────────────────────────────────────────────────
+
+    async def async_open_cover(self, **kwargs: Any) -> None:
+        """Open all covers in this entry (manual)."""
+        LOGGER.debug("AdaptiveCoverEntry: open → 100 %%")
+        for entity_id in self._coordinator.entities:
+            await self._coordinator.async_set_position(entity_id, 100)
+
+    async def async_close_cover(self, **kwargs: Any) -> None:
+        """Close all covers in this entry (manual)."""
+        LOGGER.debug("AdaptiveCoverEntry: close → 0 %%")
+        for entity_id in self._coordinator.entities:
+            await self._coordinator.async_set_position(entity_id, 0)
+
+    async def async_set_cover_position(self, **kwargs: Any) -> None:
+        """Move all covers in this entry to a specific position (manual)."""
+        position = int(kwargs.get(ATTR_POSITION, 100))
+        LOGGER.debug("AdaptiveCoverEntry: set position %d %%", position)
+        for entity_id in self._coordinator.entities:
+            await self._coordinator.async_set_position(entity_id, position)
+
+    async def async_stop_cover(self, **kwargs: Any) -> None:
+        """No-op — individual covers handle their own stop."""
 
 
 def _iter_coordinators(hass: HomeAssistant):

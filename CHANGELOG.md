@@ -4,6 +4,25 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.8.11] — 2026-05-25
+
+### New feature — per-entry cover entity + cleanup of orphan covers
+
+Each regular config entry now exposes its **own cover entity** (`AdaptiveCoverEntry`) in its device card. This entity:
+
+- Reports the **adaptive position** calculated by the coordinator (same value as the Cover Position sensor).
+- Supports **open / close / set position** — moves all physical covers in this entry group (manual mode).
+- Appears as the **main entity** of the device (name = device name, no suffix).
+
+Additionally, orphan `cover.*` entities left behind by v1.7.x (before the hub entry was separated) are now **automatically removed** from the entity registry on first setup. This cleans up the stale "Tous les volets" entry that was still visible in individual device pages.
+
+| Entity | Device | Scope |
+|---|---|---|
+| `AdaptiveCoverEntry` *(new)* | Regular entry device (e.g. "aVR Aline") | Covers in this entry group only |
+| `AdaptiveCoverAll` *(unchanged)* | Hub "All Blinds" device | All covers across all entries |
+
+---
+
 ## [1.8.10] — 2026-05-25
 
 ### Improvement — absent mode closes to minimum position
