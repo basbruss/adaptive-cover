@@ -4,6 +4,26 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.8.9] — 2026-05-25
+
+### Bug fix — covers do not close when presence sensor is OFF
+
+When `binary_sensor.presence_at_home` (or any binary/boolean presence entity) turned **off**, covers were expected to close but stayed at their default position in two situations:
+
+1. **Intermediate season** (temperature between `temp_low` and `temp_high`) — `normal_without_presence` only closed covers in summer mode; in intermediate mode it fell through to `self.cover.default`.
+2. **Sun outside the window FOV** — regardless of season, when the sun was not directly in front of the window the function also fell through to `self.cover.default`.
+
+Fix (`calculation.py` — `ClimateCoverState`):
+
+| Function | Before | After |
+|---|---|---|
+| `normal_without_presence` | Close (0 %) only when summer **and** sun in FOV; otherwise `default` | **Always 0 %** — no one home → always closed |
+| `tilt_without_presence` | Fall back to `NormalCoverState.get_state()` when sun outside FOV | **Always 0 %** — no one home → always closed |
+
+> **Note**: the presence entity is only evaluated when **Climate Mode** is enabled for the entry. Entries without climate mode are unaffected.
+
+---
+
 ## [1.8.8] — 2026-05-18
 
 ### Bug fix — Alexa shows "All Blinds Volets ouverts" for scenes

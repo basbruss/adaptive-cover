@@ -527,13 +527,12 @@ class ClimateCoverState(NormalCoverState):
         return super().get_state()
 
     def normal_without_presence(self) -> int:
-        """Determine state for horizontal and vertical covers without occupants."""
-        if self.cover.valid:
-            if self.climate_data.is_summer:
-                return 0
-            if self.climate_data.is_winter:
-                return 100
-        return self.cover.default
+        """Determine state for horizontal and vertical covers without occupants.
+
+        When nobody is home covers are always closed (0 %) — regardless of
+        sun position, season or temperature thresholds.
+        """
+        return 0
 
     def tilt_with_presence(self, degrees: int) -> int:
         """Determine state for tilted blinds with occupants."""
@@ -549,22 +548,17 @@ class ClimateCoverState(NormalCoverState):
         return 80 / degrees * 100
 
     def tilt_without_presence(self, degrees: int) -> int:
-        """Determine state for tilted blinds without occupants."""
+        """Determine state for tilted blinds without occupants.
+
+        When nobody is home slats are always closed (0 %) — regardless of
+        sun position, season or temperature thresholds.
+        """
         # assert isinstance: tilt_without_presence is only called
         # when blind_type == "cover_tilt", so self.cover is always
         # AdaptiveTiltCover (has beta and mode). The assert lets the linter
         # (pylint/mypy) narrow the type without using cast().
         assert isinstance(self.cover, AdaptiveTiltCover)
-        beta = np.rad2deg(self.cover.beta)
-        if self.cover.valid:
-            if self.climate_data.is_summer:
-                # block out all light in summer
-                return 0
-            if self.climate_data.is_winter and self.cover.mode == "mode2":
-                # parallel to sun beams, not possible with single direction
-                return (beta + 90) / degrees * 100
-            return 80 / degrees * 100
-        return super().get_state()
+        return 0
 
     def tilt_state(self):
         """Add tilt specific controls."""
