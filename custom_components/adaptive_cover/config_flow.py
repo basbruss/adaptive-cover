@@ -177,20 +177,37 @@ VERTICAL_OPTIONS = vol.Schema(
 ).extend(OPTIONS.schema)
 
 
-HORIZONTAL_OPTIONS = vol.Schema(
-    {
-        vol.Required(CONF_LENGTH_AWNING, default=2.1): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=0.3, max=6, step=0.01, mode="slider", unit_of_measurement="m"
-            )
-        ),
-        vol.Required(CONF_AWNING_ANGLE, default=0): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=0, max=45, mode="slider", unit_of_measurement="°"
-            )
-        ),
-    }
-).extend(VERTICAL_OPTIONS.schema)
+HORIZONTAL_OPTIONS = (
+    vol.Schema(
+        {
+            vol.Required(CONF_LENGTH_AWNING, default=2.1): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0.3, max=6, step=0.01, mode="slider", unit_of_measurement="m"
+                )
+            ),
+            vol.Required(CONF_AWNING_ANGLE, default=0): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0, max=45, mode="slider", unit_of_measurement="°"
+                )
+            ),
+        }
+    )
+    .extend(VERTICAL_OPTIONS.schema)
+    .extend(
+        {
+            vol.Required(CONF_FOV_LEFT, default=90): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1, max=180, step=1, mode="slider", unit_of_measurement="°"
+                )
+            ),
+            vol.Required(CONF_FOV_RIGHT, default=90): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1, max=180, step=1, mode="slider", unit_of_measurement="°"
+                )
+            ),
+        }
+    )
+)
 
 TILT_OPTIONS = vol.Schema(
     {

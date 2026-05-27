@@ -534,6 +534,22 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
     awn_length: float
     awn_angle: float
 
+    @property
+    def valid(self) -> bool:
+        """Determine if sun is in front of awning.
+
+        Horizontal awnings shade outdoor areas where the sun can be effective
+        at angles beyond 90° from the window normal. The 90° cap from the base
+        class is intentionally removed here.
+        """
+        valid = (
+            (self.gamma < self.fov_left)
+            & (self.gamma > -self.fov_right)
+            & (self.valid_elevation)
+        )
+        self.logger.debug("Sun in front of awning (ignoring blindspot)? %s", valid)
+        return valid
+
     def calculate_position(self) -> float:
         """Calculate awn length from blind height."""
         awn_angle = 90 - self.awn_angle
