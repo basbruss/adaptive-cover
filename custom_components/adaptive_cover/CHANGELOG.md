@@ -4,6 +4,68 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ---
 
+## [1.9.0] — 2026-05-30
+
+### New features
+
+- **Security mode** — closes covers automatically when nobody is home, protecting
+  the house while respecting the climate mode's intent.
+
+  **Activation:** security switch ON **and** presence entity reports absence.
+  If no presence entity is configured on an entry, security mode is inactive
+  for that entry even when the switch is ON.
+
+  **Position rules:**
+
+  | Situation | Position cible |
+  |---|---|
+  | No climate mode | 0 % (fully closed) |
+  | Climate mode + summer branch | 0 % (fully closed) |
+  | Climate mode + winter branch | `CONF_MIN_POSITION` (or 0 if unset) |
+  | Climate mode + intermediate branch | `CONF_MIN_POSITION` (or 0 if unset) |
+
+  **Interaction with manual override:** covers flagged as manually controlled
+  (`is_cover_manual=True`) are skipped — the user's explicit action takes
+  precedence. Security mode does NOT call `mark_manual_control`, so the
+  automatic return to adaptive positioning is not blocked when presence
+  is restored.
+
+  **Automatic return:** when the presence entity switches back to "home",
+  the presence state-change event triggers a coordinator refresh which
+  re-evaluates `security_active → False` and resumes adaptive positioning.
+
+- **Per-entry security switch** (`switch.py`) — `AdaptiveCoverSwitch("Security Mode")`
+  added to each regular entry that has a presence entity configured.
+  Default state: OFF. Restored on HA restart via `RestoreEntity`.
+
+- **Hub security switch** (`switch.py`) — `AdaptiveSecurityAllSwitch`
+  ("Sécurité volets") added to the "All Blinds" hub device.
+  Acts on all entries that have a presence entity configured.
+  Entries without a presence entity are ignored (no-op).
+
+- **`is_presence_detected()` helper** (`helpers.py`) — shared helper that
+  implements presence detection for `device_tracker`, `zone`, `binary_sensor`,
+  and `input_boolean`. Both `ClimateCoverData.is_presence` and the new
+  `coordinator.security_active` now delegate to this function, eliminating
+  duplicate logic.
+
+- **`CONF_SECURITY_MODE` constant** (`const.py`) — documents the runtime key
+  used by the security toggle; not stored in config options (the switch manages
+  the coordinator toggle directly).
+
+### Changes
+
+- **`calculation.py` `ClimateCoverData.is_presence`** — now delegates to
+  `helpers.is_presence_detected()` instead of duplicating the domain-check logic.
+
+- **`coordinator.py`** — new `security_toggle` property/setter, `security_active`
+  property, and `_apply_security_position()` method. Security check injected into
+  `async_handle_state_change`, `async_handle_first_refresh`, and
+  `async_handle_timed_refresh` — security position takes priority over adaptive
+  positioning when active.
+
+---
+
 ## [1.8.11] — 2026-05-30
 
 ### New features
@@ -23,7 +85,7 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ### Bug fixes
 
-- **Alexa name prefix** — Hub entities (cover, switch) had `_attr_has_entity_name = True`, which caused Alexa to prefix their names with the device name ("All Blinds Les volets" instead of "Les volets"). Fixed by setting `_attr_has_entity_name = False` and hard-coding the full name on all hub entities (cover, switch, scenes).
+- **Alexa name prefix** — Hub entities (cover, switch) had `_attr_has_entity_name = True`, causing Alexa to prefix their names with the device name. Fixed by setting `_attr_has_entity_name = False` on all hub entities.
 
 ---
 
@@ -31,8 +93,8 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ### Changes
 
-- **Hub switch re-added** — `AdaptiveControlAllSwitch` ("Les volets") re-added to the hub entry after being replaced by the select in v1.8.4. Both coexist: the switch handles Alexa voice control ("active / désactive les volets") while the select handles HA dashboard control.
-- **Scenes simplified to 2** — Reduced from 4 scenes (open/closed + adaptive on/off) to 2 position scenes only (`all_open`, `all_closed`). Adaptive on/off is handled by the switch.
+- **Hub switch re-added** — `AdaptiveControlAllSwitch` re-added alongside the select.
+- **Scenes simplified to 2** — `all_open` and `all_closed` only. Adaptive on/off handled by the switch.
 
 ---
 
@@ -40,8 +102,8 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ### New features
 
-- **Hub scenes** (`scene.py`) — 4 scenes on the hub device for Alexa shortcuts and automations.
-- **`iter_regular_coordinators`** moved to `helpers.py` — Shared helper to iterate regular-entry coordinators, imported by `select.py` and `scene.py`.
+- **Hub scenes** (`scene.py`) — Position shortcuts for Alexa and automations.
+- **`iter_regular_coordinators`** moved to `helpers.py`.
 
 ---
 
@@ -49,7 +111,7 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ### Changes
 
-- **Hub select replaces hub switch** — `AdaptiveControlModeSelect` (4 states: `auto`, `off`, `all_open`, `all_closed`) replaces the binary `AdaptiveControlAllSwitch` on the hub. Restores last selected state on HA restart via `RestoreEntity`.
+- **Hub select** — `AdaptiveControlModeSelect` (4 states: auto / off / all_open / all_closed) with RestoreEntity.
 
 ---
 
@@ -57,7 +119,7 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ### New features
 
-- **Hub switch** (`switch.py`) — `AdaptiveControlAllSwitch` added to the hub entry. Enables/disables adaptive control across all regular entries and clears manual overrides on turn-on.
+- **Hub switch** — `AdaptiveControlAllSwitch` for adaptive on/off on all entries.
 
 ---
 
@@ -65,8 +127,8 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ### New features
 
-- **Auto-cleanup v1.8.0 leftover device** — `_cleanup_v18_leftover_device()` removes the orphan device with identifier `(DOMAIN, "all_covers")` left by v1.8.0. Runs once per HA boot (guarded by `_V18_CLEANUP_DONE`), idempotent.
-- **Auto-bootstrap hub entry** — If no hub entry exists when the first regular entry sets up, `_async_bootstrap_hub_entry()` creates it automatically via `SOURCE_IMPORT`. Guarded by `_HUB_BOOTSTRAPPED`.
+- **Auto-cleanup v1.8.0 leftover device** — idempotent, one-shot per boot.
+- **Auto-bootstrap hub entry** — via `SOURCE_IMPORT` if no hub exists.
 
 ---
 
@@ -74,8 +136,8 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ### Changes
 
-- **Dedicated hub config entry** — The "All Blinds" aggregate cover is now bound to its own singleton config entry (`is_hub=True`) instead of being attached to the first regular entry's device. The config flow menu now offers "All Blinds" as an explicit creation option.
-- **Cover platform only on hub** — Regular entries no longer create a cover entity on the `cover` platform (only the hub entry does). This avoids the v1.7.x pattern of one aggregate cover per regular entry.
+- **Dedicated hub config entry** — hub cover bound to its own singleton entry.
+- **Cover platform only on hub** — regular entries no longer create a cover entity on the `cover` platform.
 
 ---
 
@@ -83,8 +145,8 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ### New features
 
-- **Singleton aggregate cover** — A single `AdaptiveCoverAll` entity controls all covers across all regular entries (open/close/set_position broadcasts to every entry).
-- **Single-lookup optimisation** — `pos_sun` and `_get_current_position` now read `hass.states` once per call instead of using the deprecated `state_attr` helper.
+- **Singleton aggregate cover** — `AdaptiveCoverAll` controls all entries.
+- **Single-lookup optimisation** — `pos_sun` and `_get_current_position`.
 
 ---
 
@@ -92,8 +154,8 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ### Bug fixes
 
-- **`None` lux / irradiance on first refresh** — `_lux_toggle` and `_irradiance_toggle` were initialised to `None` when the entity was configured, causing `lux()` to short-circuit to `False` and preventing Winter mode on the first coordinator refresh. Fixed by initialising to `True` when the entity is configured (matching `initial_state=True` of the corresponding switch).
-- **`OptionsFlow.config_entry` read-only** — Since HA 2025.12, `OptionsFlowWithConfigEntry.config_entry` is a read-only property. Any assignment now raises `AttributeError`. All direct assignments to `self.config_entry` in the options flow were removed.
+- **`None` lux / irradiance on first refresh** — `_lux_toggle` / `_irradiance_toggle` initialised to `True` (not `None`) when configured.
+- **`OptionsFlow.config_entry` read-only** — All direct assignments removed (read-only since HA 2025.12).
 
 ---
 
@@ -101,11 +163,7 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ### Bug fixes
 
-- **`state_attr` removed from HA core** — `homeassistant.helpers.template.state_attr` was removed in recent Home Assistant versions, causing the integration to crash silently when reading entity attributes. Both `calculation.py` and `coordinator.py` now use a local `state_attr()` helper in `helpers.py` that reads directly from `hass.states`. Affected paths:
-  - Weather entity temperature (`calculation.py`)
-  - Climate temperature entity (`calculation.py`)
-  - Cover current position and tilt position (`coordinator.py`)
-  - Sun azimuth and elevation (`coordinator.py`)
+- **`state_attr` removed from HA core** — replaced by `helpers.state_attr()`.
 
 ---
 
@@ -113,95 +171,18 @@ All notable changes to **Adaptive Cover** are documented here.
 
 ### New features
 
-- **Global cover entity** (`cover.py`) — Each config entry now exposes a single aggregate `cover.*` entity that controls all physical covers in the group simultaneously.
-  - `open_cover` / `close_cover` / `set_cover_position` → moves all covers and flags them as *manual*.
-  - `turn_on` → re-enables adaptive control and clears all manual flags.
-  - `turn_off` → disables adaptive control.
-  - State reports the average position across all covers.
-
-- **Climate Debug diagnostic sensor** (`sensor.py`) — New `sensor.climate_debug_<name>` entity (category: Diagnostic) that exposes every intermediate value in the climate decision tree as attributes. Key attributes: `is_winter`, `is_summer`, `is_presence`, `sun_in_window`, `temp_inside`, `temp_outside`, `temp_used_winter`, `temp_used_summer`, `active_branch`, and all threshold values.
+- **Global cover entity** — open/close/set_position / turn_on / turn_off.
+- **Climate Debug diagnostic sensor** — full snapshot of climate decision inputs.
 
 ### Bug fixes
 
-- **Switches turning OFF after HA restart** (`switch.py`) — `async_added_to_hass()` was not calling `super()`, which prevented `CoordinatorEntity` from registering its state-update listener. Fixed by calling `await super().async_added_to_hass()` before restoring the last state.
-
-- **`control_method` stuck in `summer` or `winter`** (`coordinator.py`) — Two independent `if` statements in `climate_mode_data()` prevented returning to `intermediate` once a seasonal mode was set. Fixed with `if / elif / else`.
-
-- **`temperature_for_winter` / `temperature_for_summer`** (`calculation.py`) — Introduced dedicated properties that apply the correct sensor source for each seasonal check: inside sensor preferred for winter, outside sensor (when `temp_switch=True`) for summer.
-
-- **`start_time` not assigned** (`coordinator.py`) — `self._start_time` was not assigned when using a static start time (only the entity path wrote it). The missing assignment prevented the `start_time > end_time` cross-check from ever working.
+- **Switches turning OFF after HA restart** — `super().async_added_to_hass()` now called.
+- **`control_method` stuck in summer/winter** — `if/elif/else` fix.
+- **`temperature_for_winter` / `temperature_for_summer`** — dedicated properties.
+- **`start_time` not assigned** — `self._start_time` now written in static path.
 
 ---
 
 ## [1.5.0] — 2026-05-07 (baseline)
 
-Initial tracked version. Features present at this baseline:
-
-### Core
-
-- Sun-position tracking using `sun.sun` azimuth and elevation.
-- Three cover types: **vertical blind**, **horizontal awning**, **tilt (venetian)**.
-- Field-of-view (FOV) configuration per window (left/right angle offsets from window normal).
-- Default fallback position when sun is outside FOV.
-
-### Cover control
-
-- Grouping of multiple `cover.*` entities under a single config entry.
-- `Toggle Control` switch to enable/disable adaptive positioning.
-- `Manual Override` switch — automatically activated when the cover is moved manually.
-- Manual override duration with configurable reset time.
-- Manual threshold: minimum position delta considered a manual move.
-- Option to ignore intermediate positions (only fully open/closed moves count as manual).
-
-### Time window
-
-- Static start/end times or `input_datetime` entity references.
-- Sunrise/sunset offsets.
-- Configurable sunset position with optional return-to-default behaviour.
-
-### Position limits
-
-- Optional minimum and maximum position clamps.
-
-### Climate mode (optional)
-
-- Three-branch logic: **summer** (block heat), **winter** (solar gain), **intermediate** (sun tracking).
-- Indoor temperature entity.
-- Outdoor temperature entity or weather entity as temperature source.
-- Configurable `temp_low` (winter) and `temp_high` (summer) thresholds.
-- Presence entity to bypass climate logic when nobody is home.
-- Weather condition filter for "sunny" states.
-
-### Light threshold (optional)
-
-- Lux sensor with configurable threshold.
-- Irradiance sensor with configurable threshold.
-- Individual enable/disable switches for lux and irradiance checks.
-
-### Blind spot
-
-- Azimuth range where adaptive positioning is suspended.
-- Configurable minimum elevation for blind spot activation.
-
-### Tilt options
-
-- Slat depth and spacing for accurate tilt angle calculation.
-- Mode 1 (0°–90°) and Mode 2 (0°–180°, bi-directional).
-
-### Transparent blind
-
-- Position adjustment for semi-transparent materials.
-
-### Interpolation
-
-- Custom position curve mapping sun angle to cover position.
-
-### Sensors
-
-- Cover Position sensor (%).
-- Start Sun / End Sun timestamp sensors.
-- Control Method sensor.
-
-### Platforms
-
-- `sensor`, `switch`, `binary_sensor`, `button`, `cover`.
+Initial tracked version. Sun tracking, three cover types, FOV, climate mode, lux/irradiance thresholds, blind spot, tilt, interpolation.
