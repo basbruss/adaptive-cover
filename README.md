@@ -159,9 +159,9 @@ flowchart TD
     WCHECK -- Yes --> OPEN["🪟 Open fully (100%)\nsolar gain"]
 
     WCHECK -- No --> SCHECK{"🌡️ SUMMER?\ntemp > temp_high"}
-    SCHECK -- Yes --> TRANSP{"Transparent\nblind?"}
-    TRANSP -- Yes --> CALC
-    TRANSP -- No --> CLOSE["🪟 Close fully (0%)\nblock heat"]
+    SCHECK -- Yes --> TRANSP{"Transparent / perforated blind?\n(filters only —\ncannot fully block heat)"}
+    TRANSP -- "Yes\n(filter only)" --> CALC
+    TRANSP -- "No\n(opaque)" --> CLOSE["🪟 Close fully (0%)\nblock heat"]
 
     SCHECK -- "No\n(intermediate)" --> LIGHT{"Overcast?\nlux ≤ threshold\nOR irradiance ≤ threshold?"}
     LIGHT -- "Yes\n(dim light)" --> DEFAULT
@@ -191,6 +191,8 @@ flowchart TD
 
 > **Execution priority**: Security (1) > Climate (2) > Basic (3)
 > Security is evaluated **before** the time window check — it closes covers even outside the configured start/end hours.
+>
+> **Transparent vs opaque**: a transparent/perforated blind can only filter light and cannot block heat even when closed — adaptive positioning is kept. An opaque blind *can* block heat, so 0% is the correct summer action.
 
 ### Basic mode
 
@@ -208,8 +210,8 @@ This mode calculates the position based on extra parameters for presence, indoor
 
   - **Winter** (`temp < temp_low`): Opens fully (100%) to capture solar heat, regardless of lux/weather.
   - **Summer** (`temp > temp_high`):
-    - Transparent blind → calculate position (shading only)
-    - Opaque blind → close fully (0%)
+    - Transparent/perforated blind → calculate position (filtering/shading only — cannot block heat)
+    - Opaque blind → close fully (0%) to block heat
   - **Intermediate**: Follows sun geometry if sunny/bright; falls back to default position when overcast or lux/irradiance below threshold.
 
   For tilted blinds above summer threshold: slats are positioned at 45° ([found optimal](https://www.mdpi.com/1996-1073/13/7/1731)).
@@ -303,6 +305,7 @@ Security mode closes covers automatically when nobody is home, regardless of the
 | Outdoor Temperature Threshold | `None`  |       |                                               | If set, summer mode activates only when outside temp is also above this threshold |
 | Presence Entity               | `None`  |       |                                               | Used for both climate mode AND security mode                                                                                                         |
 | Weather Entity                | `None`  |       | `weather.home`                                | Can also serve as outdoor temperature sensor                                                                                                         |
+| Transparent Blind             | `False` |       |                                               | Enable if blind is perforated/mesh — filters only, keeps adaptive positioning in summer instead of closing to 0%                                     |
 | Lux Entity                    | `None`  |       | `sensor.lux`                                  | Returns measured lux                                                                                                                                 |
 | Lux Threshold                 | `1000`  |       |                                               | Below threshold → treated as "not sunny" in intermediate branch                                                                                      |
 | Irradiance Entity             | `None`  |       | `sensor.irradiance`                           | Returns measured irradiance                                                                                                                          |
