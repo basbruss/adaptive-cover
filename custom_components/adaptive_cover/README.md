@@ -179,9 +179,9 @@ flowchart TD
     WIN{"WINTER?\ntemp_inside < temp_low"}
     C100(["100% open\n☀️ capture solar heat"])
     SUM{"SUMMER?\ntemp_ref > temp_high\nAND outside_high"}
-    TRANS{"transparent\nblind?"}
-    BCALC(["basic calculated\nshading only"])
-    ZERO(["0% closed\n🔒 block heat"])
+    TRANS{"Transparent / perforated?\n(filters only —\ncannot fully block heat)"}
+    BCALC(["basic calculated\nshading / filtering only"])
+    ZERO(["0% closed\n🔒 opaque — blocks heat"])
     INTER["INTERMEDIATE"]
     LUX{"overcast?\nlux ≤ threshold\nor irradiance ≤ threshold?"}
     LDEF["default position"]
@@ -197,8 +197,8 @@ flowchart TD
     WIN -->|YES| C100
     WIN -->|NO| SUM
     SUM -->|YES| TRANS
-    TRANS -->|YES| BCALC
-    TRANS -->|NO| ZERO
+    TRANS -->|"YES (filter only)"| BCALC
+    TRANS -->|"NO (opaque)"| ZERO
     SUM -->|NO| INTER --> LUX
     LUX -->|YES| LDEF
     LUX -->|NO| LCALC
@@ -214,6 +214,9 @@ flowchart TD
     style LDEF fill:#7f8c8d,color:#fff
     style COUT fill:#2980b9,color:#fff
 ```
+
+> **Why transparent → calculate, opaque → close?**
+> A transparent/perforated blind can only filter light — it cannot meaningfully block heat even when fully closed. Adaptive positioning is therefore kept for maximum shading effect. An opaque blind *can* block heat entirely, so closing to 0% is the optimal summer action.
 
 ---
 
@@ -310,6 +313,7 @@ Enable via **Settings → [entry] → Configure → Climate settings**.
 | **Use outside temperature** | Compare outside temp to `temp_high` |
 | **Weather condition** | States considered "sunny" |
 | **Presence entity** | Used for both **climate mode** and **security mode** |
+| **Transparent blind** | Enable if blind is perforated/mesh — filters only, cannot block heat |
 
 ### Security mode
 
