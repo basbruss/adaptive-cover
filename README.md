@@ -122,24 +122,24 @@ This component supports **three** strategy modes: a `basic` mode, a `climate` (c
 |------|----------|-------------|
 | `basic` | 3 (base) | Pure sun-position tracking |
 | `climate` | 2 | Adapts to temperature — summer / winter / intermediate |
-| `security` | **1 (highest)** | Closes covers on absence — overrides all other logic |
+| `security` | **1 (highest)** | Closes covers on absence — overrides all other logic **including outside the time window** |
 
 ```mermaid
 flowchart TD
     START(["☀️ Sun data update"])
 
-    START --> TIME{"Within active\ntime window?"}
-    TIME -- No --> SUNSET["🌙 Return sunset /\ndefault position"]
-
-    TIME -- Yes --> CTRL{"Toggle Control\nswitch ON?"}
+    START --> CTRL{"Toggle Control\nswitch ON?"}
     CTRL -- No --> DEFAULT["↩️ Return default\nposition"]
 
-    CTRL -- Yes --> MANUAL{"Manual override\nactive?"}
+    CTRL -- Yes --> SECURITY{"🛡️ Security mode\nON + no presence?"}
+    SECURITY -- "Yes\n(absent)" --> SECPOS["🛡️ Security position\n0% or min_position\n(0% if no climate\nor summer branch)"]
+    SECURITY -- No --> TIME{"Within active\ntime window?"}
+    TIME -- No --> SUNSET["🌙 Return sunset /\ndefault position"]
+
+    TIME -- Yes --> MANUAL{"Manual override\nactive?"}
     MANUAL -- Yes --> HOLD["🔒 Hold current\nposition"]
 
-    MANUAL -- No --> SECURITY{"🛡️ Security mode\nON + no presence?"}
-    SECURITY -- "Yes\n(absent)" --> SECPOS["🛡️ Security position\n0% or min_position\n(0% if no climate\nor summer branch)"]
-    SECURITY -- No --> SUN{"Sun in field of view\nAND elevation > 0?"}
+    MANUAL -- No --> SUN{"Sun in field of view\nAND elevation > 0?"}
     SUN -- No --> DEFAULT
 
     SUN -- Yes --> CLMODE{"Climate\nMode?"}
@@ -168,15 +168,13 @@ flowchart TD
     LIGHT -- "No\n(sunny)" --> CALC
 
     %% ── COMMON FINAL STEPS ────────────────────────
-    LIMITS["🔧 Apply min / max position limits\n+ blind spot correction"]
+    LIMITS["🔧 Apply min / max position limits\n+ blind spot correction\n+ delta position check"]
     OPEN --> LIMITS
     CLOSE --> LIMITS
     PNONE --> LIMITS
     SECPOS --> LIMITS
 
-    LIMITS --> DELTA{"Position change\n> delta threshold?"}
-    DELTA -- No --> HOLD
-    DELTA -- Yes --> RESULT(["✅ Apply new position\nto cover(s)"])
+    LIMITS --> RESULT(["✅ Apply new position\nto cover(s)"])
 
     %% ── STYLES ────────────────────────────────────
     style CLOSE   fill:#f28b82,color:#000
@@ -190,6 +188,9 @@ flowchart TD
     style SECPOS   fill:#ff9800,color:#fff,stroke:#e65100
     style PNONE    fill:#e8eaed,color:#000
 ```
+
+> **Execution priority**: Security (1) > Climate (2) > Basic (3)
+> Security is evaluated **before** the time window check — it closes covers even outside the configured start/end hours.
 
 ### Basic mode
 
@@ -215,7 +216,7 @@ This mode calculates the position based on extra parameters for presence, indoor
 
 ### Security mode
 
-Security mode closes covers automatically when nobody is home, regardless of the current climate branch.
+Security mode closes covers automatically when nobody is home, regardless of the current climate branch and regardless of the configured time window.
 
 **Requires a presence entity** to be configured in the entry options. Without one, the switch exists but has no effect.
 
@@ -229,6 +230,7 @@ Security mode closes covers automatically when nobody is home, regardless of the
 - **Manual override always wins** — covers already in manual control are never moved by security
 - **Automatic return** — when presence is restored, adaptive positioning resumes without manual action
 - **Fail-safe** — unavailable presence sensor → security inactive (no spurious closing on sensor error)
+- **Outside time window** — security applies even outside the configured start/end hours
 
 ## Variables
 
