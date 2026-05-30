@@ -23,6 +23,7 @@ This integration builds upon the template sensor from this forum post [Automatic
     - [Basic mode](#basic-mode)
     - [Climate mode](#climate-mode)
       - [Climate strategies](#climate-strategies)
+    - [Security mode](#security-mode)
   - [Variables](#variables)
     - [Common](#common)
     - [Vertical](#vertical)
@@ -41,7 +42,7 @@ This integration builds upon the template sensor from this forum post [Automatic
 ## Features
 
 - Individual service devices for `vertical`, `horizontal` and `tilted` covers
-- Two mode approach with multiple strategies [Modes(`basic`,`climate`)](https://github.com/basbruss/adaptive-cover?tab=readme-ov-file#modes)
+- **Three** strategy modes: [`basic`](#basic-mode), [`climate`](#climate-mode), [`security`](#security-mode)
 - Binary Sensor to track when the sun is in front of the window
 - Sensors for `start` and `end` time
 - Auto manual override detection
@@ -51,8 +52,17 @@ This integration builds upon the template sensor from this forum post [Automatic
   - Weather condition based operation
   - Presence based operation
   - Switch to toggle climate mode
-  - Sensor for displaying the operation modus (`winter`,`intermediate`,`summer`)
+  - Sensor for displaying the operation modus (`winter`, `intermediate`, `summer`)
   - Diagnostic sensor exposing all intermediate climate decision values
+
+- **Security Mode** *(v1.9+)*
+
+  - Automatically closes covers when nobody is home
+  - Per-group switch (visible only when a presence entity is configured)
+  - Hub switch for global activation across all groups
+  - Manual override always wins — covers in manual control are never moved
+  - Automatic return to adaptive positioning when presence is restored
+  - Fail-safe: unavailable presence sensor → security stays inactive
 
 - **Adaptive Control**
 
@@ -67,6 +77,7 @@ This integration builds upon the template sensor from this forum post [Automatic
   - Single aggregate cover entity controlling every blind at once
   - 4-state control select (Auto / Off / All open / All closed)
   - ON/OFF switch for Alexa voice control ("Alexa, turn on / turn off the blinds")
+  - Security switch for Alexa ("Alexa, activate blind security")
   - Scene shortcuts for automations
   - Native Alexa, Google Assistant and Assist support
 
@@ -105,7 +116,13 @@ When adding the integration for the first time, a menu is shown:
 
 ## Modes
 
-This component supports two strategy modes: a `basic` mode and a `climate` (comfort/energy saving) mode that works with presence and temperature detection.
+This component supports **three** strategy modes: a `basic` mode, a `climate` (comfort/energy saving) mode that works with presence and temperature detection, and a `security` mode that closes covers when nobody is home.
+
+| Mode | Priority | Description |
+|------|----------|-------------|
+| `basic` | 3 (base) | Pure sun-position tracking |
+| `climate` | 2 | Adapts to temperature — summer / winter / intermediate |
+| `security` | **1 (highest)** | Closes covers on absence — overrides all other logic |
 
 ```mermaid
 flowchart TD
@@ -120,7 +137,9 @@ flowchart TD
     CTRL -- Yes --> MANUAL{"Manual override\nactive?"}
     MANUAL -- Yes --> HOLD["🔒 Hold current\nposition"]
 
-    MANUAL -- No --> SUN{"Sun in field of view\nAND elevation > 0?"}
+    MANUAL -- No --> SECURITY{"🛡️ Security mode\nON + no presence?"}
+    SECURITY -- "Yes\n(absent)" --> SECPOS["🛡️ Security position\n0% or min_position\n(0% if no climate\nor summer branch)"]
+    SECURITY -- No --> SUN{"Sun in field of view\nAND elevation > 0?"}
     SUN -- No --> DEFAULT
 
     SUN -- Yes --> CLMODE{"Climate\nMode?"}
@@ -130,46 +149,46 @@ flowchart TD
     CALC --> LIMITS
 
     %% ── CLIMATE MODE ──────────────────────────────
-    CLMODE -- Yes --> LIGHT{"Lux / Irradiance\nabove threshold\nOR weather sunny?"}
+    CLMODE -- Yes --> PRES{"Presence\ndetected?"}
 
-    LIGHT -- "No (dim light)" --> WCHECK{"Temp < temp_low\n❄️ winter threshold?"}
+    %% ── NO PRESENCE ───────────────────────────────
+    PRES -- "No" --> PNONE["min_position or 0%"]
+
+    %% ── PRESENCE ──────────────────────────────────
+    PRES -- "Yes" --> WCHECK{"❄️ WINTER?\ntemp < temp_low"}
     WCHECK -- Yes --> OPEN["🪟 Open fully (100%)\nsolar gain"]
-    WCHECK -- No --> DEFAULT
 
-    LIGHT -- "Yes (bright)" --> PRESENCE{"Presence\nsensor?"}
+    WCHECK -- No --> SCHECK{"🌡️ SUMMER?\ntemp > temp_high"}
+    SCHECK -- Yes --> TRANSP{"Transparent\nblind?"}
+    TRANSP -- Yes --> CALC
+    TRANSP -- No --> CLOSE["🪟 Close fully (0%)\nblock heat"]
 
-    %% ── NO OCCUPANTS ──────────────────────────────
-    PRESENCE -- "No occupants" --> S_NO{"Temp > temp_high\n🌡️ summer threshold?"}
-    S_NO -- Yes --> CLOSE["🪟 Close fully (0%)\nblock heat"]
-    S_NO -- No --> W_NO{"Temp < temp_low\n❄️ winter threshold?"}
-    W_NO -- Yes --> OPEN
-    W_NO -- No --> DEFAULT
-
-    %% ── OCCUPANTS PRESENT ─────────────────────────
-    PRESENCE -- "Occupants present" --> S_YES{"Temp > temp_high\n🌡️ summer threshold?"}
-    S_YES -- Yes --> TRANSP{"Transparent\nblind?"}
-    TRANSP -- Yes --> CLOSE
-    TRANSP -- No --> CALC
-
-    S_YES -- No --> CALC
+    SCHECK -- "No\n(intermediate)" --> LIGHT{"Overcast?\nlux ≤ threshold\nOR irradiance ≤ threshold?"}
+    LIGHT -- "Yes\n(dim light)" --> DEFAULT
+    LIGHT -- "No\n(sunny)" --> CALC
 
     %% ── COMMON FINAL STEPS ────────────────────────
     LIMITS["🔧 Apply min / max position limits\n+ blind spot correction"]
     OPEN --> LIMITS
     CLOSE --> LIMITS
+    PNONE --> LIMITS
+    SECPOS --> LIMITS
 
     LIMITS --> DELTA{"Position change\n> delta threshold?"}
     DELTA -- No --> HOLD
     DELTA -- Yes --> RESULT(["✅ Apply new position\nto cover(s)"])
 
     %% ── STYLES ────────────────────────────────────
-    style CLOSE fill:#f28b82,color:#000
-    style OPEN  fill:#81c995,color:#000
-    style CALC  fill:#78b7f5,color:#000
-    style RESULT fill:#34a853,color:#fff
-    style HOLD  fill:#fbbc04,color:#000
-    style SUNSET fill:#aecbfa,color:#000
+    style CLOSE   fill:#f28b82,color:#000
+    style OPEN    fill:#81c995,color:#000
+    style CALC    fill:#78b7f5,color:#000
+    style RESULT  fill:#34a853,color:#fff
+    style HOLD    fill:#fbbc04,color:#000
+    style SUNSET  fill:#aecbfa,color:#000
     style DEFAULT fill:#e8eaed,color:#000
+    style SECURITY fill:#ff9800,color:#fff,stroke:#e65100
+    style SECPOS   fill:#ff9800,color:#fff,stroke:#e65100
+    style PNONE    fill:#e8eaed,color:#000
 ```
 
 ### Basic mode
@@ -179,24 +198,37 @@ This mode uses the calculated position when the sun is within the specified azim
 ### Climate mode
 
 This mode calculates the position based on extra parameters for presence, indoor temperature, minimal comfort temperature, maximum comfort temperature and weather (optional).
-This mode is split up in two types of strategies; [Presence](#climate-strategies) and [No Presence](#climate-strategies).
 
 #### Climate strategies
 
-- **No Presence**:
-  Providing daylight to the room is no objective if there is no presence.
-
-  - **Below minimal comfort temperature**:
-    If the sun is above the horizon and the indoor temperature is below the minimal comfort temperature it opens the blind fully or tilt the slats to be parallel with the sun rays to allow for maximum solar radiation to heat up the room.
-
-  - **Above maximum comfort temperature**:
-    The objective is to not heat up the room any further by blocking out all possible radiation. All blinds close fully to block out light. <br> <br>
-    If the indoor temperature is between both thresholds the position defaults to the set default value based on the time of day.
+- **No Presence**: Returns `min_position` (or 0% if not configured). No temperature calculation needed.
 
 - **Presence** (or no Presence Entity set):
-  The objective is to reduce glare while providing daylight to the room. All calculation is done by the basic model for Horizontal and Vertical blinds. <br> <br>
-  If you added a weather entity, it will only use the above calculations if the weather state corresponds with the existence of direct sun rays. These states are `sunny`,`windy`, `partlycloudy`, and `cloudy` by default, but you can change the list of states in the weather options. If not equal to these states the position will default to the default value to allow more sunlight entering the room with minimizing the glare due to the weather condition. <br><br>
-  Tilted blinds will only deviate from the above approach if the inside temperature is above the maximum comfort temperature. In that case, the slats will be positioned at 45 degrees as this is [found optimal](https://www.mdpi.com/1996-1073/13/7/1731).
+
+  - **Winter** (`temp < temp_low`): Opens fully (100%) to capture solar heat, regardless of lux/weather.
+  - **Summer** (`temp > temp_high`):
+    - Transparent blind → calculate position (shading only)
+    - Opaque blind → close fully (0%)
+  - **Intermediate**: Follows sun geometry if sunny/bright; falls back to default position when overcast or lux/irradiance below threshold.
+
+  For tilted blinds above summer threshold: slats are positioned at 45° ([found optimal](https://www.mdpi.com/1996-1073/13/7/1731)).
+
+### Security mode
+
+Security mode closes covers automatically when nobody is home, regardless of the current climate branch.
+
+**Requires a presence entity** to be configured in the entry options. Without one, the switch exists but has no effect.
+
+| Situation | Target position |
+|---|---|
+| No climate mode | 0% (fully closed) |
+| Climate mode + `summer` branch | 0% (fully closed) |
+| Climate mode + `winter` or `intermediate` | `min_position` (or 0% if unset) |
+
+**Key behaviours:**
+- **Manual override always wins** — covers already in manual control are never moved by security
+- **Automatic return** — when presence is restored, adaptive positioning resumes without manual action
+- **Fail-safe** — unavailable presence sensor → security inactive (no spurious closing on sensor error)
 
 ## Variables
 
@@ -207,8 +239,8 @@ This mode is split up in two types of strategies; [Presence](#climate-strategies
 | Entities                      | []      |       | Denotes entities controllable by the integration                                                         |
 | Window Azimuth                | 180     | 0-359 | The compass direction of the window, discoverable via [Open Street Map Compass](https://osmcompass.com/) |
 | Default Position              | 60      | 0-100 | Initial position of the cover in the absence of sunlight glare detection                                 |
-| Minimal Position              | 100     | 0-99  | Minimal opening position for the cover, suitable for partially closing certain cover types               |
-| Maximum Position              | 100     | 1-100 | Maximum opening position for the cover, suitable for partially opening certain cover types               |
+| Minimal Position              | 100     | 0-99  | Minimal opening position for the cover — also used by security mode in winter/intermediate               |
+| Maximum Position              | 100     | 1-100 | Maximum opening position for the cover                                                                   |
 | Field of view Left            | 90      | 1-90  | Unobstructed viewing angle from window center to the left, in degrees                                    |
 | Field of view Right           | 90      | 1-90  | Unobstructed viewing angle from window center to the right, in degrees                                   |
 | Minimal Elevation             | None    | 0-90  | Minimal elevation degree of the sun to be considered                                                     |
@@ -223,7 +255,7 @@ This mode is split up in two types of strategies; [Presence](#climate-strategies
 | Variables         | Default | Range | Description                                                                                 |
 | ----------------- | ------- | ----- | ------------------------------------------------------------------------------------------- |
 | Window Height     | 2.1     | 0.1-6 | Length of fully extended cover/window                                                       |
-| Glare Zone        | 0.5     | 0.1-2 | Objects within this distance of the cover receive direct sunlight. Measured horizontally from the bottom of the cover when fully extended |
+| Glare Zone        | 0.5     | 0.1-2 | Objects within this distance of the cover receive direct sunlight |
 
 ### Horizontal
 
@@ -240,47 +272,47 @@ This mode is split up in two types of strategies; [Presence](#climate-strategies
 | ------------- | -------------- | ------ | ---------------------------------------------------------- |
 | Slat Depth    | 3              | 0.1-15 | Width of each slat                                         |
 | Slat Distance | 2              | 0.1-15 | Vertical distance between two slats in horizontal position |
-| Tilt Mode     | Bi-directional |        |                                                            |
+| Tilt Mode     | Bi-directional |        | `mode1`: single direction 0°–90° / `mode2`: bi-directional 0°–180° |
 
 ### Automation
 
 | Variables                                  | Default      | Range | Description                                                                                    |
 | ------------------------------------------ | ------------ | ----- | ---------------------------------------------------------------------------------------------- |
 | Minimum Delta Position                     | 1            | 1-90  | Minimum position change required before another change can occur                               |
-| Minimum Delta Time                         | 2            |       | Minimum time gap between position change                                                       |
+| Minimum Delta Time                         | 2            |       | Minimum time gap between position changes (minutes)                                            |
 | Start Time                                 | `"00:00:00"` |       | Earliest time a cover can be adjusted after midnight                                           |
-| Start Time Entity                          | None         |       | The earliest moment a cover may be changed after midnight. _Overrides the `start_time` value_  |
+| Start Time Entity                          | None         |       | Overrides `start_time` if set                                                                  |
 | Manual Override Duration                   | `15 min`     |       | Minimum duration for manual control status to remain active                                    |
 | Manual Override reset Timer                | False        |       | Resets duration timer each time the position changes while the manual control status is active |
 | Manual Override Threshold                  | None         | 1-99  | Minimal position change to be recognized as manual change                                      |
 | Manual Override ignore intermediate states | False        |       | Ignore StateChangedEvents that have state `opening` or `closing`                               |
 | End Time                                   | `"00:00:00"` |       | Latest time a cover can be adjusted each day                                                   |
-| End Time Entity                            | None         |       | The latest moment a cover may be changed. _Overrides the `end_time` value_                     |
-| Adjust at end time                         | `False`      |       | Make sure to always update the position to the default setting at the end time.                |
+| End Time Entity                            | None         |       | Overrides `end_time` if set                                                                    |
+| Adjust at end time                         | `False`      |       | Make sure to always update the position to the default setting at the end time                 |
 
 ### Climate
 
 | Variables                     | Default | Range | Example                                       | Description                                                                                                                                          |
 | ----------------------------- | ------- | ----- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Indoor Temperature Entity     | `None`  |       | `climate.living_room` \| `sensor.indoor_temp` |                                                                                                                                                      |
-| Minimum Comfort Temperature   | 21      | 0-86  |                                               |                                                                                                                                                      |
-| Maximum Comfort Temperature   | 25      | 0-86  |                                               |                                                                                                                                                      |
+| Minimum Comfort Temperature   | 21      | 0-86  |                                               | Winter threshold — below this, open for solar gain                                                                                                   |
+| Maximum Comfort Temperature   | 25      | 0-86  |                                               | Summer threshold — above this, close to block heat                                                                                                   |
 | Outdoor Temperature Entity    | `None`  |       | `sensor.outdoor_temp`                         |                                                                                                                                                      |
-| Outdoor Temperature Threshold | `None`  |       |                                               | If the minimum outside temperature for summer mode is set and the outside temperature falls below this threshold, summer mode will not be activated. |
-| Presence Entity               | `None`  |       |                                               |                                                                                                                                                      |
+| Outdoor Temperature Threshold | `None`  |       |                                               | If set, summer mode activates only when outside temp is also above this threshold |
+| Presence Entity               | `None`  |       |                                               | Used for both climate mode AND security mode                                                                                                         |
 | Weather Entity                | `None`  |       | `weather.home`                                | Can also serve as outdoor temperature sensor                                                                                                         |
 | Lux Entity                    | `None`  |       | `sensor.lux`                                  | Returns measured lux                                                                                                                                 |
-| Lux Threshold                 | `1000`  |       |                                               | In non-summer, above threshold, use optimal position. Otherwise, default position or fully open in winter.                                           |
+| Lux Threshold                 | `1000`  |       |                                               | Below threshold → treated as "not sunny" in intermediate branch                                                                                      |
 | Irradiance Entity             | `None`  |       | `sensor.irradiance`                           | Returns measured irradiance                                                                                                                          |
-| Irradiance Threshold          | `300`   |       |                                               | In non-summer, above threshold, use optimal position. Otherwise, default position or fully open in winter.                                           |
+| Irradiance Threshold          | `300`   |       |                                               | Below threshold → treated as "not sunny" in intermediate branch                                                                                      |
 
 ### Blindspot
 
-| Variables            | Default | Range                 | Example | Description                                                                                                          |
-| -------------------- | ------- | --------------------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
-| Blind Spot Left      | None    | 0-max(fov_right, 180) |         | Start point of the blind spot on the predefined field of view, where 0 is equal to the window azimuth - fov left.    |
-| Blind Spot Right     | None    | 1-max(fov_right, 180) |         | End point of the blind spot on the predefined field of view.                                                         |
-| Blind Spot Elevation | None    | 0-90                  |         | Minimal elevation of the sun for the blindspot area.                                                                 |
+| Variables            | Default | Range                 | Description                                                                                                          |
+| -------------------- | ------- | --------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Blind Spot Left      | None    | 0-max(fov_right, 180) | Start point of the blind spot on the predefined field of view                                                        |
+| Blind Spot Right     | None    | 1-max(fov_right, 180) | End point of the blind spot on the predefined field of view                                                          |
+| Blind Spot Elevation | None    | 0-90                  | Minimal sun elevation for the blindspot to apply                                                                     |
 
 ## Entities
 
@@ -292,25 +324,30 @@ These entities are always available for each cover group:
 
 | Entity | Default | Description |
 | ------ | ------- | ----------- |
-| `sensor.{type}_cover_position_{name}` | | Reflects the current state determined by predefined settings and factors such as sun position, weather, and temperature |
-| `sensor.{type}_control_method_{name}` | `intermediate` | Indicates the active control strategy: `winter`, `summer`, `intermediate` |
-| `sensor.{type}_start_sun_{name}` | | Shows the starting time when the sun enters the window's view (updated every 5 min) |
-| `sensor.{type}_end_sun_{name}` | | Indicates the ending time when the sun exits the window's view (updated every 5 min) |
-| `binary_sensor.{type}_manual_override_{name}` | `off` | Indicates if manual override is engaged for any blind |
-| `binary_sensor.{type}_sun_infront_{name}` | `off` | Indicates whether the sun is in front of the window within the field of view |
-| `switch.{type}_toggle_control_{name}` | `on` | Activates the adaptive control feature |
+| `sensor.{type}_cover_position_{name}` | | Reflects the current target position (%) |
+| `sensor.{type}_control_method_{name}` | `intermediate` | Active strategy: `winter`, `summer`, `intermediate` |
+| `sensor.{type}_start_sun_{name}` | | Time when the sun enters the window's FOV (updated every 5 min) |
+| `sensor.{type}_end_sun_{name}` | | Time when the sun exits the window's FOV (updated every 5 min) |
+| `binary_sensor.{type}_manual_override_{name}` | `off` | True when manual override is active for any blind in the group |
+| `switch.{type}_toggle_control_{name}` | `on` | Activates adaptive control |
 | `switch.{type}_manual_override_{name}` | `on` | Enables detection of manual overrides |
 | `button.{type}_reset_manual_override_{name}` | | Resets manual override tags for all covers in the group |
 
-When climate mode is configured you will also get these entities:
+When climate mode is configured:
 
 | Entity | Default | Description |
 | ------ | ------- | ----------- |
 | `switch.{type}_climate_mode_{name}` | `on` | Enables climate mode strategy |
 | `switch.{type}_outside_temperature_{name}` | `off` | Use outside temperature for summer threshold comparison |
-| `switch.{type}_lux_{name}` | `on` | Enable lux threshold check (visible only when a lux entity is configured) |
-| `switch.{type}_irradiance_{name}` | `on` | Enable irradiance threshold check (visible only when an irradiance entity is configured) |
-| `sensor.{type}_climate_debug_{name}` | | Diagnostic sensor exposing every intermediate value of the climate decision tree (active branch, temperatures, thresholds, lux/irradiance flags) |
+| `switch.{type}_lux_{name}` | `on` | Enable lux threshold check |
+| `switch.{type}_irradiance_{name}` | `on` | Enable irradiance threshold check |
+| `sensor.{type}_climate_debug_{name}` | | Diagnostic sensor with full climate decision snapshot |
+
+When a **presence entity** is configured:
+
+| Entity | Default | Description |
+| ------ | ------- | ----------- |
+| `switch.{type}_security_mode_{name}` | **`off`** | **Security mode** — closes covers when no presence detected |
 
 ### All Blinds hub entities
 
@@ -318,11 +355,12 @@ The **All Blinds** device (auto-created on first setup) exposes:
 
 | Entity | Name | Description |
 | ------ | ---- | ----------- |
-| `cover.*` | **Les volets** | Aggregate cover — controls every blind at once. Open/close/set position moves all covers and activates manual override. |
-| `switch.*` | **Les volets** | ON/OFF switch for adaptive control across all entries. **ON** enables adaptive positioning and clears manual overrides; **OFF** disables it. |
-| `select.*` | **Control mode** | 4-state dropdown: **Auto** (adaptive ON + overrides cleared) / **Off** / **All open** (100%) / **All closed** (0%). State restored on HA restart. |
-| `scene.*_all_open` | **Blinds open** | Sets all covers to 100% with manual override. |
-| `scene.*_all_closed` | **Blinds closed** | Sets all covers to 0% with manual override. |
+| `cover.*` | **Les volets** | Aggregate cover — open/close/set position acts on all covers |
+| `switch.*` | **Les volets** | ON/OFF adaptive control across all entries |
+| `switch.*` | **Sécurité volets** | ON/OFF **security mode** across all entries that have a presence entity |
+| `select.*` | **Control mode** | 4-state: Auto / Off / All open (100%) / All closed (0%) |
+| `scene.*_all_open` | **Blinds open** | Sets all covers to 100% |
+| `scene.*_all_closed` | **Blinds closed** | Sets all covers to 0% |
 
 ![entities](https://github.com/basbruss/adaptive-cover/blob/main/images/entities.png)
 
@@ -342,6 +380,8 @@ The hub device is designed for native voice assistant integration — no custom 
 | *"Alexa, turn off the blinds"* | switch **Les volets** OFF | Adaptive control disabled |
 | *"Alexa, open the blinds"* | cover **Les volets** open | All covers → 100% |
 | *"Alexa, close the blinds"* | cover **Les volets** close | All covers → 0% |
+| *"Alexa, activate blind security"* | switch **Sécurité volets** ON | Security mode enabled — covers close on absence |
+| *"Alexa, deactivate blind security"* | switch **Sécurité volets** OFF | Security mode disabled |
 
 > Alexa routes commands by verb type: `turn on/off` → switch, `open/close` → cover.  
 > The same entity names work with **Google Assistant** and **Assist**.
