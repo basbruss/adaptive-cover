@@ -6,7 +6,21 @@
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.5+-green)](https://www.home-assistant.io)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
-Automatically position your covers (blinds, awnings, tilts) based on the sun's position relative to each window. A **climate mode** adapts positioning to temperature conditions, and a **security mode** closes covers automatically when nobody is home.
+Automatically position your covers (blinds, awnings, tilts) based on the sun's position. A **climate mode** adapts to temperature conditions, and a **security mode** closes covers when nobody is home.
+
+---
+
+## Control modes
+
+The integration offers **three modes** applied in priority order:
+
+| Mode | Activation | Priority | Description |
+|------|-----------|----------|-------------|
+| **Basic** | Always active | 3 (base) | Pure sun tracking — calculates optimal position from azimuth and elevation |
+| **Climate** | `switch.climate_mode` ON | 2 | Adapts to temperature: summer (close), winter (open), intermediate (sun tracking) |
+| **Security** | `switch.security_mode` ON + absence detected | 1 (highest) | Closes covers regardless of other modes — takes priority over everything |
+
+> **Security > Climate > Basic** — security mode overrides all other logic when active.
 
 ---
 
@@ -25,14 +39,14 @@ graph TB
         HS["switch.* Les volets\n↔ Alexa: activate / deactivate the blinds"]
         HSEC["switch.* Sécurité volets\n↔ Alexa: activate blind security"]
         HSEL["select.* Control mode\nauto · off · all_open · all_closed"]
-        HSCN["scene.* Volets ouverts\nscene.* Volets fermés"]
+        HSCN["scene.* Volets ouverts / Volets fermés"]
     end
 
     subgraph ENTRY["📦 Regular entry  (one per cover group)"]
-        COORD["Coordinator\n_async_update_data()"]
-        COVER["cover.*\nAdaptiveCoverEntry\ncalculated position"]
-        SW["switch.*\nToggle Control · Manual Override\nSecurity Mode · Climate Mode\nLux · Irradiance"]
-        SEN["sensor.*\nPosition · Start Sun · End Sun\nControl Method · Climate Debug"]
+        COORD["Coordinator"]
+        COVER["cover.* AdaptiveCoverEntry"]
+        SW["switch.*\nToggle Control · Manual Override\nSecurity Mode · Climate Mode · Lux · Irradiance"]
+        SEN["sensor.*\nPosition · Start/End Sun · Control Method · Climate Debug"]
         BS["binary_sensor.* Manual Control"]
         BTN["button.* Reset Manual Control"]
     end
@@ -40,32 +54,61 @@ graph TB
     SUN  --> COORD
     PRES --> COORD
     ENV  --> COORD
-
     COORD -->|"calculated position"| COVER
     COORD --> SEN
-    HUB   -.->|"iterates all coordinators"| ENTRY
+    HUB -.->|"iterates all coordinators"| ENTRY
 ```
 
 ---
 
-## Decision flow per entry
+## Full decision flowchart
 
 ```mermaid
 flowchart TD
-    UPDATE(["🔄 _async_update_data()"])
-    CTRL{control_toggle\nON?}
-    SEC{security_active?}
-    APPLY_SEC["_apply_security_position()"]
-    ADAPT["Adaptive positioning\nNormalCoverState / ClimateCoverState"]
-    MOVE(["📡 set_cover_position\ncover.*"])
+    CTRL{"Toggle Control\nswitch ON?"}
+    SUNSET(["🌅 Return sunset /\ndefault position"])
+    MANUAL{"Manual override\nactive?"}
+    SKIP(["⏸ Skip — cover stays"])
+    SEC{"🔒 SECURITY mode\nactive?\n(switch ON + absent)"}
+    SEC_POS(["🔒 Security position\n0% or CONF_MIN_POSITION"])
+    SUN{"Sun in field of view\nAND elevation > 0?"}
+    DEF(["🏠 Default / sunset position"])
+    CLIMATE{"Climate\nMode?"}
+    CALC_B(["📐 BASIC MODE\nCalculated sun position"])
+    SUMMER{"Summer branch?\ntemp > temp_high"}
+    WINTER{"Winter branch?\ntemp < temp_low"}
+    CLOSE0(["🔴 0% closed\nblock heat"])
+    OPEN100(["🟢 100% open\nsolar gain"])
+    INTER["Intermediate\nbranch"]
+    LUX{"Overcast / low lux\nlow irradiance?"}
+    CALC_C(["📐 Calculated sun position\n(climate mode)"])
 
-    UPDATE --> CTRL
-    CTRL -->|NO| SKIP(["⏸ Nothing"])
-    CTRL -->|YES| SEC
-    SEC -->|YES| MANUAL{is_cover_manual?}
-    MANUAL -->|YES| SKIP2(["⏸ Skip — manual override wins"])
-    MANUAL -->|NO| APPLY_SEC --> MOVE
-    SEC -->|NO| ADAPT --> MOVE
+    CTRL -->|NO| SUNSET
+    CTRL -->|YES| MANUAL
+    MANUAL -->|YES| SKIP
+    MANUAL -->|NO| SEC
+    SEC -->|YES| SEC_POS
+    SEC -->|NO| SUN
+    SUN -->|NO| DEF
+    SUN -->|YES| CLIMATE
+    CLIMATE -->|NO| CALC_B
+    CLIMATE -->|YES| SUMMER
+    SUMMER -->|YES| CLOSE0
+    SUMMER -->|NO| WINTER
+    WINTER -->|YES| OPEN100
+    WINTER -->|NO| INTER
+    INTER --> LUX
+    LUX -->|YES| DEF
+    LUX -->|NO| CALC_C
+
+    style SEC fill:#e67e22,color:#fff,stroke:#d35400
+    style SEC_POS fill:#e67e22,color:#fff
+    style CLOSE0 fill:#c0392b,color:#fff
+    style OPEN100 fill:#27ae60,color:#fff
+    style SKIP fill:#7f8c8d,color:#fff
+    style DEF fill:#7f8c8d,color:#fff
+    style CALC_B fill:#2980b9,color:#fff
+    style CALC_C fill:#2980b9,color:#fff
 ```
 
 ---
@@ -74,7 +117,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A(["🔒 security_toggle = ON?"])
+    A(["security_toggle = ON?"])
     B{"presence_entity\nconfigured?"}
     C{"Presence\ndetected?"}
     D(["✅ Normal adaptive mode"])
@@ -87,7 +130,7 @@ flowchart TD
     A -->|YES| B
     B -->|NO → no sensor| D
     B -->|YES| C
-    C -->|YES → someone home| D
+    C -->|YES → present| D
     C -->|NO → absent| E
     E --> F
     F -->|NO| G
@@ -122,7 +165,7 @@ flowchart TD
 
 ### Manual
 
-1. Copy the `adaptive_cover` folder into `config/custom_components/`
+1. Copy `adaptive_cover` into `config/custom_components/`
 2. Restart Home Assistant
 
 ---
@@ -155,7 +198,7 @@ Add via **Settings → Devices & Services → Add integration → Adaptive Cover
 |--------|-------------|
 | **Start / end time or entity** | Adaptive control window |
 | **Sunrise / sunset offset** | Shift in minutes |
-| **Sunset position** | Position to apply at sunset |
+| **Sunset position** | Position applied at sunset |
 | **Return at sunset** | Restore default instead of sunset position |
 
 ### Position limits
@@ -165,40 +208,25 @@ Add via **Settings → Devices & Services → Add integration → Adaptive Cover
 | **Min position** | Minimum allowed (%) — also used by security mode in winter/intermediate |
 | **Max position** | Maximum allowed (%) |
 
+### Blind spot
+
+| Option | Description |
+|--------|-------------|
+| **Enable blind spot** | Activate |
+| **Blind spot left / right** | Azimuth range (°) |
+| **Blind spot elevation** | Minimum sun elevation (°) to apply |
+
+### Tilt-specific
+
+| Option | Description |
+|--------|-------------|
+| **Slat depth** | Physical depth of one slat (mm) |
+| **Slat distance** | Gap between slats (mm) |
+| **Tilt mode** | `mode1` — 0°–90°; `mode2` — 0°–180° bi-directional |
+
 ### Climate mode
 
-Enable via **Settings → Integrations → [entry] → Configure → Climate settings**.
-
-```mermaid
-flowchart TD
-    SV{"Sun in\nfield of view?"}
-    DEF["Default position"]
-    WIN{"WINTER?\ninside_temp < temp_low"}
-    SUM{"SUMMER?\nref_temp > temp_high\nAND outside_high"}
-    OPEN["100% open\n(solar gain)"]
-    TRANS{"Transparent\nblind?"}
-    CLOSED["0% closed\n(block heat)"]
-    CALC_SUM["Calculated position\n(shading only)"]
-    CLOUDS{"Overcast / low lux\nlow irradiance?"}
-    CALC_INT["Calculated position\n(sun tracking)"]
-
-    SV -->|NO| DEF
-    SV -->|YES| WIN
-    WIN -->|YES| OPEN
-    WIN -->|NO| SUM
-    SUM -->|YES| TRANS
-    TRANS -->|YES| CALC_SUM
-    TRANS -->|NO| CLOSED
-    SUM -->|NO — intermediate| CLOUDS
-    CLOUDS -->|YES| DEF
-    CLOUDS -->|NO| CALC_INT
-
-    style OPEN fill:#27ae60,color:#fff
-    style CLOSED fill:#c0392b,color:#fff
-    style DEF fill:#7f8c8d,color:#fff
-```
-
-> **When nobody is home** → min_position (or 0 %).
+Enable via **Settings → [entry] → Configure → Climate settings**.
 
 | Option | Description |
 |--------|-------------|
@@ -208,7 +236,7 @@ flowchart TD
 | **Temp low / high** | Winter / summer thresholds (°C) |
 | **Use outside temperature** | Compare outside temp to `temp_high` |
 | **Weather condition** | States considered "sunny" |
-| **Presence entity** | Used for both climate mode **and** security mode |
+| **Presence entity** | Used for both **climate mode** and **security mode** |
 
 ### Security mode
 
@@ -223,9 +251,9 @@ flowchart TD
 | Climate mode + `winter` or `intermediate` | `CONF_MIN_POSITION` (or 0 if unset) |
 
 **Key behaviours:**
-- Manual override wins — covers already under manual control are skipped
-- Automatic return — when presence is restored, adaptive positioning resumes without any manual step
-- Fail-safe — unavailable presence sensor → security inactive (no close-on-sensor-error)
+- Manual override wins — covers in manual control are skipped
+- Automatic return — when presence is restored, adaptive positioning resumes without manual action
+- Fail-safe — unavailable presence sensor → security inactive
 
 ### Light threshold
 
@@ -238,10 +266,10 @@ flowchart TD
 
 | Option | Description |
 |--------|-------------|
-| **Manual override duration** | Minutes to pause adaptive control after a manual move |
-| **Manual override reset** | Time of day to auto-reset |
-| **Manual threshold** | Position delta (%) that counts as "manual" |
-| **Ignore intermediate positions** | Only fully open/closed moves count |
+| **Duration** | Minutes to pause adaptive control after a manual move |
+| **Reset time** | Time of day to auto-reset |
+| **Threshold** | Position delta (%) that counts as "manual" |
+| **Ignore intermediate** | Only fully open/closed moves count |
 
 ---
 
@@ -260,29 +288,22 @@ flowchart TD
 
 ### Regular entry device
 
-#### Switches
-
 | Entity | Default | Description |
 |--------|---------|-------------|
+| `cover.<name>` | — | **Main entity** — adaptive position; open/close/set_position |
 | `switch.toggle_control_<name>` | ON | Enable / disable adaptive positioning |
-| `switch.manual_override_<name>` | ON | Pause adaptive control (auto-set on manual move) |
-| `switch.security_mode_<name>` | **OFF** | **Security mode** — closes covers when no presence *(visible when presence entity configured)* |
+| `switch.manual_override_<name>` | ON | Pause adaptive (auto-set on manual move) |
+| `switch.security_mode_<name>` | **OFF** | **Security mode** *(visible when presence entity configured)* |
 | `switch.climate_mode_<name>` | ON | Toggle climate mode *(visible when configured)* |
 | `switch.outside_temperature_<name>` | OFF | Use outside temp for summer detection |
 | `switch.lux_<name>` | ON | Enable lux threshold |
 | `switch.irradiance_<name>` | ON | Enable irradiance threshold |
-
-#### Other entities
-
-| Entity | Description |
-|--------|-------------|
-| `cover.<name>` | **Main entity** — adaptive position; open/close/set_position on this group |
-| `sensor.cover_position_<name>` | Calculated target position (%) |
-| `sensor.start_sun_<name>` / `sensor.end_sun_<name>` | Timestamps when sun enters/leaves FOV |
-| `sensor.control_method_<name>` | Active branch (`summer` / `winter` / `intermediate`) |
-| `sensor.climate_debug_<name>` *(diagnostic)* | Full climate decision snapshot |
-| `binary_sensor.manual_control_<name>` | ON when any cover in the group is in manual override |
-| `button.reset_manual_control_<name>` | Immediately clear manual override |
+| `sensor.cover_position_<name>` | — | Calculated target position (%) |
+| `sensor.start_sun_<name>` / `end_sun` | — | Timestamps when sun enters/leaves FOV |
+| `sensor.control_method_<name>` | — | Active branch (`summer` / `winter` / `intermediate`) |
+| `sensor.climate_debug_<name>` *(diag.)* | — | Full climate decision snapshot |
+| `binary_sensor.manual_control_<name>` | — | ON when any cover in the group is in manual override |
+| `button.reset_manual_control_<name>` | — | Immediately clear manual override |
 
 ---
 
@@ -343,10 +364,10 @@ automation:
 |---------|-------------|-----|
 | Cover doesn't move | `switch.toggle_control` is OFF | Turn the switch ON |
 | Cover stuck in manual | Manual override active | Press reset button or wait |
-| Cover stays closed after returning home | Security switch ON + presence entity absent or unavailable | Check presence sensor |
+| Cover stays closed after returning home | Security switch ON + presence unavailable | Check presence sensor |
 | Security switch not visible | No presence entity configured | Add `presence_entity` in entry options |
 | Climate branch always "intermediate" | No temperature entity | Add a temperature sensor |
-| Duplicate cover entity on device | Legacy v1.7.x residue | Auto-fixed on startup (v1.8.11+) |
+| Duplicate cover entity | Legacy v1.7.x residue | Auto-fixed on startup (v1.8.11+) |
 
 ---
 
