@@ -5,21 +5,21 @@
 [![Version](https://img.shields.io/badge/version-1.9.0-blue)](CHANGELOG.md)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.5+-green)](https://www.home-assistant.io)
 
-Positionnez automatiquement vos volets (stores, banne, jalousie) en fonction de la position du soleil par rapport à chaque fenêtre.
+Positionnez automatiquement vos volets (stores, banne, jalousie) en fonction de la position du soleil.
 
 ---
 
-## Modes de contrôle
+## Modes
 
-L'intégration propose **trois modes** qui s'appliquent par ordre de priorité :
+Ce composant prend en charge **trois** modes de stratégie :
 
 | Mode | Activation | Priorité | Description |
 |------|-----------|----------|-------------|
-| **Basique** | Toujours actif | 3 (base) | Suivi solaire pur — calcule la position optimale selon l'azimut et l'élévation du soleil |
-| **Climatique** | `switch.climate_mode` ON | 2 | Adapte la position selon la température : été (fermeture), hiver (ouverture), intermédiaire (suivi solaire) |
-| **Sécurité** | `switch.security_mode` ON + absence détectée | 1 (plus haute) | Ferme les volets indépendamment du mode actif — s'applique en priorité sur tout le reste |
+| `basic` | Toujours actif | 3 (base) | Suivi solaire pur |
+| `climate` | `switch.climate_mode` ON | 2 | S'adapte à la température — branches été / hiver / intermédiaire |
+| `security` | `switch.security_mode` ON + absence | **1 (plus haute)** | Ferme les volets en cas d'absence — écrase toute autre logique |
 
-> **Sécurité > Climatique > Basique** — le mode sécurité prend le dessus sur les deux autres dès qu'il est actif.
+> **Sécurité > Climatique > Basique** — la sécurité prend toujours le dessus quand elle est active.
 
 ---
 
@@ -33,21 +33,22 @@ graph TB
         ENV["🌡️ Temp / Météo / Lux / Irradiance"]
     end
 
-    subgraph HUB["🏠 Entrée Hub — All Blinds  (singleton)"]
-        HC["cover.* Les volets\n↔ Alexa : ouvre / ferme les volets"]
-        HS["switch.* Les volets\n↔ Alexa : active / désactive les volets"]
-        HSEC["switch.* Sécurité volets\n↔ Alexa : active la sécurité des volets"]
-        HSEL["select.* Mode de contrôle\nauto · off · all_open · all_closed"]
-        HSCN["scene.* Volets ouverts / Volets fermés"]
+    subgraph HUB["🏠 Hub — All Blinds  (singleton, auto-créé)"]
+        HC["cover.*  Les volets\nAlexa : ouvre / ferme les volets"]
+        HS["switch.*  Les volets\nAlexa : active / désactive les volets"]
+        HSEC["switch.*  Sécurité volets\nAlexa : active la sécurité des volets"]
+        HSEL["select.*  Mode de contrôle\nauto · off · all_open · all_closed"]
+        HSCN["scene.*  Volets ouverts / Volets fermés"]
     end
 
     subgraph ENTRY["📦 Entrée régulière  (une par groupe de volets)"]
-        COORD["Coordinateur"]
-        COVER["cover.* AdaptiveCoverEntry"]
-        SW["switch.*\nToggle Control · Manual Override\nSecurity Mode · Climate Mode · Lux · Irradiance"]
-        SEN["sensor.*\nPosition · Start/End Sun · Control Method · Climate Debug"]
-        BS["binary_sensor.* Manual Control"]
-        BTN["button.* Reset Manual Control"]
+        COORD["Coordinateur\n_async_update_data()"]
+        COVER["cover.*\nAdaptiveCoverEntry"]
+        SW["switch.*\nToggle Control · Manual Override\nSecurity Mode · Climate Mode\nLux · Irradiance"]
+        SEN["sensor.*\nPosition · Start Sun · End Sun\nControl Method · Climate Debug"]
+        BS["binary_sensor.*  Manual Control"]
+        BTN["button.*  Reset Manual"]
+        PHY["🪟 Volets physiques\ncover.salon_1, cover.salon_2 …"]
     end
 
     SUN  --> COORD
@@ -55,90 +56,162 @@ graph TB
     ENV  --> COORD
     COORD -->|"position calculée"| COVER
     COORD --> SEN
+    COORD -->|"set_cover_position"| PHY
     HUB -.->|"itère tous les coordinateurs"| ENTRY
 ```
 
 ---
 
-## Flux de décision complet
+## Flux de contrôle — par volet, par mise à jour
+
+Chaque changement d'état (soleil, capteur) déclenche un refresh du coordinateur. Pour chaque volet physique :
 
 ```mermaid
 flowchart TD
-    CTRL{"Toggle Control\nswitch ON ?"}
-    SUNSET(["🌅 Position coucher /\nposition par défaut"])
-    MANUAL{"Override manuel\nactif ?"}
-    SKIP(["⏸ Skip — volet inchangé"])
-    SEC{"🔒 Mode SÉCURITÉ\nactif ?\n(switch ON + absent)"}
-    SEC_POS(["🔒 Position sécurité\n0 % ou CONF_MIN_POSITION"])
-    SUN{"Soleil dans le\nchamp de vision\nET élévation > 0 ?"}
-    DEF(["🏠 Position par défaut\nou position coucher"])
-    CLIMATE{"Mode\nCLIMATIQUE ?"}
-    CALC_B(["📐 MODE BASIQUE\nPosition solaire calculée"])
-    SUMMER{"Branche ÉTÉ ?\ntemp > temp_high"}
-    WINTER{"Branche HIVER ?\ntemp < temp_low"}
-    CLOSE0(["🔴 0 % — fermeture\nbloquer la chaleur"])
-    OPEN100(["🟢 100 % — ouverture\napports solaires"])
-    INTER["Branche\nINTERMÉDIAIRE"]
-    LUX{"Nuageux / lux faible\nirradiance faible ?"}
-    CALC_C(["📐 Position solaire calculée\n(mode climatique)"])
+    START(["🔄 Mise à jour déclenchée\nchangement soleil / capteur / démarrage / minuterie"])
 
-    CTRL -->|NON| SUNSET
-    CTRL -->|OUI| MANUAL
-    MANUAL -->|OUI| SKIP
-    MANUAL -->|NON| SEC
-    SEC -->|OUI| SEC_POS
-    SEC -->|NON| SUN
-    SUN -->|NON| DEF
-    SUN -->|OUI| CLIMATE
-    CLIMATE -->|NON| CALC_B
-    CLIMATE -->|OUI| SUMMER
-    SUMMER -->|OUI| CLOSE0
-    SUMMER -->|NON| WINTER
-    WINTER -->|OUI| OPEN100
-    WINTER -->|NON| INTER
-    INTER --> LUX
-    LUX -->|OUI| DEF
-    LUX -->|NON| CALC_C
+    subgraph CALCBOX["📐 Calcul de position  — s'exécute en premier, à chaque mise à jour"]
+        direction LR
+        CM{"climate_mode ?"}
+        CSTATE["ClimateCoverState\n→ climate_state"]
+        NSTATE["NormalCoverState\n→ default_state"]
+        INTERP{"interpolation ?"}
+        IRUN["interpolate_states()"]
+        INV{"état\ninversé ?"}
+        IRUN2["100 − state"]
+        STATEF(["state  final"])
+
+        CM -->|OUI| CSTATE --> INTERP
+        CM -->|NON| NSTATE --> INTERP
+        INTERP -->|OUI| IRUN --> INV
+        INTERP -->|NON| INV
+        INV -->|OUI| IRUN2 --> STATEF
+        INV -->|NON| STATEF
+    end
+
+    CTRL{"🎛️ Toggle Control\nswitch ON ?"}
+    IDLE(["⏸ inactif — rien"])
+
+    SEC{"🔒 Mode sécurité\nactif ?\nsecurity ON + absent"}
+
+    subgraph SECBOX["🔒 Position sécurité  (court-circuite la fenêtre temporelle)"]
+        direction TB
+        SM{"override\nmanuel ?"}
+        SCLI{"climate mode ET\nhiver OU intermédiaire ?"}
+        SSKIP(["⏸ skip\nmanuel gagne"])
+        SMIN(["min_position\nou 0 %"])
+        SZERO(["0 % — fermeture totale"])
+        SM -->|OUI| SSKIP
+        SM -->|NON| SCLI
+        SCLI -->|OUI| SMIN
+        SCLI -->|NON| SZERO
+    end
+
+    TIME{"⏰ Dans la fenêtre\ntemporelle ?\ncheck_adaptive_time"}
+    TOUT(["⏸ hors fenêtre"])
+
+    MAN{"✋ Override manuel\nactif ?"}
+    MSKIP(["⏸ skip\nmanuel gagne"])
+
+    DELTA{"📏 Delta position ≥ min\nET delta temps OK ?"}
+    DNOOP(["⏸ pas de mouvement\nnécessaire"])
+    MOVE(["📡 set_cover_position\n( state )"])
+
+    START --> CALCBOX
+    CALCBOX --> CTRL
+    CTRL -->|NON| IDLE
+    CTRL -->|OUI| SEC
+    SEC -->|OUI| SECBOX
+    SEC -->|NON| TIME
+    TIME -->|NON| TOUT
+    TIME -->|OUI| MAN
+    MAN -->|OUI| MSKIP
+    MAN -->|NON| DELTA
+    DELTA -->|NON| DNOOP
+    DELTA -->|OUI| MOVE
 
     style SEC fill:#e67e22,color:#fff,stroke:#d35400
-    style SEC_POS fill:#e67e22,color:#fff
-    style CLOSE0 fill:#c0392b,color:#fff
-    style OPEN100 fill:#27ae60,color:#fff
-    style SKIP fill:#7f8c8d,color:#fff
-    style DEF fill:#7f8c8d,color:#fff
-    style CALC_B fill:#2980b9,color:#fff
-    style CALC_C fill:#2980b9,color:#fff
+    style SECBOX fill:#fef3e2,stroke:#e67e22
+    style SMIN fill:#e67e22,color:#fff
+    style SZERO fill:#c0392b,color:#fff
+    style MOVE fill:#2980b9,color:#fff
+    style CALCBOX fill:#eaf4fb,stroke:#2980b9
 ```
+
+> **Refresh minuté** (coucher de soleil) : même vérification sécurité, puis applique `sunset_pos` directement — sans vérification manuel/delta.
+>
+> **Changement d'état du volet** : ne positionne pas ; détecte les déplacements manuels et marque le volet comme `manual_controlled`.
 
 ---
 
-## Logique du mode sécurité
+## Calcul de position — détail
+
+### Mode Basique
 
 ```mermaid
 flowchart TD
-    A(["security_toggle = ON ?"])
-    B{"presence_entity\nconfiguré ?"}
-    C{"Présence\ndétectée ?"}
-    D(["✅ Adaptatif normal"])
-    E(["🛡️ SÉCURITÉ ACTIVE"])
-    F{"Mode climatique\n+ winter ou intermediate ?"}
-    G(["🔒 0% — fermeture totale"])
-    H(["🔒 CONF_MIN_POSITION\n(ou 0%)"])
+    DSV{"direct_sun_valid ?\n① azimut dans le champ de vision\n② élévation > 0\n③ PAS dans l'angle mort\n④ avant coucher + décalage"}
+    CALC["calculate_percentage()\nformule géométrique\n(vertical / horizontal / tilt)"]
+    DEF["position par défaut\n→ h_def  (journée)\n→ sunset_pos  (après coucher + décalage)"]
+    CLIP["clip  0 → 100"]
+    MM{"limites min / max\nconfigurées ?"}
+    CLAMP["clamp aux limites"]
+    OUT(["position  %"])
 
-    A -->|NON| D
-    A -->|OUI| B
-    B -->|NON → pas de capteur| D
-    B -->|OUI| C
-    C -->|OUI → présent| D
-    C -->|NON → absent| E
-    E --> F
-    F -->|NON| G
-    F -->|OUI| H
+    DSV -->|OUI| CALC --> CLIP
+    DSV -->|NON| DEF --> CLIP
+    CLIP --> MM
+    MM -->|OUI| CLAMP --> OUT
+    MM -->|NON| OUT
 
-    style E fill:#ff6b6b,color:#fff
-    style G fill:#c0392b,color:#fff
-    style H fill:#e67e22,color:#fff
-    style D fill:#27ae60,color:#fff
+    style OUT fill:#2980b9,color:#fff
+```
+
+### Mode Climatique
+
+```mermaid
+flowchart TD
+    PRES{"is_presence ?\ndevice_tracker / zone /\nbinary_sensor / input_boolean"}
+    NONE(["min_pos  ou  0 %\npersonne à la maison"])
+    FOV{"soleil dans le\nchamp de vision ?\ncover.valid"}
+    DDEF["position par défaut"]
+    WIN{"HIVER ?\ntemp_inside < temp_low"}
+    C100(["100 % ouvert\n☀️ capter la chaleur solaire"])
+    SUM{"ÉTÉ ?\ntemp_ref > temp_high\nET outside_high"}
+    TRANS{"store\ntransparent ?"}
+    BCALC(["position calculée (basique)\natténuation seulement"])
+    ZERO(["0 % fermé\n🔒 bloquer la chaleur"])
+    INTER["INTERMÉDIAIRE"]
+    LUX{"nuageux ?\nlux ≤ seuil\nou irradiance ≤ seuil ?"}
+    LDEF["position par défaut"]
+    LCALC(["position calculée (basique)\nsuivi solaire"])
+    MM{"limites min / max ?"}
+    CLAMP["clamp aux limites"]
+    COUT(["climate_state  %"])
+
+    PRES -->|NON| NONE
+    PRES -->|OUI| FOV
+    FOV -->|NON| DDEF
+    FOV -->|OUI| WIN
+    WIN -->|OUI| C100
+    WIN -->|NON| SUM
+    SUM -->|OUI| TRANS
+    TRANS -->|OUI| BCALC
+    TRANS -->|NON| ZERO
+    SUM -->|NON| INTER --> LUX
+    LUX -->|OUI| LDEF
+    LUX -->|NON| LCALC
+
+    NONE & DDEF & C100 & BCALC & ZERO & LDEF & LCALC --> MM
+    MM -->|OUI| CLAMP --> COUT
+    MM -->|NON| COUT
+
+    style C100 fill:#27ae60,color:#fff
+    style ZERO fill:#c0392b,color:#fff
+    style NONE fill:#7f8c8d,color:#fff
+    style DDEF fill:#7f8c8d,color:#fff
+    style LDEF fill:#7f8c8d,color:#fff
+    style COUT fill:#2980b9,color:#fff
 ```
 
 ---
@@ -208,19 +281,19 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 | **Position minimale** | Seuil bas (%) — utilisé aussi par le mode sécurité en hiver/intermédiaire |
 | **Position maximale** | Seuil haut (%) |
 
-### Zone aveugle (Blind Spot)
+### Zone aveugle
 
 | Option | Description |
 |--------|-------------|
-| **Activer la zone aveugle** | Active la fonctionnalité |
+| **Activer** | Active la fonctionnalité |
 | **Zone aveugle gauche / droite** | Plage d'azimut (°) |
 | **Élévation de la zone aveugle** | Élévation solaire minimale (°) |
 
-### Options spécifiques à la jalousie (tilt)
+### Jalousie (tilt)
 
 | Option | Description |
 |--------|-------------|
-| **Profondeur de lame** | Profondeur physique d'une lame (mm) |
+| **Profondeur de lame** | Profondeur physique (mm) |
 | **Espacement des lames** | Espace entre les lames (mm) |
 | **Mode tilt** | `mode1` — 0°–90° ; `mode2` — 0°–180° bidirectionnel |
 
@@ -234,15 +307,13 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 | **Entité de température extérieure** | Capteur extérieur (optionnel) |
 | **Entité météo** | Source de température si pas de capteur |
 | **Temp basse / haute** | Seuils hiver / été (°C) |
-| **Utiliser la température extérieure** | Comparer la temp. ext. à `temp_haute` (détection chaleur entrante) |
+| **Utiliser la température extérieure** | Comparer la temp. ext. à `temp_haute` |
 | **Conditions météo** | États météo considérés comme « ensoleillé » |
 | **Entité de présence** | Utilisée pour le mode climatique **et** le mode sécurité |
 
 ### Mode sécurité
 
-> Nécessite un **capteur de présence** configuré dans l'entrée.
-
-**Règles de position :**
+> Nécessite un **capteur de présence** configuré. Sans capteur, le switch est inactif même s'il est ON.
 
 | Situation | Position cible |
 |---|---|
@@ -250,7 +321,6 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 | Climatique + branche `summer` | 0 % (fermeture totale) |
 | Climatique + branche `winter` ou `intermediate` | `CONF_MIN_POSITION` (ou 0 si non configuré) |
 
-**Comportements clés :**
 - Override manuel résiste — le volet en contrôle manuel n'est pas touché
 - Retour automatique à la présence sans intervention manuelle
 - Fail-safe — capteur `unavailable` → sécurité inactive
@@ -259,17 +329,17 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 
 | Option | Description |
 |--------|-------------|
-| **Lux / seuil** | En-dessous → considéré « non ensoleillé » |
+| **Lux / seuil** | En-dessous → considéré « non ensoleillé » en mode intermédiaire |
 | **Irradiance / seuil** | Idem |
 
 ### Contrôle manuel
 
 | Option | Description |
 |--------|-------------|
-| **Durée du contrôle manuel** | Minutes de pause après déplacement manuel |
+| **Durée** | Minutes de pause après déplacement manuel |
 | **Réinitialisation** | Heure de réinitialisation automatique |
 | **Seuil de déplacement** | Delta (%) considéré comme un déplacement manuel |
-| **Ignorer les positions intermédiaires** | Seuls les mouvements ouvert/fermé complets comptent |
+| **Ignorer les intermédiaires** | Seuls les mouvements complets ouvert/fermé comptent |
 
 ---
 
@@ -279,9 +349,9 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 
 | Entité | Nom | Alexa | Description |
 |--------|-----|-------|-------------|
-| `cover.*` | Les volets | "ouvre / ferme les volets" | Aggregate cover |
+| `cover.*` | Les volets | "ouvre / ferme les volets" | Aggregate cover — toutes les entrées |
 | `switch.*` | Les volets | "active / désactive les volets" | Contrôle adaptatif ON/OFF |
-| `switch.*` | Sécurité volets | "active la sécurité des volets" | Mode sécurité — toutes les entrées avec présence |
+| `switch.*` | Sécurité volets | "active la sécurité des volets" | Mode sécurité — entrées avec présence |
 | `select.*` | Mode de contrôle | — | `auto` · `off` · `all_open` · `all_closed` |
 | `scene.*_all_open` | Volets ouverts | "allume Volets ouverts" | Tous à 100 % |
 | `scene.*_all_closed` | Volets fermés | "allume Volets fermés" | Tous à 0 % |
@@ -290,19 +360,19 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 
 | Entité | Défaut | Description |
 |--------|--------|-------------|
-| `cover.<nom>` | — | **Entité principale** — position adaptative, open/close/set_position |
+| `cover.<nom>` | — | Entité principale — position adaptative, open/close/set_position |
 | `switch.toggle_control_<nom>` | ON | Activer / désactiver le positionnement adaptatif |
 | `switch.manual_override_<nom>` | ON | Pause manuelle (auto-activé sur déplacement) |
-| `switch.security_mode_<nom>` | **OFF** | **Mode sécurité** *(visible si présence configurée)* |
+| `switch.security_mode_<nom>` | **OFF** | Mode sécurité *(visible si présence configurée)* |
 | `switch.climate_mode_<nom>` | ON | Mode climatique *(visible si configuré)* |
 | `switch.outside_temperature_<nom>` | OFF | Temp. ext. pour détection été |
 | `switch.lux_<nom>` | ON | Seuil lux |
 | `switch.irradiance_<nom>` | ON | Seuil irradiance |
 | `sensor.cover_position_<nom>` | — | Position cible calculée (%) |
-| `sensor.start_sun_<nom>` / `end_sun` | — | Timestamps entrée/sortie soleil dans le champ de vision |
-| `sensor.control_method_<nom>` | — | Branche active (`summer` / `winter` / `intermediate`) |
+| `sensor.start_sun_<nom>` / `end_sun` | — | Timestamps entrée/sortie du soleil dans le champ de vision |
+| `sensor.control_method_<nom>` | — | Branche active : `summer` / `winter` / `intermediate` |
 | `sensor.climate_debug_<nom>` *(diag.)* | — | Snapshot complet de la décision climatique |
-| `binary_sensor.manual_control_<nom>` | — | ON si au moins un volet en contrôle manuel |
+| `binary_sensor.manual_control_<nom>` | — | ON si au moins un volet en override manuel |
 | `button.reset_manual_control_<nom>` | — | Réinitialise le contrôle manuel immédiatement |
 
 ---
