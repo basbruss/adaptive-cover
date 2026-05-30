@@ -178,9 +178,9 @@ flowchart TD
     WIN{"HIVER ?\ntemp_inside < temp_low"}
     C100(["100 % ouvert\n☀️ capter la chaleur solaire"])
     SUM{"ÉTÉ ?\ntemp_ref > temp_high\nET outside_high"}
-    TRANS{"store\ntransparent ?"}
-    BCALC(["position calculée (basique)\natténuation seulement"])
-    ZERO(["0 % fermé\n🔒 bloquer la chaleur"])
+    TRANS{"Transparent / perforé ?\n(filtre seulement —\nne bloque pas la chaleur)"}
+    BCALC(["position calculée (basique)\nfiltrage / atténuation seulement"])
+    ZERO(["0 % fermé\n🔒 opaque — bloque la chaleur"])
     INTER["INTERMÉDIAIRE"]
     LUX{"nuageux ?\nlux ≤ seuil\nou irradiance ≤ seuil ?"}
     LDEF["position par défaut"]
@@ -196,8 +196,8 @@ flowchart TD
     WIN -->|OUI| C100
     WIN -->|NON| SUM
     SUM -->|OUI| TRANS
-    TRANS -->|OUI| BCALC
-    TRANS -->|NON| ZERO
+    TRANS -->|"OUI (filtre)"| BCALC
+    TRANS -->|"NON (opaque)"| ZERO
     SUM -->|NON| INTER --> LUX
     LUX -->|OUI| LDEF
     LUX -->|NON| LCALC
@@ -213,6 +213,9 @@ flowchart TD
     style LDEF fill:#7f8c8d,color:#fff
     style COUT fill:#2980b9,color:#fff
 ```
+
+> **Pourquoi transparent → calculer, opaque → fermer ?**
+> Un store transparent/perforé ne peut que filtrer la lumière — il ne bloque pas la chaleur même fermé à 100%. Le positionnement adaptatif est donc conservé pour l'ombrage optimal. Un store opaque *peut* bloquer la chaleur, donc 0% est l'action optimale en été.
 
 ---
 
@@ -310,6 +313,7 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 | **Utiliser la température extérieure** | Comparer la temp. ext. à `temp_haute` |
 | **Conditions météo** | États météo considérés comme « ensoleillé » |
 | **Entité de présence** | Utilisée pour le mode climatique **et** le mode sécurité |
+| **Store transparent** | Activer si le store est perforé/maille — filtre seulement, ne bloque pas la chaleur |
 
 ### Mode sécurité
 
