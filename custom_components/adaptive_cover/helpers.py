@@ -32,7 +32,6 @@ def state_attr(hass: HomeAssistant, entity_id: str, attribute: str):
 def get_domain(entity: str) -> str | None:
     """Return the domain part of an entity_id."""
     if entity is not None:
-        # CLEAN: _ replaces object_id (W0612 — never used)
         domain, _ = split_entity_id(entity)
         return domain
     return None
@@ -54,8 +53,35 @@ def get_last_updated(entity_id: str, hass: HomeAssistant) -> dt.datetime | None:
     return None
 
 
-# CLEAN: get_timedelta_str, check_time_passed, dt_check_time_passed removed
-# No usages found in the project (dead code confirmed by static analysis)
+def is_presence_detected(hass: HomeAssistant, entity_id: str | None) -> bool:
+    """Return True when someone is detected as home.
+
+    Supports the same domains as ``ClimateCoverData.is_presence``:
+      - ``device_tracker`` : state == "home"
+      - ``zone``           : state > 0  (number of people)
+      - ``binary_sensor``  : state == "on"
+      - ``input_boolean``  : state == "on"
+
+    Safe defaults:
+      - ``entity_id`` is None  → True  (no sensor configured → assume present)
+      - state is unavailable   → True  (fail-safe: don't close on sensor error)
+    """
+    if entity_id is None:
+        return True
+    state = get_safe_state(hass, entity_id)
+    if state is None:
+        return True  # unavailable → fail-safe
+    domain = get_domain(entity_id)
+    if domain == "device_tracker":
+        return state == "home"
+    if domain == "zone":
+        try:
+            return int(state) > 0
+        except ValueError:
+            return True
+    if domain in ("binary_sensor", "input_boolean"):
+        return state == "on"
+    return True
 
 
 def iter_regular_coordinators(hass: HomeAssistant):
