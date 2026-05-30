@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from numpy import cos, sin, tan
 from numpy import radians as rad
 
-from .helpers import get_domain, get_safe_state, state_attr
+from .helpers import get_domain, get_safe_state, is_presence_detected, state_attr
 from .sun import SunData
 from .config_context_adapter import ConfigContextAdapter
 
@@ -169,7 +169,7 @@ class AdaptiveGeneralCover(ABC):
     @property
     def apply_min_position(self) -> bool:
         """Check if min position is applied."""
-        if self.min_pos is not None and self.min_pos != 0:  # noqa: C0121 — int comparison, not None/True/False
+        if self.min_pos is not None and self.min_pos != 0:  # noqa: C0121
             if self.min_pos_bool:
                 return self.direct_sun_valid
             return True
@@ -282,12 +282,8 @@ class ClimateCoverData:  # pylint: disable=too-many-instance-attributes
     def get_current_temperature(self) -> float | None:
         """Return current temperature as float, or None if unavailable.
 
-        Uses `is not None` rather than a truthy check to correctly handle
-        a temperature of 0.0°C (which is falsy but perfectly valid).
-
         .. deprecated::
-            Prefer `temperature_for_winter` / `temperature_for_summer` which
-            apply the correct sensor source for each seasonal check.
+            Prefer `temperature_for_winter` / `temperature_for_summer`.
         """
         if self.temp_switch:
             outside = self.outside_temperature
@@ -300,12 +296,7 @@ class ClimateCoverData:  # pylint: disable=too-many-instance-attributes
 
     @property
     def temperature_for_winter(self) -> float | None:
-        """Temperature used for the winter (heating) check.
-
-        Always prefers the **inside** sensor: the room must actually be cold
-        before we open the blind to capture solar heat.
-        Falls back to outside temperature only when no inside sensor is set.
-        """
+        """Temperature used for the winter (heating) check — inside preferred."""
         inside = self.inside_temperature
         if inside is not None:
             return float(inside)
@@ -316,12 +307,7 @@ class ClimateCoverData:  # pylint: disable=too-many-instance-attributes
 
     @property
     def temperature_for_summer(self) -> float | None:
-        """Temperature used for the summer (cooling) check.
-
-        When `temp_switch=True` uses the **outside** sensor: external heat is
-        what we are guarding against, even if the room is still comfortable.
-        Falls back to inside temperature when no outside sensor is available.
-        """
+        """Temperature used for the summer (cooling) check — outside preferred when temp_switch=True."""
         if self.temp_switch:
             outside = self.outside_temperature
             if outside is not None:
@@ -333,29 +319,16 @@ class ClimateCoverData:  # pylint: disable=too-many-instance-attributes
 
     @property
     def is_presence(self):
-        """Checks if people are present."""
-        presence = None
-        if self.presence_entity is not None:
-            presence = get_safe_state(self.hass, self.presence_entity)
-        # set to true if no sensor is defined
-        if presence is not None:
-            domain = get_domain(self.presence_entity)
-            if domain == "device_tracker":
-                return presence == "home"
-            if domain == "zone":
-                return int(presence) > 0
-            if domain in ["binary_sensor", "input_boolean"]:
-                return presence == "on"
-        return True
+        """Check if people are present.
+
+        Delegates to ``helpers.is_presence_detected`` so that the same logic
+        is shared with the security mode in the coordinator.
+        """
+        return is_presence_detected(self.hass, self.presence_entity)
 
     @property
     def is_winter(self) -> bool:
-        """Check if the room temperature is below the heating threshold.
-
-        Uses `temperature_for_winter` (inside sensor preferred) so that a cold
-        outdoor temperature cannot trigger a 100 % open when the room is
-        already warm.
-        """
+        """Check if the room temperature is below the heating threshold."""
         temp = self.temperature_for_winter
         if self.temp_low is not None and temp is not None:
             is_it = temp < self.temp_low
@@ -382,11 +355,7 @@ class ClimateCoverData:  # pylint: disable=too-many-instance-attributes
 
     @property
     def is_summer(self) -> bool:
-        """Check if temperature exceeds the cooling threshold.
-
-        Uses `temperature_for_summer` (outside sensor when temp_switch=True)
-        so that incoming external heat is detected even before the room warms up.
-        """
+        """Check if temperature exceeds the cooling threshold."""
         temp = self.temperature_for_summer
         if self.temp_high is not None and temp is not None:
             is_it = temp > self.temp_high and self.outside_high
@@ -463,53 +432,38 @@ class ClimateCoverState(NormalCoverState):
         Priority tree (presence=True):
 
         1. Sun NOT in window (cover.valid=False)
-               → default position  (no action needed)
-
+               → default position
         2. Sun in window (cover.valid=True)
-           a. WINTER  (T° < low threshold)
-                  → 100% open  (capture solar heat regardless of lux/weather)
-           b. SUMMER  (T° > high threshold)
-                  transparent_blind=True  → basic calculated  (sheer: shade only)
-                  transparent_blind=False → 0% closed         (opaque: preserve cool)
+           a. WINTER  → 100% open
+           b. SUMMER  → 0% closed (opaque) or basic (transparent)
            c. INTERMEDIATE
-                  overcast / low lux / low irradiance → default position
-                  sunny                               → basic calculated (shade only)
+                  overcast / low lux / low irradiance → default
+                  sunny → basic calculated
         """
 
         is_summer = self.climate_data.is_summer
 
-        # ── Step 1: sun not in window → default regardless of season ──────────
         if not self.cover.valid:
-            self.cover.logger.debug(
-                "n_w_p(): sun not in window → default"
-            )
+            self.cover.logger.debug("n_w_p(): sun not in window → default")
             return self.cover.default
 
-        # ── Step 2a: WINTER + sun in window → open fully ──────────────────────
-        # Winter check precedes lux/weather filter: even on a clear sunny day
-        # in winter, the goal is to capture as much solar heat as possible.
         if not is_summer and self.climate_data.is_winter:
             self.cover.logger.debug(
                 "n_w_p(): Winter and sun is in front of window = use 100"
             )
             return 100
 
-        # ── Step 2b: SUMMER + sun in window ───────────────────────────────────
         if is_summer:
             if self.climate_data.transparent_blind:
-                # Sheer / voile curtain: cannot fully block anyway → shade only
                 self.cover.logger.debug(
                     "n_w_p(): Summer + transparent blind → basic (shade only)"
                 )
                 return super().get_state()
-            # Opaque blind: close fully to preserve indoor cool
             self.cover.logger.debug(
                 "n_w_p(): Summer + opaque blind → 0% (fully closed)"
             )
             return 0
 
-        # ── Step 2c: INTERMEDIATE + sun in window ─────────────────────────────
-        # Overcast / low lux / low irradiance → no direct sun → default position
         if (
             self.climate_data.lux
             or self.climate_data.irradiance
@@ -520,20 +474,13 @@ class ClimateCoverState(NormalCoverState):
             )
             return self.cover.default
 
-        # Sunny intermediate: calculate shade position to reduce glare
         self.cover.logger.debug(
             "n_w_p(): Intermediate + sunny → basic calculated (shade only)"
         )
         return super().get_state()
 
     def normal_without_presence(self) -> int:
-        """Determine state for horizontal and vertical covers without occupants.
-
-        When nobody is home covers close to the **minimum configured position**
-        regardless of sun position, season or the "apply min only when sun is
-        in window" flag (``min_pos_bool``).  Falls back to 0 % when no minimum
-        position is configured.
-        """
+        """Determine state without occupants → min_pos or 0 %."""
         min_pos = self.cover.min_pos
         return min_pos if min_pos is not None else 0
 
@@ -545,22 +492,12 @@ class ClimateCoverState(NormalCoverState):
             or not self.climate_data.is_sunny
         ):
             if self.climate_data.is_summer:
-                # If it's summer, return 45 degrees
                 return 45 / degrees * 100
             return super().get_state()
         return 80 / degrees * 100
 
     def tilt_without_presence(self, degrees: int) -> int:
-        """Determine state for tilted blinds without occupants.
-
-        When nobody is home slats close to the **minimum configured position**
-        regardless of sun position, season or the ``min_pos_bool`` flag.
-        Falls back to 0 % when no minimum position is configured.
-        """
-        # assert isinstance: tilt_without_presence is only called
-        # when blind_type == "cover_tilt", so self.cover is always
-        # AdaptiveTiltCover (has beta and mode). The assert lets the linter
-        # (pylint/mypy) narrow the type without using cast().
+        """Determine state for tilted blinds without occupants → min_pos or 0 %."""
         assert isinstance(self.cover, AdaptiveTiltCover)
         min_pos = self.cover.min_pos
         return min_pos if min_pos is not None else 0
@@ -608,7 +545,6 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
 
     def calculate_position(self) -> float:
         """Calculate blind height."""
-        # calculate blind height
         blind_height = np.clip(
             (self.distance / cos(rad(self.gamma))) * tan(rad(self.sol_elev)),
             0,
@@ -643,7 +579,6 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
         length = ((self.h_win - vertical_position) * sin(rad(a_angle))) / sin(
             rad(c_angle)
         )
-        # return np.clip(length, 0, self.awn_length)
         return length
 
     def calculate_percentage(self) -> float:
@@ -688,9 +623,8 @@ class AdaptiveTiltCover(AdaptiveGeneralCover):
 
     def calculate_percentage(self):
         """Convert tilt angle to percentages or default value."""
-        # 0 degrees is closed, 90 degrees is open, 180 degrees is closed
-        percentage_single = self.calculate_position() / 90 * 100  # single directional
-        percentage_bi = self.calculate_position() / 180 * 100  # bi-directional
+        percentage_single = self.calculate_position() / 90 * 100
+        percentage_bi = self.calculate_position() / 180 * 100
 
         if self.mode == "mode1":
             percentage = percentage_single
