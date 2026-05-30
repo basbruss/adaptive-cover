@@ -159,9 +159,9 @@ flowchart TD
     WCHECK -- Oui --> OPEN["🪟 Ouverture totale (100%)\napports solaires"]
 
     WCHECK -- Non --> SCHECK{"🌡️ ÉTÉ ?\ntemp > temp_haute"}
-    SCHECK -- Oui --> TRANSP{"Store\ntransparent ?"}
-    TRANSP -- Oui --> CALC
-    TRANSP -- Non --> CLOSE["🪟 Fermeture totale (0%)\nbloquer la chaleur"]
+    SCHECK -- Oui --> TRANSP{"Store transparent / perforé ?\n(filtre seulement —\nne bloque pas la chaleur)"}
+    TRANSP -- "Oui\n(filtre seulement)" --> CALC
+    TRANSP -- "Non\n(opaque)" --> CLOSE["🪟 Fermeture totale (0%)\nbloquer la chaleur"]
 
     SCHECK -- "Non\n(intermédiaire)" --> LIGHT{"Couvert ?\nlux ≤ seuil\nOU irradiance ≤ seuil ?"}
     LIGHT -- "Oui\n(lumière faible)" --> DEFAULT
@@ -190,7 +190,9 @@ flowchart TD
 ```
 
 > **Priorité d'exécution** : Sécurité (1) > Climatique (2) > Basique (3)
-> La sécurité est évaluée **avant** la fenêtre horaire — elle ferme les volets même hors des heures configurées.
+> La sécurité est évaluée **avant** la fenêtre horaire — elle ferme les volets même en dehors des heures configurées.
+>
+> **Transparent vs opaque** : un store transparent/perforé ne fait que filtrer la lumière — il ne bloque pas la chaleur même fermé à 100%. Le positionnement adaptatif est conservé. Un store opaque *peut* bloquer la chaleur, donc 0% est l'action optimale en été.
 
 ### Mode basique
 
@@ -208,8 +210,8 @@ Ce mode calcule la position en tenant compte de paramètres supplémentaires : p
 
   - **Hiver** (`temp < temp_basse`) : ouvre à 100% pour capter la chaleur solaire, quels que soient lux/météo.
   - **Été** (`temp > temp_haute`) :
-    - Store transparent → position calculée (atténuation seulement)
-    - Store opaque → ferme à 0%
+    - Store transparent/perforé → position calculée (filtrage/atténuation seulement — ne bloque pas la chaleur)
+    - Store opaque → ferme à 0% pour bloquer la chaleur
   - **Intermédiaire** : suit la géométrie solaire si ensoleillé/lumineux ; revient à la position par défaut si couvert ou lux/irradiance sous le seuil.
 
   Pour les jalousies en mode été : les lames se positionnent à 45° ([reconnu comme optimal](https://www.mdpi.com/1996-1073/13/7/1731)).
@@ -303,6 +305,7 @@ Le mode sécurité ferme automatiquement les volets quand personne n'est à la m
 | Seuil température extérieure | `Aucun` | | | Si défini, le mode été ne s'active que si la temp. ext. dépasse aussi ce seuil |
 | Entité de présence | `Aucune` | | | Utilisée pour le mode climatique **et** le mode sécurité |
 | Entité météo | `Aucune` | | `weather.maison` | Peut aussi servir de source de température extérieure |
+| Store transparent | `Faux` | | | Activer si le store est perforé/maille — filtre seulement, garde le positionnement adaptatif en été au lieu de fermer à 0% |
 | Entité lux | `Aucune` | | `sensor.lux` | Mesure d'éclairement en lux |
 | Seuil lux | `1000` | | | En dessous du seuil → considéré « non ensoleillé » en mode intermédiaire |
 | Entité irradiance | `Aucune` | | `sensor.irradiance` | Mesure d'irradiance solaire |
