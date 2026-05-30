@@ -23,6 +23,7 @@ Basée sur le capteur template de ce fil de forum : [Automatic Blinds](https://c
     - [Mode basique](#mode-basique)
     - [Mode climatique](#mode-climatique)
       - [Stratégies climatiques](#stratégies-climatiques)
+    - [Mode sécurité](#mode-sécurité)
   - [Paramètres](#paramètres)
     - [Communs](#communs)
     - [Vertical](#vertical)
@@ -41,7 +42,7 @@ Basée sur le capteur template de ce fil de forum : [Automatic Blinds](https://c
 ## Fonctionnalités
 
 - Appareils distincts pour les volets `vertical`, `horizontal` et `jalousie`
-- Deux modes avec stratégies multiples : [Modes (`basique`, `climatique`)](#modes-de-fonctionnement)
+- **Trois** modes de stratégie : [`basique`](#mode-basique), [`climatique`](#mode-climatique), [`sécurité`](#mode-sécurité)
 - Capteur binaire indiquant quand le soleil est face à la fenêtre
 - Capteurs d'heure de début et de fin d'ensoleillement
 - Détection automatique du contrôle manuel
@@ -53,6 +54,15 @@ Basée sur le capteur template de ce fil de forum : [Automatic Blinds](https://c
   - Interrupteur pour activer/désactiver le mode climatique
   - Capteur indiquant la stratégie active (`hiver`, `intermédiaire`, `été`)
   - Capteur de diagnostic exposant toutes les valeurs intermédiaires de décision
+
+- **Mode Sécurité** *(v1.9+)*
+
+  - Ferme automatiquement les volets quand personne n'est à la maison
+  - Interrupteur par groupe (visible uniquement si un capteur de présence est configuré)
+  - Interrupteur hub pour activation globale sur tous les groupes
+  - L'override manuel résiste toujours — les volets en contrôle manuel ne sont jamais déplacés
+  - Retour automatique au positionnement adaptatif quand la présence est restaurée
+  - Fail-safe : capteur de présence indisponible → sécurité inactive
 
 - **Contrôle adaptatif**
 
@@ -67,6 +77,7 @@ Basée sur le capteur template de ce fil de forum : [Automatic Blinds](https://c
   - Entité volet agrégée contrôlant tous les volets en même temps
   - Sélecteur 4 états (Auto / Arrêt / Tous ouverts / Tous fermés)
   - Interrupteur ON/OFF pour contrôle vocal Alexa
+  - Interrupteur sécurité pour Alexa ("Alexa, active la sécurité des volets")
   - Scènes raccourcis pour les automatisations
   - Support natif Alexa, Google Assistant et Assist
 
@@ -105,7 +116,13 @@ Lors du premier ajout de l'intégration, un menu propose deux options :
 
 ## Modes de fonctionnement
 
-Ce composant propose deux modes : un mode `basique` et un mode `climatique` (confort / économie d'énergie) qui intègre la présence et la température.
+Ce composant propose **trois** modes : un mode `basique`, un mode `climatique` (confort / économie d'énergie) qui intègre la présence et la température, et un mode `sécurité` qui ferme les volets en cas d'absence.
+
+| Mode | Priorité | Description |
+|------|----------|-------------|
+| `basique` | 3 (base) | Suivi solaire pur |
+| `climatique` | 2 | S'adapte à la température — branches été / hiver / intermédiaire |
+| `sécurité` | **1 (plus haute)** | Ferme les volets en absence — écrase toute autre logique |
 
 ```mermaid
 flowchart TD
@@ -120,7 +137,9 @@ flowchart TD
     CTRL -- Oui --> MANUAL{"Contrôle manuel\nactif ?"}
     MANUAL -- Oui --> HOLD["🔒 Maintien position\ncourante"]
 
-    MANUAL -- Non --> SUN{"Soleil dans le champ\nde vision ET élévation > 0 ?"}
+    MANUAL -- Non --> SECURITY{"🛡️ Mode sécurité\nON + absence ?"}
+    SECURITY -- "Oui\n(absent)" --> SECPOS["🛡️ Position sécurité\n0% ou min_position\n(0% si pas de clim\nou branche été)"]
+    SECURITY -- Non --> SUN{"Soleil dans le champ\nde vision ET élévation > 0 ?"}
     SUN -- Non --> DEFAULT
 
     SUN -- Oui --> CLMODE{"Mode\nClimatique ?"}
@@ -130,46 +149,46 @@ flowchart TD
     CALC --> LIMITS
 
     %% ── MODE CLIMATIQUE ───────────────────────────
-    CLMODE -- Oui --> LIGHT{"Lux / Irradiance\nau-dessus du seuil\nOU météo ensoleillée ?"}
+    CLMODE -- Oui --> PRES{"Présence\ndétectée ?"}
 
-    LIGHT -- "Non (lumière faible)" --> WCHECK{"Temp < temp_basse\n❄️ seuil hiver ?"}
+    %% ── SANS PRÉSENCE ─────────────────────────────
+    PRES -- "Non" --> PNONE["min_position ou 0%"]
+
+    %% ── AVEC PRÉSENCE ─────────────────────────────
+    PRES -- "Oui" --> WCHECK{"❄️ HIVER ?\ntemp < temp_basse"}
     WCHECK -- Oui --> OPEN["🪟 Ouverture totale (100%)\napports solaires"]
-    WCHECK -- Non --> DEFAULT
 
-    LIGHT -- "Oui (lumineux)" --> PRESENCE{"Capteur\nde présence ?"}
+    WCHECK -- Non --> SCHECK{"🌡️ ÉTÉ ?\ntemp > temp_haute"}
+    SCHECK -- Oui --> TRANSP{"Store\ntransparent ?"}
+    TRANSP -- Oui --> CALC
+    TRANSP -- Non --> CLOSE["🪟 Fermeture totale (0%)\nbloquer la chaleur"]
 
-    %% ── SANS OCCUPANTS ────────────────────────────
-    PRESENCE -- "Aucun occupant" --> S_NO{"Temp > temp_haute\n🌡️ seuil été ?"}
-    S_NO -- Oui --> CLOSE["🪟 Fermeture totale (0%)\nbloquer la chaleur"]
-    S_NO -- Non --> W_NO{"Temp < temp_basse\n❄️ seuil hiver ?"}
-    W_NO -- Oui --> OPEN
-    W_NO -- Non --> DEFAULT
-
-    %% ── OCCUPANTS PRÉSENTS ────────────────────────
-    PRESENCE -- "Occupants présents" --> S_YES{"Temp > temp_haute\n🌡️ seuil été ?"}
-    S_YES -- Oui --> TRANSP{"Store\ntransparent ?"}
-    TRANSP -- Oui --> CLOSE
-    TRANSP -- Non --> CALC
-
-    S_YES -- Non --> CALC
+    SCHECK -- "Non\n(intermédiaire)" --> LIGHT{"Couvert ?\nlux ≤ seuil\nOU irradiance ≤ seuil ?"}
+    LIGHT -- "Oui\n(lumière faible)" --> DEFAULT
+    LIGHT -- "Non\n(ensoleillé)" --> CALC
 
     %% ── ÉTAPES FINALES COMMUNES ───────────────────
     LIMITS["🔧 Application limites min / max\n+ correction zone aveugle"]
     OPEN --> LIMITS
     CLOSE --> LIMITS
+    PNONE --> LIMITS
+    SECPOS --> LIMITS
 
     LIMITS --> DELTA{"Changement de position\n> seuil delta ?"}
     DELTA -- Non --> HOLD
     DELTA -- Oui --> RESULT(["✅ Application nouvelle position\nsur le(s) volet(s)"])
 
     %% ── STYLES ────────────────────────────────────
-    style CLOSE fill:#f28b82,color:#000
-    style OPEN  fill:#81c995,color:#000
-    style CALC  fill:#78b7f5,color:#000
-    style RESULT fill:#34a853,color:#fff
-    style HOLD  fill:#fbbc04,color:#000
-    style SUNSET fill:#aecbfa,color:#000
-    style DEFAULT fill:#e8eaed,color:#000
+    style CLOSE    fill:#f28b82,color:#000
+    style OPEN     fill:#81c995,color:#000
+    style CALC     fill:#78b7f5,color:#000
+    style RESULT   fill:#34a853,color:#fff
+    style HOLD     fill:#fbbc04,color:#000
+    style SUNSET   fill:#aecbfa,color:#000
+    style DEFAULT  fill:#e8eaed,color:#000
+    style SECURITY fill:#ff9800,color:#fff,stroke:#e65100
+    style SECPOS   fill:#ff9800,color:#fff,stroke:#e65100
+    style PNONE    fill:#e8eaed,color:#000
 ```
 
 ### Mode basique
@@ -178,25 +197,38 @@ Ce mode utilise la position calculée quand le soleil se trouve dans la plage d'
 
 ### Mode climatique
 
-Ce mode calcule la position en tenant compte de paramètres supplémentaires : présence, température intérieure, température de confort minimale, température de confort maximale et météo (optionnel).
-Il se décline en deux stratégies : [Avec présence](#stratégies-climatiques) et [Sans présence](#stratégies-climatiques).
+Ce mode calcule la position en tenant compte de paramètres supplémentaires : présence, température intérieure, seuils de confort et météo (optionnel).
 
 #### Stratégies climatiques
 
-- **Sans présence** :
-  L'apport de lumière naturelle n'est pas un objectif en l'absence d'occupants.
-
-  - **En dessous de la température de confort minimale** :
-    Si le soleil est au-dessus de l'horizon et que la température intérieure est sous le seuil minimal, le volet s'ouvre complètement (ou les lames s'orientent parallèlement aux rayons du soleil pour une jalousie) afin de maximiser les apports solaires passifs.
-
-  - **Au-dessus de la température de confort maximale** :
-    L'objectif est de ne pas réchauffer davantage la pièce. Tous les volets se ferment complètement pour bloquer tout rayonnement.<br><br>
-    Si la température est entre les deux seuils, la position revient à la valeur par défaut selon l'heure.
+- **Sans présence** : retourne `min_position` (ou 0% si non configuré). Aucun calcul de température.
 
 - **Avec présence** (ou sans entité de présence configurée) :
-  L'objectif est de réduire l'éblouissement tout en laissant entrer la lumière naturelle. Le calcul suit le modèle basique pour les volets horizontaux et verticaux.<br><br>
-  Si une entité météo est configurée, les calculs s'appliquent uniquement si l'état météo correspond à un ensoleillement direct. Les états par défaut sont `sunny`, `windy`, `partlycloudy` et `cloudy`, modifiables dans les options météo. Sinon, la position revient à la valeur par défaut.<br><br>
-  Pour les jalousies, l'inclinaison est ajustée à 45° quand la température dépasse le seuil maximal, ce qui est [reconnu comme optimal](https://www.mdpi.com/1996-1073/13/7/1731).
+
+  - **Hiver** (`temp < temp_basse`) : ouvre à 100% pour capter la chaleur solaire, quels que soient lux/météo.
+  - **Été** (`temp > temp_haute`) :
+    - Store transparent → position calculée (atténuation seulement)
+    - Store opaque → ferme à 0%
+  - **Intermédiaire** : suit la géométrie solaire si ensoleillé/lumineux ; revient à la position par défaut si couvert ou lux/irradiance sous le seuil.
+
+  Pour les jalousies en mode été : les lames se positionnent à 45° ([reconnu comme optimal](https://www.mdpi.com/1996-1073/13/7/1731)).
+
+### Mode sécurité
+
+Le mode sécurité ferme automatiquement les volets quand personne n'est à la maison, indépendamment du mode climatique actif.
+
+**Nécessite un capteur de présence** configuré dans les options de l'entrée. Sans capteur, le switch existe mais reste inactif.
+
+| Situation | Position cible |
+|---|---|
+| Sans mode climatique | 0% (fermeture totale) |
+| Climatique + branche `été` | 0% (fermeture totale) |
+| Climatique + branche `hiver` ou `intermédiaire` | `min_position` (ou 0% si non configuré) |
+
+**Comportements clés :**
+- **L'override manuel résiste toujours** — les volets déjà en contrôle manuel ne sont jamais déplacés par la sécurité
+- **Retour automatique** — quand la présence est restaurée, le positionnement adaptatif reprend sans action manuelle
+- **Fail-safe** — capteur de présence indisponible → sécurité inactive (pas de fermeture sur erreur capteur)
 
 ## Paramètres
 
@@ -207,8 +239,8 @@ Il se décline en deux stratégies : [Avec présence](#stratégies-climatiques) 
 | Entités | [] | | Entités `cover.*` contrôlées par l'intégration |
 | Azimut de la fenêtre | 180 | 0-359 | Direction de la fenêtre (trouvable via [Open Street Map Compass](https://osmcompass.com/)) |
 | Position par défaut | 60 | 0-100 | Position en l'absence d'éblouissement direct |
-| Position minimale | 100 | 0-99 | Position d'ouverture minimale du volet |
-| Position maximale | 100 | 1-100 | Position d'ouverture maximale du volet |
+| Position minimale | 100 | 0-99 | Position d'ouverture minimale — utilisée aussi par le mode sécurité en hiver/intermédiaire |
+| Position maximale | 100 | 1-100 | Position d'ouverture maximale |
 | Champ de vision gauche | 90 | 1-90 | Angle de vision non obstrué à gauche de la normale de la fenêtre (°) |
 | Champ de vision droite | 90 | 1-90 | Angle de vision non obstrué à droite de la normale de la fenêtre (°) |
 | Élévation minimale | Aucune | 0-90 | Élévation solaire minimale prise en compte (°) |
@@ -240,7 +272,7 @@ Il se décline en deux stratégies : [Avec présence](#stratégies-climatiques) 
 | --------- | ------ | ----- | ----------- |
 | Profondeur de lame | 3 | 0,1-15 | Largeur de chaque lame |
 | Espacement des lames | 2 | 0,1-15 | Distance verticale entre deux lames en position horizontale |
-| Mode tilt | Bidirectionnel | | `basic` : angle uniquement ; `enhanced` : angle + position verticale |
+| Mode tilt | Bidirectionnel | | `mode1` : 0°–90° / `mode2` : 0°–180° bidirectionnel |
 
 ### Automatisation
 
@@ -266,19 +298,19 @@ Il se décline en deux stratégies : [Avec présence](#stratégies-climatiques) 
 | Température de confort minimale | 21 | 0-86 | | Seuil hiver — en dessous, ouverture pour apports solaires |
 | Température de confort maximale | 25 | 0-86 | | Seuil été — au-dessus, fermeture pour bloquer la chaleur |
 | Entité température extérieure | `Aucune` | | `sensor.temp_exterieur` | |
-| Seuil température extérieure | `Aucun` | | | Si la température extérieure est sous ce seuil, le mode été ne s'active pas |
-| Entité de présence | `Aucune` | | | |
+| Seuil température extérieure | `Aucun` | | | Si défini, le mode été ne s'active que si la temp. ext. dépasse aussi ce seuil |
+| Entité de présence | `Aucune` | | | Utilisée pour le mode climatique **et** le mode sécurité |
 | Entité météo | `Aucune` | | `weather.maison` | Peut aussi servir de source de température extérieure |
 | Entité lux | `Aucune` | | `sensor.lux` | Mesure d'éclairement en lux |
-| Seuil lux | `1000` | | | En mode non-été : au-dessus du seuil, utilise la position optimale ; sinon, position par défaut ou ouverture totale en hiver |
+| Seuil lux | `1000` | | | En dessous du seuil → considéré « non ensoleillé » en mode intermédiaire |
 | Entité irradiance | `Aucune` | | `sensor.irradiance` | Mesure d'irradiance solaire |
-| Seuil irradiance | `300` | | | En mode non-été : au-dessus du seuil, utilise la position optimale ; sinon, position par défaut ou ouverture totale en hiver |
+| Seuil irradiance | `300` | | | En dessous du seuil → considéré « non ensoleillé » en mode intermédiaire |
 
 ### Zone aveugle
 
 | Paramètre | Défaut | Plage | Description |
 | --------- | ------ | ----- | ----------- |
-| Zone aveugle gauche | Aucune | 0-max(fov_droite, 180) | Point de départ de la zone aveugle dans le champ de vision (0 = azimut fenêtre − fov gauche) |
+| Zone aveugle gauche | Aucune | 0-max(fov_droite, 180) | Point de départ de la zone aveugle dans le champ de vision |
 | Zone aveugle droite | Aucune | 1-max(fov_droite, 180) | Point de fin de la zone aveugle |
 | Élévation zone aveugle | Aucune | 0-90 | Élévation solaire minimale pour que la zone aveugle s'applique |
 
@@ -286,31 +318,34 @@ Il se décline en deux stratégies : [Avec présence](#stratégies-climatiques) 
 
 ### Entités par groupe de volets
 
-L'intégration crée dynamiquement plusieurs entités selon les fonctionnalités activées.
-
 Ces entités sont toujours disponibles pour chaque groupe de volets :
 
 | Entité | Défaut | Description |
 | ------ | ------ | ----------- |
-| `sensor.{type}_cover_position_{nom}` | | Position cible calculée (%) en fonction de la position solaire, de la météo et de la température |
-| `sensor.{type}_control_method_{nom}` | `intermediate` | Stratégie de contrôle active : `winter`, `summer`, `intermediate` |
+| `sensor.{type}_cover_position_{nom}` | | Position cible calculée (%) |
+| `sensor.{type}_control_method_{nom}` | `intermediate` | Stratégie active : `winter`, `summer`, `intermediate` |
 | `sensor.{type}_start_sun_{nom}` | | Heure d'entrée du soleil dans le champ de vision (mise à jour toutes les 5 min) |
-| `sensor.{type}_end_sun_{nom}` | | Heure de sortie du soleil du champ de vision (mise à jour toutes les 5 min) |
-| `binary_sensor.{type}_manual_override_{nom}` | `off` | Indique si un contrôle manuel est actif sur l'un des volets |
-| `binary_sensor.{type}_sun_infront_{nom}` | `off` | Indique si le soleil est face à la fenêtre dans le champ de vision défini |
+| `sensor.{type}_end_sun_{nom}` | | Heure de sortie du soleil du champ de vision |
+| `binary_sensor.{type}_manual_override_{nom}` | `off` | Vrai si un contrôle manuel est actif sur l'un des volets |
 | `switch.{type}_toggle_control_{nom}` | `on` | Active le contrôle adaptatif |
 | `switch.{type}_manual_override_{nom}` | `on` | Active la détection des contrôles manuels |
 | `button.{type}_reset_manual_override_{nom}` | | Réinitialise les marqueurs manuels pour tous les volets du groupe |
 
-Quand le mode climatique est configuré, ces entités supplémentaires sont créées :
+Quand le mode climatique est configuré :
 
 | Entité | Défaut | Description |
 | ------ | ------ | ----------- |
 | `switch.{type}_climate_mode_{nom}` | `on` | Active la stratégie climatique |
 | `switch.{type}_outside_temperature_{nom}` | `off` | Utilise la température extérieure pour la détection du mode été |
-| `switch.{type}_lux_{nom}` | `on` | Active le seuil lux (visible uniquement si une entité lux est configurée) |
-| `switch.{type}_irradiance_{nom}` | `on` | Active le seuil d'irradiance (visible uniquement si une entité irradiance est configurée) |
-| `sensor.{type}_climate_debug_{nom}` | | Capteur de diagnostic exposant toutes les valeurs intermédiaires de l'arbre de décision climatique |
+| `switch.{type}_lux_{nom}` | `on` | Active le seuil lux |
+| `switch.{type}_irradiance_{nom}` | `on` | Active le seuil d'irradiance |
+| `sensor.{type}_climate_debug_{nom}` | | Capteur de diagnostic avec snapshot complet de la décision climatique |
+
+Quand un **capteur de présence** est configuré :
+
+| Entité | Défaut | Description |
+| ------ | ------ | ----------- |
+| `switch.{type}_security_mode_{nom}` | **`off`** | **Mode sécurité** — ferme les volets quand aucune présence n'est détectée |
 
 ### Entités du hub Tous les volets
 
@@ -318,11 +353,12 @@ L'appareil **Tous les volets** (créé automatiquement au premier démarrage) ex
 
 | Entité | Nom | Description |
 | ------ | --- | ----------- |
-| `cover.*` | **Les volets** | Volet agrégé — contrôle tous les volets en même temps. Ouverture/fermeture/position agit sur tous les volets et active la dérogation manuelle. |
-| `switch.*` | **Les volets** | Interrupteur ON/OFF du contrôle adaptatif sur toutes les entrées. **ON** active le positionnement adaptatif et efface les dérogations manuelles ; **OFF** le désactive. |
-| `select.*` | **Mode de contrôle** | Sélecteur 4 états : **Auto** (adaptatif ON + dérogations effacées) / **Arrêt** / **Tous ouverts** (100%) / **Tous fermés** (0%). État restauré au redémarrage de HA. |
-| `scene.*_all_open` | **Volets ouverts** | Met tous les volets à 100% avec dérogation manuelle. |
-| `scene.*_all_closed` | **Volets fermés** | Met tous les volets à 0% avec dérogation manuelle. |
+| `cover.*` | **Les volets** | Volet agrégé — ouverture/fermeture/position agit sur tous les volets |
+| `switch.*` | **Les volets** | Interrupteur ON/OFF du contrôle adaptatif sur toutes les entrées |
+| `switch.*` | **Sécurité volets** | Interrupteur ON/OFF du **mode sécurité** sur toutes les entrées avec capteur de présence |
+| `select.*` | **Mode de contrôle** | Sélecteur 4 états : Auto / Arrêt / Tous ouverts (100%) / Tous fermés (0%) |
+| `scene.*_all_open` | **Volets ouverts** | Met tous les volets à 100% |
+| `scene.*_all_closed` | **Volets fermés** | Met tous les volets à 0% |
 
 ![entités](https://github.com/basbruss/adaptive-cover/blob/main/images/entities.png)
 
@@ -342,6 +378,8 @@ L'appareil hub est conçu pour une intégration native avec les assistants vocau
 | *« Alexa, désactive les volets »* | switch **Les volets** OFF | Contrôle adaptatif désactivé |
 | *« Alexa, ouvre les volets »* | cover **Les volets** open | Tous les volets → 100% |
 | *« Alexa, ferme les volets »* | cover **Les volets** close | Tous les volets → 0% |
+| *« Alexa, active la sécurité des volets »* | switch **Sécurité volets** ON | Mode sécurité activé — volets ferment en absence |
+| *« Alexa, désactive la sécurité des volets »* | switch **Sécurité volets** OFF | Mode sécurité désactivé |
 
 > Alexa route les commandes par type d'entité : `active/désactive` → switch, `ouvre/ferme` → cover.  
 > Les mêmes noms d'entités fonctionnent avec **Google Assistant** et **Assist**.
