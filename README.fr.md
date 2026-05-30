@@ -122,24 +122,24 @@ Ce composant propose **trois** modes : un mode `basique`, un mode `climatique` (
 |------|----------|-------------|
 | `basique` | 3 (base) | Suivi solaire pur |
 | `climatique` | 2 | S'adapte à la température — branches été / hiver / intermédiaire |
-| `sécurité` | **1 (plus haute)** | Ferme les volets en absence — écrase toute autre logique |
+| `sécurité` | **1 (plus haute)** | Ferme les volets en absence — écrase toute autre logique **y compris hors fenêtre horaire** |
 
 ```mermaid
 flowchart TD
     START(["☀️ Mise à jour données solaires"])
 
-    START --> TIME{"Dans la fenêtre\nhoraire active ?"}
-    TIME -- Non --> SUNSET["🌙 Position coucher /\nposition par défaut"]
-
-    TIME -- Oui --> CTRL{"Interrupteur\nContrôle ON ?"}
+    START --> CTRL{"Interrupteur\nContrôle ON ?"}
     CTRL -- Non --> DEFAULT["↩️ Retour position\npar défaut"]
 
-    CTRL -- Oui --> MANUAL{"Contrôle manuel\nactif ?"}
+    CTRL -- Oui --> SECURITY{"🛡️ Mode sécurité\nON + absence ?"}
+    SECURITY -- "Oui\n(absent)" --> SECPOS["🛡️ Position sécurité\n0% ou min_position\n(0% si pas de clim\nou branche été)"]
+    SECURITY -- Non --> TIME{"Dans la fenêtre\nhoraire active ?"}
+    TIME -- Non --> SUNSET["🌙 Position coucher /\nposition par défaut"]
+
+    TIME -- Oui --> MANUAL{"Contrôle manuel\nactif ?"}
     MANUAL -- Oui --> HOLD["🔒 Maintien position\ncourante"]
 
-    MANUAL -- Non --> SECURITY{"🛡️ Mode sécurité\nON + absence ?"}
-    SECURITY -- "Oui\n(absent)" --> SECPOS["🛡️ Position sécurité\n0% ou min_position\n(0% si pas de clim\nou branche été)"]
-    SECURITY -- Non --> SUN{"Soleil dans le champ\nde vision ET élévation > 0 ?"}
+    MANUAL -- Non --> SUN{"Soleil dans le champ\nde vision ET élévation > 0 ?"}
     SUN -- Non --> DEFAULT
 
     SUN -- Oui --> CLMODE{"Mode\nClimatique ?"}
@@ -168,15 +168,13 @@ flowchart TD
     LIGHT -- "Non\n(ensoleillé)" --> CALC
 
     %% ── ÉTAPES FINALES COMMUNES ───────────────────
-    LIMITS["🔧 Application limites min / max\n+ correction zone aveugle"]
+    LIMITS["🔧 Application limites min / max\n+ correction zone aveugle\n+ vérification delta position"]
     OPEN --> LIMITS
     CLOSE --> LIMITS
     PNONE --> LIMITS
     SECPOS --> LIMITS
 
-    LIMITS --> DELTA{"Changement de position\n> seuil delta ?"}
-    DELTA -- Non --> HOLD
-    DELTA -- Oui --> RESULT(["✅ Application nouvelle position\nsur le(s) volet(s)"])
+    LIMITS --> RESULT(["✅ Application nouvelle position\nsur le(s) volet(s)"])
 
     %% ── STYLES ────────────────────────────────────
     style CLOSE    fill:#f28b82,color:#000
@@ -190,6 +188,9 @@ flowchart TD
     style SECPOS   fill:#ff9800,color:#fff,stroke:#e65100
     style PNONE    fill:#e8eaed,color:#000
 ```
+
+> **Priorité d'exécution** : Sécurité (1) > Climatique (2) > Basique (3)
+> La sécurité est évaluée **avant** la fenêtre horaire — elle ferme les volets même hors des heures configurées.
 
 ### Mode basique
 
@@ -215,7 +216,7 @@ Ce mode calcule la position en tenant compte de paramètres supplémentaires : p
 
 ### Mode sécurité
 
-Le mode sécurité ferme automatiquement les volets quand personne n'est à la maison, indépendamment du mode climatique actif.
+Le mode sécurité ferme automatiquement les volets quand personne n'est à la maison, indépendamment du mode climatique actif et de la fenêtre horaire configurée.
 
 **Nécessite un capteur de présence** configuré dans les options de l'entrée. Sans capteur, le switch existe mais reste inactif.
 
@@ -229,6 +230,7 @@ Le mode sécurité ferme automatiquement les volets quand personne n'est à la m
 - **L'override manuel résiste toujours** — les volets déjà en contrôle manuel ne sont jamais déplacés par la sécurité
 - **Retour automatique** — quand la présence est restaurée, le positionnement adaptatif reprend sans action manuelle
 - **Fail-safe** — capteur de présence indisponible → sécurité inactive (pas de fermeture sur erreur capteur)
+- **Hors fenêtre horaire** — la sécurité s'applique même en dehors des heures de début/fin configurées
 
 ## Paramètres
 
