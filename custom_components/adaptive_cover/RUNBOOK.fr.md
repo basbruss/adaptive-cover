@@ -1,6 +1,6 @@
 # Adaptive Cover — Runbook opérationnel
 
-Version cible : **1.8.11**  
+Version cible : **1.9.0**  
 Dépôt : `https://github.com/kamahat/adaptive-cover`
 
 ---
@@ -11,7 +11,6 @@ Dépôt : `https://github.com/kamahat/adaptive-cover`
 
 - Accès SSH à **claude-mgmt** (`192.168.20.150`)
 - `GITHUB_TOKEN` exporté dans `~/.bashrc` sur claude-mgmt
-- Clone local à jour sur claude-mgmt
 
 ### Étapes
 
@@ -19,38 +18,30 @@ Dépôt : `https://github.com/kamahat/adaptive-cover`
 # 1. Connexion à claude-mgmt
 plink -batch -i "C:\Users\yoyo\Documents\_moa\ssh_key_home_ecdsa.ppk" root@192.168.20.150
 
-# 2. Vérifier / modifier la version dans les deux fichiers
-grep '"version"' /path/to/adaptive_cover/manifest.json
-grep '^version' /path/to/pyproject.toml
-
-# 3. Bumper la version (remplacer X.Y.Z)
+# 2. Bumper la version (remplacer X.Y.Z)
 NEW_VERSION="X.Y.Z"
 sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" manifest.json
 sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" pyproject.toml
-
-# 4. Mettre à jour le badge dans README.fr.md et README.md
 sed -i "s/version-[0-9.]*-blue/version-$NEW_VERSION-blue/" README.fr.md README.md
 
-# 5. Mettre à jour CHANGELOG.md (ajouter section ## [X.Y.Z])
+# 3. Mettre à jour CHANGELOG.md (ajouter section ## [X.Y.Z])
 
-# 6. Commit et push
-git add -A
-git commit -m "release: v$NEW_VERSION"
-git push origin main
+# 4. Commit et push
+git add -A && git commit -m "release: v$NEW_VERSION" && git push origin main
 
-# 7. Créer la release GitHub via l'API
+# 5. Créer la release GitHub via l'API
 python3 - <<'EOF'
 import json, subprocess, urllib.request
 token = subprocess.run(
     ["bash", "-i", "-c", "echo $GITHUB_TOKEN"],
     capture_output=True, text=True
 ).stdout.strip()
+NEW_VERSION = "X.Y.Z"  # à remplacer
 data = json.dumps({
     "tag_name": f"v{NEW_VERSION}",
     "name": f"v{NEW_VERSION}",
     "body": "Voir CHANGELOG.md",
-    "draft": False,
-    "prerelease": False,
+    "draft": False, "prerelease": False,
 }).encode()
 req = urllib.request.Request(
     "https://api.github.com/repos/kamahat/adaptive-cover/releases",
@@ -66,10 +57,9 @@ EOF
 ### Checklist pré-release
 
 - [ ] `manifest.json` version à jour
-- [ ] `pyproject.toml` version à jour
 - [ ] `CHANGELOG.md` section ajoutée avec date et description
-- [ ] `README.fr.md` badge version mis à jour
-- [ ] Tests manuels : redémarrage HA, volet se positionne, Alexa répond
+- [ ] `README.fr.md` et `README.md` badges mis à jour
+- [ ] Tests manuels : restart HA, volet se positionne, sécurité ferme en absence, retour adaptatif à la présence, Alexa répond
 
 ---
 
@@ -81,11 +71,11 @@ EOF
 2. Vérifier `binary_sensor.manual_control_<nom>` → si ON, appuyer sur `button.reset_manual_control_<nom>`
 3. Vérifier `sensor.control_method_<nom>` → doit afficher `sun`, `summer`, `winter` ou `intermediate`
 4. Vérifier que l'heure courante est dans la fenêtre `start_time` / `end_time`
-5. Vérifier que le soleil est dans le champ de vision : `sensor.start_sun` et `sensor.end_sun`
+5. Vérifier `sensor.start_sun` et `sensor.end_sun`
 
 ### 2.2 Branche climatique incorrecte
 
-Lire le capteur `sensor.climate_debug_<nom>` :
+Lire `sensor.climate_debug_<nom>` :
 
 ```
 Attributs clés :
@@ -99,53 +89,66 @@ Attributs clés :
   irradiance_below_threshold → idem
 ```
 
-**Arbre de décision :**
-- `is_winter=True` + `sun_in_window=True` → devrait être à 100 %
-- `is_summer=True` + store opaque → devrait être à 0 %
-- `active_branch=intermediate` + `lux_below_threshold=True` → position par défaut attendue
+### 2.3 Mode sécurité — volets restent fermés malgré retour à la maison
 
-### 2.3 Hub "All Blinds" absent après installation
+**Diagnostic pas à pas :**
 
-L'entrée hub est créée automatiquement lors du premier démarrage d'une entrée régulière.
-Si elle est absente :
-1. Vérifier `hass.data["adaptive_cover"]["_hub_bootstrapped"]` (logs HA)
-2. Créer manuellement via **Paramètres → Intégrations → Adaptive Cover → Configurer → All Blinds**
-3. En dernier recours : redémarrer HA
+1. Vérifier que `switch.security_mode_<nom>` est bien ON
+2. Vérifier l'état du capteur de présence :
+   ```
+   États attendus selon le domaine :
+     device_tracker → "home"
+     zone           → > 0
+     binary_sensor  → "on"
+     input_boolean  → "on"
+   ```
+3. Vérifier dans les logs HA que `security_active` est bien `False` après le retour :
+   ```
+   grep "Security active" home-assistant.log
+   ```
+4. Si `switch.security_mode` est OFF mais les volets sont toujours fermés → override manuel actif — appuyer sur le bouton reset.
+5. Si le capteur de présence est `unavailable` → `is_presence_detected` retourne `True` (fail-safe), sécurité inactive — vérifier la connectivité du capteur.
 
-### 2.4 Entités cover dupliquées sur un appareil
+**Cause fréquente :** le switch sécurité est resté ON mais le capteur de présence est absent ou unavailable.
 
-Symptôme : deux entités `cover.*` apparaissent sur le même appareil régulier.
-Cause : résidu d'une version < 1.8.11.
-Solution : `_cleanup_orphan_cover_entities()` s'exécute automatiquement au chargement de la plateforme `cover`. Redémarrer HA suffit.
+### 2.4 Switch sécurité absent (non visible dans HA)
 
-### 2.5 Interrupteurs OFF après redémarrage
+Cause : aucun `presence_entity` configuré dans les options de l'entrée.  
+Solution : aller dans **Paramètres → Intégrations → Adaptive Cover → [entrée] → Configurer → Paramètres climatiques** → ajouter un capteur de présence.
 
-Résolu en v1.7.0. Si le problème persiste :
-1. Vérifier la version dans **Paramètres → Intégrations → Adaptive Cover**
-2. Mettre à jour via HACS
+### 2.5 Hub "All Blinds" absent après installation
 
-### 2.6 Alexa ne comprend pas "active les volets"
+L'entrée hub est créée automatiquement lors du premier démarrage d'une entrée régulière.  
+Si absente → créer manuellement via **Paramètres → Intégrations → Adaptive Cover → Configurer → All Blinds**, ou redémarrer HA.
 
-Vérifier que le switch hub a bien `_attr_has_entity_name=False` (résolu en v1.8.7).  
-Dans le voix Alexa, le nom doit être exactement **"Les volets"** sans préfixe "All Blinds".  
-Procédure de re-découverte Alexa : demander à Alexa "découvre mes appareils".
+### 2.6 Entités cover dupliquées sur un appareil
+
+Résidu d'une version < 1.8.11. `_cleanup_orphan_cover_entities()` s'exécute automatiquement au chargement. Redémarrer HA suffit.
+
+### 2.7 Interrupteurs OFF après redémarrage
+
+Résolu en v1.7.0. Si le problème persiste → mettre à jour via HACS.
+
+### 2.8 Alexa ne comprend pas "active la sécurité des volets"
+
+Vérifier que le switch hub a bien `_attr_has_entity_name = False` et `_attr_name = "Sécurité volets"`.  
+Procédure : demander à Alexa "découvre mes appareils".
 
 ---
 
 ## 3. Migrations
 
-### 3.1 Migration depuis < 1.8.0
+### 3.1 Depuis < 1.9.0 (ajout mode sécurité)
 
-L'entrée hub est créée automatiquement. L'ancien device `(DOMAIN, "all_covers")` est supprimé automatiquement par `_cleanup_v18_leftover_device()` au premier démarrage.  
-Aucune action manuelle requise.
+Aucune migration de données nécessaire. Le switch sécurité est créé automatiquement au redémarrage si `presence_entity` est configuré. Il démarre en état OFF (désactivé par défaut).
 
-### 3.2 Migration depuis < 1.7.1 (state_attr supprimé de HA core)
+### 3.2 Depuis < 1.8.0
 
-Mettre à jour l'intégration. Le helper `state_attr()` local dans `helpers.py` remplace l'ancien import depuis `homeassistant.helpers.template`.
+L'entrée hub est créée automatiquement. L'ancien device `(DOMAIN, "all_covers")` est supprimé par `_cleanup_v18_leftover_device()`. Aucune action manuelle.
 
-### 3.3 Migration depuis < 1.7.0 (switches OFF au démarrage)
+### 3.3 Depuis < 1.7.1 (state_attr supprimé de HA core)
 
-Mettre à jour. `super().async_added_to_hass()` est maintenant appelé correctement.
+Mettre à jour. Le helper `state_attr()` local dans `helpers.py` remplace l'ancien import.
 
 ---
 
@@ -153,13 +156,15 @@ Mettre à jour. `super().async_added_to_hass()` est maintenant appelé correctem
 
 | Point | Détail |
 |-------|--------|
+| `security_active` | Retourne False si `presence_entity` est None — la sécurité est inactive sans capteur |
+| `_apply_security_position` | Ne marque PAS `manual_control` — le retour automatique n'est pas bloqué |
+| `is_presence_detected` | Fail-safe : retourne True si entité unavailable — évite de fermer les volets sur erreur capteur |
 | `OptionsFlow.config_entry` | Read-only depuis HA 2025.12 — ne pas assigner |
-| `state_attr` | Supprimé de HA core — utiliser `helpers.state_attr(hass, entity_id, attr)` |
-| `_lux_toggle` / `_irradiance_toggle` | Initialisés à `True` (pas `None`) quand l'entité est configurée |
+| `state_attr` | Supprimé de HA core → utiliser `helpers.state_attr(hass, entity_id, attr)` |
+| `_lux_toggle` / `_irradiance_toggle` | Initialisés à `True` quand l'entité est configurée |
 | `_HUB_BOOTSTRAPPED` / `_V18_CLEANUP_DONE` | Flags one-shot dans `hass.data[DOMAIN]` — préfixés `_` pour être ignorés par `iter_regular_coordinators` |
-| `iter_regular_coordinators` | Dans `helpers.py` — skip les clés `_*` et les `None` ; copie locale `_iter_coordinators` dans `cover.py` (à unifier éventuellement) |
-| `check_position_delta` | Force `condition=True` pour les positions `sunset_pos`, `default_height`, 0 et 100 — toujours appliquer ces positions de référence |
-| Scene unique_id | Suffix `_v2` pour forcer une nouvelle entrée de registre entité |
+| `check_position_delta` | Force `condition=True` pour sunset_pos, default_height, 0, 100 |
+| `_iter_coordinators` dans `cover.py` | Copie locale de `iter_regular_coordinators` (helpers.py) — à unifier si refacto |
 
 ---
 
@@ -167,23 +172,57 @@ Mettre à jour. `super().async_added_to_hass()` est maintenant appelé correctem
 
 ```
 hass.data["adaptive_cover"] = {
-    "_hub_bootstrapped": True,         # flag one-shot bootstrap
-    "_v18_cleanup_done": True,         # flag one-shot migration v1.8.0
-    "<entry_id_regular_1>": AdaptiveDataUpdateCoordinator,
-    "<entry_id_regular_2>": AdaptiveDataUpdateCoordinator,
-    # L'entrée hub n'enregistre PAS de coordinateur sous son entry_id
+    "_hub_bootstrapped": True,
+    "_v18_cleanup_done": True,
+    "<entry_id_regular>": AdaptiveDataUpdateCoordinator {
+        ._security_toggle: bool          # géré par AdaptiveCoverSwitch("Security Mode")
+        ._control_toggle: bool
+        ._manual_toggle: bool
+        ._switch_mode: bool              # climate mode
+        ._lux_toggle: bool | None
+        ._irradiance_toggle: bool | None
+        .manager: AdaptiveCoverManager
+    },
+    # hub entry → pas de coordinateur enregistré
 }
 ```
 
-`iter_regular_coordinators(hass)` dans `helpers.py` itère ce dict en skippant les clés `_*` et les valeurs `None`.
+`iter_regular_coordinators(hass)` itère ce dict en skippant les clés `_*` et les valeurs `None`.
 
 ---
 
-## 6. Références
+## 6. Logique sécurité — diagramme de priorité
+
+```
+Coordinator._async_update_data()
+    │
+    └── async_handle_state_change() / async_handle_first_refresh() / async_handle_timed_refresh()
+            │
+            ├── control_toggle = OFF → rien (log debug)
+            │
+            └── control_toggle = ON
+                    │
+                    ├── security_active = True
+                    │       │
+                    │       └── pour chaque cover :
+                    │               ├── is_cover_manual ? → skip
+                    │               └── _apply_security_position()
+                    │                       ├── climate + (winter|intermediate) → min_position
+                    │                       └── sinon → 0 %
+                    │
+                    └── security_active = False
+                            └── logique adaptative normale
+                                (check_adaptive_time, check_position_delta, check_time_delta, ...)
+```
+
+---
+
+## 7. Références
 
 | Ressource | Lien |
 |-----------|------|
 | Dépôt | https://github.com/kamahat/adaptive-cover |
 | Documentation FR | [README.fr.md](README.fr.md) |
+| Documentation EN | [README.md](README.md) |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
 | HA Custom Components | https://developers.home-assistant.io/docs/creating_integration_introduction |
