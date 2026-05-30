@@ -6,21 +6,21 @@
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.5+-green)](https://www.home-assistant.io)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
-Automatically position your covers (blinds, awnings, tilts) based on the sun's position. A **climate mode** adapts to temperature conditions, and a **security mode** closes covers when nobody is home.
+Automatically position your covers (blinds, awnings, tilts) based on the sun's position.
 
 ---
 
-## Control modes
+## Modes
 
-The integration offers **three modes** applied in priority order:
+This component supports **three** strategy modes:
 
 | Mode | Activation | Priority | Description |
 |------|-----------|----------|-------------|
-| **Basic** | Always active | 3 (base) | Pure sun tracking — calculates optimal position from azimuth and elevation |
-| **Climate** | `switch.climate_mode` ON | 2 | Adapts to temperature: summer (close), winter (open), intermediate (sun tracking) |
-| **Security** | `switch.security_mode` ON + absence detected | 1 (highest) | Closes covers regardless of other modes — takes priority over everything |
+| `basic` | Always active | 3 (base) | Pure sun-position tracking |
+| `climate` | `switch.climate_mode` ON | 2 | Adapts to temperature — summer / winter / intermediate branches |
+| `security` | `switch.security_mode` ON + absence | **1 (highest)** | Closes covers when nobody is home — overrides all other logic |
 
-> **Security > Climate > Basic** — security mode overrides all other logic when active.
+> **Security > Climate > Basic** — security always wins when active.
 
 ---
 
@@ -34,21 +34,22 @@ graph TB
         ENV["🌡️ Temp / Weather / Lux / Irradiance"]
     end
 
-    subgraph HUB["🏠 Hub Entry — All Blinds  (singleton)"]
-        HC["cover.* Les volets\n↔ Alexa: open / close the blinds"]
-        HS["switch.* Les volets\n↔ Alexa: activate / deactivate the blinds"]
-        HSEC["switch.* Sécurité volets\n↔ Alexa: activate blind security"]
-        HSEL["select.* Control mode\nauto · off · all_open · all_closed"]
-        HSCN["scene.* Volets ouverts / Volets fermés"]
+    subgraph HUB["🏠 Hub — All Blinds  (singleton, auto-created)"]
+        HC["cover.*  Les volets\nAlexa: open / close the blinds"]
+        HS["switch.*  Les volets\nAlexa: activate / deactivate the blinds"]
+        HSEC["switch.*  Sécurité volets\nAlexa: activate blind security"]
+        HSEL["select.*  Control mode\nauto · off · all_open · all_closed"]
+        HSCN["scene.*  Volets ouverts / Volets fermés"]
     end
 
     subgraph ENTRY["📦 Regular entry  (one per cover group)"]
-        COORD["Coordinator"]
-        COVER["cover.* AdaptiveCoverEntry"]
-        SW["switch.*\nToggle Control · Manual Override\nSecurity Mode · Climate Mode · Lux · Irradiance"]
-        SEN["sensor.*\nPosition · Start/End Sun · Control Method · Climate Debug"]
-        BS["binary_sensor.* Manual Control"]
-        BTN["button.* Reset Manual Control"]
+        COORD["Coordinator\n_async_update_data()"]
+        COVER["cover.*\nAdaptiveCoverEntry"]
+        SW["switch.*\nToggle Control · Manual Override\nSecurity Mode · Climate Mode\nLux · Irradiance"]
+        SEN["sensor.*\nPosition · Start Sun · End Sun\nControl Method · Climate Debug"]
+        BS["binary_sensor.*  Manual Control"]
+        BTN["button.*  Reset Manual"]
+        PHY["🪟 Physical covers\ncover.salon_1, cover.salon_2 …"]
     end
 
     SUN  --> COORD
@@ -56,90 +57,162 @@ graph TB
     ENV  --> COORD
     COORD -->|"calculated position"| COVER
     COORD --> SEN
+    COORD -->|"set_cover_position"| PHY
     HUB -.->|"iterates all coordinators"| ENTRY
 ```
 
 ---
 
-## Full decision flowchart
+## Control flow — per cover, per update
+
+Every sun/sensor state change triggers a coordinator refresh. For each physical cover:
 
 ```mermaid
 flowchart TD
-    CTRL{"Toggle Control\nswitch ON?"}
-    SUNSET(["🌅 Return sunset /\ndefault position"])
-    MANUAL{"Manual override\nactive?"}
-    SKIP(["⏸ Skip — cover stays"])
-    SEC{"🔒 SECURITY mode\nactive?\n(switch ON + absent)"}
-    SEC_POS(["🔒 Security position\n0% or CONF_MIN_POSITION"])
-    SUN{"Sun in field of view\nAND elevation > 0?"}
-    DEF(["🏠 Default / sunset position"])
-    CLIMATE{"Climate\nMode?"}
-    CALC_B(["📐 BASIC MODE\nCalculated sun position"])
-    SUMMER{"Summer branch?\ntemp > temp_high"}
-    WINTER{"Winter branch?\ntemp < temp_low"}
-    CLOSE0(["🔴 0% closed\nblock heat"])
-    OPEN100(["🟢 100% open\nsolar gain"])
-    INTER["Intermediate\nbranch"]
-    LUX{"Overcast / low lux\nlow irradiance?"}
-    CALC_C(["📐 Calculated sun position\n(climate mode)"])
+    START(["🔄 Update triggered\nsun / sensor / startup / timed"])
 
-    CTRL -->|NO| SUNSET
-    CTRL -->|YES| MANUAL
-    MANUAL -->|YES| SKIP
-    MANUAL -->|NO| SEC
-    SEC -->|YES| SEC_POS
-    SEC -->|NO| SUN
-    SUN -->|NO| DEF
-    SUN -->|YES| CLIMATE
-    CLIMATE -->|NO| CALC_B
-    CLIMATE -->|YES| SUMMER
-    SUMMER -->|YES| CLOSE0
-    SUMMER -->|NO| WINTER
-    WINTER -->|YES| OPEN100
-    WINTER -->|NO| INTER
-    INTER --> LUX
-    LUX -->|YES| DEF
-    LUX -->|NO| CALC_C
+    subgraph CALCBOX["📐 Position calculation  — runs first, every update"]
+        direction LR
+        CM{"climate_mode?"}
+        CSTATE["ClimateCoverState\n→ climate_state"]
+        NSTATE["NormalCoverState\n→ default_state"]
+        INTERP{"interpolation?"}
+        IRUN["interpolate_states()"]
+        INV{"inverse\nstate?"}
+        IRUN2["100 − state"]
+        STATEF(["final  state"])
+
+        CM -->|YES| CSTATE --> INTERP
+        CM -->|NO| NSTATE --> INTERP
+        INTERP -->|YES| IRUN --> INV
+        INTERP -->|NO| INV
+        INV -->|YES| IRUN2 --> STATEF
+        INV -->|NO| STATEF
+    end
+
+    CTRL{"🎛️ Toggle Control\nswitch ON?"}
+    IDLE(["⏸ idle — nothing"])
+
+    SEC{"🔒 Security mode\nactive?\nsecurity ON + absent"}
+
+    subgraph SECBOX["🔒 Security position  (bypasses time window)"]
+        direction TB
+        SM{"manual\noverride?"}
+        SCLI{"climate mode AND\n winter OR intermediate?"}
+        SSKIP(["⏸ skip\nmanual wins"])
+        SMIN(["min_position\nor 0%"])
+        SZERO(["0% — fully closed"])
+        SM -->|YES| SSKIP
+        SM -->|NO| SCLI
+        SCLI -->|YES| SMIN
+        SCLI -->|NO| SZERO
+    end
+
+    TIME{"⏰ Within\ntime window?\ncheck_adaptive_time"}
+    TOUT(["⏸ outside window"])
+
+    MAN{"✋ Manual\noverride active?"}
+    MSKIP(["⏸ skip\nmanual wins"])
+
+    DELTA{"📏 Position delta ≥ min\nAND time delta OK?"}
+    DNOOP(["⏸ no move needed"])
+    MOVE(["📡 set_cover_position\n( state )"])
+
+    START --> CALCBOX
+    CALCBOX --> CTRL
+    CTRL -->|NO| IDLE
+    CTRL -->|YES| SEC
+    SEC -->|YES| SECBOX
+    SEC -->|NO| TIME
+    TIME -->|NO| TOUT
+    TIME -->|YES| MAN
+    MAN -->|YES| MSKIP
+    MAN -->|NO| DELTA
+    DELTA -->|NO| DNOOP
+    DELTA -->|YES| MOVE
 
     style SEC fill:#e67e22,color:#fff,stroke:#d35400
-    style SEC_POS fill:#e67e22,color:#fff
-    style CLOSE0 fill:#c0392b,color:#fff
-    style OPEN100 fill:#27ae60,color:#fff
-    style SKIP fill:#7f8c8d,color:#fff
-    style DEF fill:#7f8c8d,color:#fff
-    style CALC_B fill:#2980b9,color:#fff
-    style CALC_C fill:#2980b9,color:#fff
+    style SECBOX fill:#fef3e2,stroke:#e67e22
+    style SMIN fill:#e67e22,color:#fff
+    style SZERO fill:#c0392b,color:#fff
+    style MOVE fill:#2980b9,color:#fff
+    style CALCBOX fill:#eaf4fb,stroke:#2980b9
 ```
+
+> **Timed refresh** (sunset): same security check, then applies `sunset_pos` directly — no manual/delta checks.
+>
+> **Cover state change**: does not set position; detects manual moves and marks the cover as `manual_controlled`.
 
 ---
 
-## Security mode logic
+## Position calculation — detail
+
+### Normal / Basic mode
 
 ```mermaid
 flowchart TD
-    A(["security_toggle = ON?"])
-    B{"presence_entity\nconfigured?"}
-    C{"Presence\ndetected?"}
-    D(["✅ Normal adaptive mode"])
-    E(["🛡️ SECURITY ACTIVE"])
-    F{"Climate mode\n+ winter/intermediate?"}
-    G(["🔒 0% — fully closed"])
-    H(["🔒 CONF_MIN_POSITION\n(or 0%)"])
+    DSV{"direct_sun_valid?\n① azimuth in FOV\n② elevation > 0\n③ NOT in blind spot\n④ before sunset + offset"}
+    CALC["calculate_percentage()\ngeometric formula\n(vertical / horizontal / tilt)"]
+    DEF["default position\n→ h_def  (daytime)\n→ sunset_pos  (after sunset + offset)"]
+    CLIP["clip  0 → 100"]
+    MM{"min / max\nposition configured?"}
+    CLAMP["clamp to configured limits"]
+    OUT(["position  %"])
 
-    A -->|NO| D
-    A -->|YES| B
-    B -->|NO → no sensor| D
-    B -->|YES| C
-    C -->|YES → present| D
-    C -->|NO → absent| E
-    E --> F
-    F -->|NO| G
-    F -->|YES| H
+    DSV -->|YES| CALC --> CLIP
+    DSV -->|NO| DEF --> CLIP
+    CLIP --> MM
+    MM -->|YES| CLAMP --> OUT
+    MM -->|NO| OUT
 
-    style E fill:#ff6b6b,color:#fff
-    style G fill:#c0392b,color:#fff
-    style H fill:#e67e22,color:#fff
-    style D fill:#27ae60,color:#fff
+    style OUT fill:#2980b9,color:#fff
+```
+
+### Climate mode
+
+```mermaid
+flowchart TD
+    PRES{"is_presence?\ndevice_tracker / zone /\nbinary_sensor / input_boolean"}
+    NONE(["min_pos  or  0%\nnobody home"])
+    FOV{"sun in FOV?\ncover.valid"}
+    DDEF["default position"]
+    WIN{"WINTER?\ntemp_inside < temp_low"}
+    C100(["100% open\n☀️ capture solar heat"])
+    SUM{"SUMMER?\ntemp_ref > temp_high\nAND outside_high"}
+    TRANS{"transparent\nblind?"}
+    BCALC(["basic calculated\nshading only"])
+    ZERO(["0% closed\n🔒 block heat"])
+    INTER["INTERMEDIATE"]
+    LUX{"overcast?\nlux ≤ threshold\nor irradiance ≤ threshold?"}
+    LDEF["default position"]
+    LCALC(["basic calculated\nsun tracking"])
+    MM{"min / max\nposition?"}
+    CLAMP["clamp to limits"]
+    COUT(["climate_state  %"])
+
+    PRES -->|NO| NONE
+    PRES -->|YES| FOV
+    FOV -->|NO| DDEF
+    FOV -->|YES| WIN
+    WIN -->|YES| C100
+    WIN -->|NO| SUM
+    SUM -->|YES| TRANS
+    TRANS -->|YES| BCALC
+    TRANS -->|NO| ZERO
+    SUM -->|NO| INTER --> LUX
+    LUX -->|YES| LDEF
+    LUX -->|NO| LCALC
+
+    NONE & DDEF & C100 & BCALC & ZERO & LDEF & LCALC --> MM
+    MM -->|YES| CLAMP --> COUT
+    MM -->|NO| COUT
+
+    style C100 fill:#27ae60,color:#fff
+    style ZERO fill:#c0392b,color:#fff
+    style NONE fill:#7f8c8d,color:#fff
+    style DDEF fill:#7f8c8d,color:#fff
+    style LDEF fill:#7f8c8d,color:#fff
+    style COUT fill:#2980b9,color:#fff
 ```
 
 ---
@@ -149,7 +222,7 @@ flowchart TD
 | Type | Description |
 |------|-------------|
 | **Vertical blind** (`cover_blind`) | Roller blind — position in % (0 = open, 100 = closed) |
-| **Horizontal awning** (`cover_awning`) | Outdoor awning |
+| **Horizontal awning** (`cover_awning`) | Outdoor awning projected horizontally |
 | **Tilt** (`cover_tilt`) | Venetian blind with adjustable slat angle |
 
 ---
@@ -213,8 +286,8 @@ Add via **Settings → Devices & Services → Add integration → Adaptive Cover
 | Option | Description |
 |--------|-------------|
 | **Enable blind spot** | Activate |
-| **Blind spot left / right** | Azimuth range (°) |
-| **Blind spot elevation** | Minimum sun elevation (°) to apply |
+| **Blind spot left / right** | Azimuth range (°) defining the blind spot |
+| **Blind spot elevation** | Minimum sun elevation (°) for blind spot to apply |
 
 ### Tilt-specific
 
@@ -222,7 +295,7 @@ Add via **Settings → Devices & Services → Add integration → Adaptive Cover
 |--------|-------------|
 | **Slat depth** | Physical depth of one slat (mm) |
 | **Slat distance** | Gap between slats (mm) |
-| **Tilt mode** | `mode1` — 0°–90°; `mode2` — 0°–180° bi-directional |
+| **Tilt mode** | `mode1` — single direction 0°–90°; `mode2` — bi-directional 0°–180° |
 
 ### Climate mode
 
@@ -242,24 +315,21 @@ Enable via **Settings → [entry] → Configure → Climate settings**.
 
 > Requires a **presence entity** to be configured. Without one, the switch is inactive even when ON.
 
-**Position rules:**
-
 | Situation | Target position |
 |---|---|
 | No climate mode | 0 % (fully closed) |
 | Climate mode + `summer` branch | 0 % (fully closed) |
 | Climate mode + `winter` or `intermediate` | `CONF_MIN_POSITION` (or 0 if unset) |
 
-**Key behaviours:**
 - Manual override wins — covers in manual control are skipped
-- Automatic return — when presence is restored, adaptive positioning resumes without manual action
+- Automatic return — when presence is restored, adaptive positioning resumes
 - Fail-safe — unavailable presence sensor → security inactive
 
 ### Light threshold
 
 | Option | Description |
 |--------|-------------|
-| **Lux entity / threshold** | Below threshold → treated as "not sunny" |
+| **Lux entity / threshold** | Below threshold → treated as "not sunny" in intermediate branch |
 | **Irradiance entity / threshold** | Same for irradiance |
 
 ### Manual override
@@ -290,27 +360,27 @@ Enable via **Settings → [entry] → Configure → Climate settings**.
 
 | Entity | Default | Description |
 |--------|---------|-------------|
-| `cover.<name>` | — | **Main entity** — adaptive position; open/close/set_position |
+| `cover.<name>` | — | Main entity — adaptive position; open/close/set_position on this group |
 | `switch.toggle_control_<name>` | ON | Enable / disable adaptive positioning |
-| `switch.manual_override_<name>` | ON | Pause adaptive (auto-set on manual move) |
-| `switch.security_mode_<name>` | **OFF** | **Security mode** *(visible when presence entity configured)* |
+| `switch.manual_override_<name>` | ON | Pause adaptive control (auto-set on manual move) |
+| `switch.security_mode_<name>` | **OFF** | Security mode *(visible when presence entity configured)* |
 | `switch.climate_mode_<name>` | ON | Toggle climate mode *(visible when configured)* |
 | `switch.outside_temperature_<name>` | OFF | Use outside temp for summer detection |
 | `switch.lux_<name>` | ON | Enable lux threshold |
 | `switch.irradiance_<name>` | ON | Enable irradiance threshold |
 | `sensor.cover_position_<name>` | — | Calculated target position (%) |
 | `sensor.start_sun_<name>` / `end_sun` | — | Timestamps when sun enters/leaves FOV |
-| `sensor.control_method_<name>` | — | Active branch (`summer` / `winter` / `intermediate`) |
-| `sensor.climate_debug_<name>` *(diag.)* | — | Full climate decision snapshot |
-| `binary_sensor.manual_control_<name>` | — | ON when any cover in the group is in manual override |
+| `sensor.control_method_<name>` | — | Active branch: `summer` / `winter` / `intermediate` |
+| `sensor.climate_debug_<name>` *(diag.)* | — | Full snapshot of climate decision inputs |
+| `binary_sensor.manual_control_<name>` | — | ON when any cover is in manual override |
 | `button.reset_manual_control_<name>` | — | Immediately clear manual override |
 
 ---
 
 ## Alexa integration
 
-| Alexa command | Entity | Action |
-|---------------|--------|--------|
+| Command | Entity | Action |
+|---------|--------|--------|
 | "open the blinds" | `cover.*` hub | → 100 % |
 | "close the blinds" | `cover.*` hub | → 0 % |
 | "activate the blinds" | `switch.*` adaptive hub | Adaptive ON |
@@ -377,4 +447,3 @@ automation:
 - [Operational Runbook (FR)](RUNBOOK.fr.md)
 - [Releases](https://github.com/kamahat/adaptive-cover/releases)
 - [Issues](https://github.com/kamahat/adaptive-cover/issues)
-- [Home Assistant Community](https://community.home-assistant.io)
