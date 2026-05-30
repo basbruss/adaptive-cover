@@ -5,7 +5,21 @@
 [![Version](https://img.shields.io/badge/version-1.9.0-blue)](CHANGELOG.md)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.5+-green)](https://www.home-assistant.io)
 
-Positionnez automatiquement vos volets (stores, banne, jalousie) en fonction de la position du soleil par rapport à chaque fenêtre. Un **mode climatique** adapte la position aux conditions de température, et un **mode sécurité** ferme les volets automatiquement en cas d'absence.
+Positionnez automatiquement vos volets (stores, banne, jalousie) en fonction de la position du soleil par rapport à chaque fenêtre.
+
+---
+
+## Modes de contrôle
+
+L'intégration propose **trois modes** qui s'appliquent par ordre de priorité :
+
+| Mode | Activation | Priorité | Description |
+|------|-----------|----------|-------------|
+| **Basique** | Toujours actif | 3 (base) | Suivi solaire pur — calcule la position optimale selon l'azimut et l'élévation du soleil |
+| **Climatique** | `switch.climate_mode` ON | 2 | Adapte la position selon la température : été (fermeture), hiver (ouverture), intermédiaire (suivi solaire) |
+| **Sécurité** | `switch.security_mode` ON + absence détectée | 1 (plus haute) | Ferme les volets indépendamment du mode actif — s'applique en priorité sur tout le reste |
+
+> **Sécurité > Climatique > Basique** — le mode sécurité prend le dessus sur les deux autres dès qu'il est actif.
 
 ---
 
@@ -24,47 +38,76 @@ graph TB
         HS["switch.* Les volets\n↔ Alexa : active / désactive les volets"]
         HSEC["switch.* Sécurité volets\n↔ Alexa : active la sécurité des volets"]
         HSEL["select.* Mode de contrôle\nauto · off · all_open · all_closed"]
-        HSCN["scene.* Volets ouverts\nscene.* Volets fermés"]
+        HSCN["scene.* Volets ouverts / Volets fermés"]
     end
 
     subgraph ENTRY["📦 Entrée régulière  (une par groupe de volets)"]
-        COORD["Coordinateur\n_async_update_data()"]
-        COVER["cover.*\nAdaptiveCoverEntry\nposition calculée"]
-        SW["switch.*\nToggle Control · Manual Override\nSecurity Mode · Climate Mode\nLux · Irradiance"]
-        SEN["sensor.*\nPosition · Start Sun · End Sun\nControl Method · Climate Debug"]
+        COORD["Coordinateur"]
+        COVER["cover.* AdaptiveCoverEntry"]
+        SW["switch.*\nToggle Control · Manual Override\nSecurity Mode · Climate Mode · Lux · Irradiance"]
+        SEN["sensor.*\nPosition · Start/End Sun · Control Method · Climate Debug"]
         BS["binary_sensor.* Manual Control"]
         BTN["button.* Reset Manual Control"]
     end
 
-    SUN --> COORD
+    SUN  --> COORD
     PRES --> COORD
     ENV  --> COORD
-
     COORD -->|"position calculée"| COVER
     COORD --> SEN
-    HUB   -.->|"itère tous les coordinateurs"| ENTRY
+    HUB -.->|"itère tous les coordinateurs"| ENTRY
 ```
 
 ---
 
-## Flux de décision par entrée
+## Flux de décision complet
 
 ```mermaid
 flowchart TD
-    UPDATE(["🔄 _async_update_data()"])
-    CTRL{control_toggle\nON ?}
-    SEC{security_active ?}
-    APPLY_SEC["_apply_security_position()"]
-    ADAPT["Positionnement adaptatif\nNormalCoverState / ClimateCoverState"]
-    MOVE(["📡 set_cover_position\ncover.*"])
+    CTRL{"Toggle Control\nswitch ON ?"}
+    SUNSET(["🌅 Position coucher /\nposition par défaut"])
+    MANUAL{"Override manuel\nactif ?"}
+    SKIP(["⏸ Skip — volet inchangé"])
+    SEC{"🔒 Mode SÉCURITÉ\nactif ?\n(switch ON + absent)"}
+    SEC_POS(["🔒 Position sécurité\n0 % ou CONF_MIN_POSITION"])
+    SUN{"Soleil dans le\nchamp de vision\nET élévation > 0 ?"}
+    DEF(["🏠 Position par défaut\nou position coucher"])
+    CLIMATE{"Mode\nCLIMATIQUE ?"}
+    CALC_B(["📐 MODE BASIQUE\nPosition solaire calculée"])
+    SUMMER{"Branche ÉTÉ ?\ntemp > temp_high"}
+    WINTER{"Branche HIVER ?\ntemp < temp_low"}
+    CLOSE0(["🔴 0 % — fermeture\nbloquer la chaleur"])
+    OPEN100(["🟢 100 % — ouverture\napports solaires"])
+    INTER["Branche\nINTERMÉDIAIRE"]
+    LUX{"Nuageux / lux faible\nirradiance faible ?"}
+    CALC_C(["📐 Position solaire calculée\n(mode climatique)"])
 
-    UPDATE --> CTRL
-    CTRL -->|NON| SKIP(["⏸ Rien"])
-    CTRL -->|OUI| SEC
-    SEC -->|OUI| MANUAL{is_cover_manual ?}
-    MANUAL -->|OUI| SKIP2(["⏸ Skip — override manuel résiste"])
-    MANUAL -->|NON| APPLY_SEC --> MOVE
-    SEC -->|NON| ADAPT --> MOVE
+    CTRL -->|NON| SUNSET
+    CTRL -->|OUI| MANUAL
+    MANUAL -->|OUI| SKIP
+    MANUAL -->|NON| SEC
+    SEC -->|OUI| SEC_POS
+    SEC -->|NON| SUN
+    SUN -->|NON| DEF
+    SUN -->|OUI| CLIMATE
+    CLIMATE -->|NON| CALC_B
+    CLIMATE -->|OUI| SUMMER
+    SUMMER -->|OUI| CLOSE0
+    SUMMER -->|NON| WINTER
+    WINTER -->|OUI| OPEN100
+    WINTER -->|NON| INTER
+    INTER --> LUX
+    LUX -->|OUI| DEF
+    LUX -->|NON| CALC_C
+
+    style SEC fill:#e67e22,color:#fff,stroke:#d35400
+    style SEC_POS fill:#e67e22,color:#fff
+    style CLOSE0 fill:#c0392b,color:#fff
+    style OPEN100 fill:#27ae60,color:#fff
+    style SKIP fill:#7f8c8d,color:#fff
+    style DEF fill:#7f8c8d,color:#fff
+    style CALC_B fill:#2980b9,color:#fff
+    style CALC_C fill:#2980b9,color:#fff
 ```
 
 ---
@@ -73,12 +116,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A(["🔒 security_toggle = ON ?"])
+    A(["security_toggle = ON ?"])
     B{"presence_entity\nconfiguré ?"}
     C{"Présence\ndétectée ?"}
     D(["✅ Adaptatif normal"])
     E(["🛡️ SÉCURITÉ ACTIVE"])
-    F{"Mode climatique\n+ winter/intermediate ?"}
+    F{"Mode climatique\n+ winter ou intermediate ?"}
     G(["🔒 0% — fermeture totale"])
     H(["🔒 CONF_MIN_POSITION\n(ou 0%)"])
 
@@ -86,8 +129,8 @@ flowchart TD
     A -->|OUI| B
     B -->|NON → pas de capteur| D
     B -->|OUI| C
-    C -->|OUI → quelqu'un est là| D
-    C -->|NON → absence| E
+    C -->|OUI → présent| D
+    C -->|NON → absent| E
     E --> F
     F -->|NON| G
     F -->|OUI| H
@@ -104,7 +147,7 @@ flowchart TD
 
 | Type | Description |
 |------|-------------|
-| **Store vertical** (`cover_blind`) | Store enrouleur ou rideau — position en % (0 = ouvert, 100 = fermé) |
+| **Store vertical** (`cover_blind`) | Store enrouleur — position en % (0 = ouvert, 100 = fermé) |
 | **Banne horizontale** (`cover_awning`) | Banne extérieure déployée horizontalement |
 | **Jalousie / tilt** (`cover_tilt`) | Store vénitien avec réglage de l'angle des lames |
 
@@ -121,7 +164,7 @@ flowchart TD
 
 ### Manuelle
 
-1. Copier le dossier `adaptive_cover` dans `config/custom_components/`
+1. Copier `adaptive_cover` dans `config/custom_components/`
 2. Redémarrer Home Assistant
 
 ---
@@ -129,10 +172,6 @@ flowchart TD
 ## Configuration
 
 Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cover**.
-
-Au premier démarrage, le menu propose :
-- **Créer une entrée volet** — configure un groupe (vertical / horizontal / tilt)
-- **All Blinds** — crée l'entrée hub manuellement (normalement auto-créée)
 
 ### Base (obligatoire)
 
@@ -144,7 +183,7 @@ Au premier démarrage, le menu propose :
 | **Champ de vision gauche / droite** | Plage angulaire (°) de part et d'autre de la normale |
 | **Hauteur de la fenêtre** | Hauteur en mètres |
 | **Profondeur de la zone ombragée** | Profondeur (m) à maintenir à l'ombre |
-| **Position par défaut** | Position de repli (%) hors du champ de vision |
+| **Position par défaut** | Position de repli (%) hors champ de vision |
 
 ### Groupe de volets
 
@@ -160,7 +199,7 @@ Au premier démarrage, le menu propose :
 | **Heure de fin / entité** | Fin du contrôle adaptatif |
 | **Décalage lever / coucher** | Décalage en minutes par rapport au soleil |
 | **Position au coucher** | Position appliquée au coucher du soleil |
-| **Retour au coucher** | Restaurer la position par défaut plutôt qu'appliquer la position coucher |
+| **Retour au coucher** | Restaurer la position par défaut plutôt que la position coucher |
 
 ### Limites de position
 
@@ -169,54 +208,39 @@ Au premier démarrage, le menu propose :
 | **Position minimale** | Seuil bas (%) — utilisé aussi par le mode sécurité en hiver/intermédiaire |
 | **Position maximale** | Seuil haut (%) |
 
+### Zone aveugle (Blind Spot)
+
+| Option | Description |
+|--------|-------------|
+| **Activer la zone aveugle** | Active la fonctionnalité |
+| **Zone aveugle gauche / droite** | Plage d'azimut (°) |
+| **Élévation de la zone aveugle** | Élévation solaire minimale (°) |
+
+### Options spécifiques à la jalousie (tilt)
+
+| Option | Description |
+|--------|-------------|
+| **Profondeur de lame** | Profondeur physique d'une lame (mm) |
+| **Espacement des lames** | Espace entre les lames (mm) |
+| **Mode tilt** | `mode1` — 0°–90° ; `mode2` — 0°–180° bidirectionnel |
+
 ### Mode climatique
 
-À activer via **Paramètres → Intégrations → [entrée] → Configurer → Paramètres climatiques**.
-
-```mermaid
-flowchart TD
-    SV{"Soleil dans\nle champ de vision ?"}
-    DEF["Position par défaut"]
-    WIN{"HIVER ?\ntemp_inside < temp_low"}
-    SUM{"ÉTÉ ?\ntemp_ref > temp_high\nAND outside_high"}
-    OPEN["100% ouvert\n(apports solaires)"]
-    TRANS{"Store\ntransparent ?"}
-    CLOSED["0% fermé\n(bloquer la chaleur)"]
-    CALC_SUM["Position calculée\n(atténuation seulement)"]
-    CLOUDS{"Nuageux / lux faible\nirradiance faible ?"}
-    CALC_INT["Position calculée\n(suivi solaire)"]
-
-    SV -->|NON| DEF
-    SV -->|OUI| WIN
-    WIN -->|OUI| OPEN
-    WIN -->|NON| SUM
-    SUM -->|OUI| TRANS
-    TRANS -->|OUI| CALC_SUM
-    TRANS -->|NON| CLOSED
-    SUM -->|NON — intermédiaire| CLOUDS
-    CLOUDS -->|OUI| DEF
-    CLOUDS -->|NON| CALC_INT
-
-    style OPEN fill:#27ae60,color:#fff
-    style CLOSED fill:#c0392b,color:#fff
-    style DEF fill:#7f8c8d,color:#fff
-```
-
-> **Sans présence** → position minimale configurée (ou 0 %).
+À activer via **Paramètres → [entrée] → Configurer → Paramètres climatiques**.
 
 | Option | Description |
 |--------|-------------|
 | **Entité de température** | Capteur intérieur |
 | **Entité de température extérieure** | Capteur extérieur (optionnel) |
 | **Entité météo** | Source de température si pas de capteur |
-| **Temp basse / haute** | Seuils hiver (°C) / été (°C) |
-| **Utiliser la température extérieure** | Comparer la temp. ext. à `temp_haute` |
+| **Temp basse / haute** | Seuils hiver / été (°C) |
+| **Utiliser la température extérieure** | Comparer la temp. ext. à `temp_haute` (détection chaleur entrante) |
 | **Conditions météo** | États météo considérés comme « ensoleillé » |
 | **Entité de présence** | Utilisée pour le mode climatique **et** le mode sécurité |
 
 ### Mode sécurité
 
-> Nécessite un **capteur de présence** configuré dans l'entrée. Sans capteur, le switch est inactif même s'il est ON.
+> Nécessite un **capteur de présence** configuré dans l'entrée.
 
 **Règles de position :**
 
@@ -227,15 +251,15 @@ flowchart TD
 | Climatique + branche `winter` ou `intermediate` | `CONF_MIN_POSITION` (ou 0 si non configuré) |
 
 **Comportements clés :**
-- Override manuel résiste (le volet en contrôle manuel n'est pas touché)
+- Override manuel résiste — le volet en contrôle manuel n'est pas touché
 - Retour automatique à la présence sans intervention manuelle
-- Fail-safe : capteur `unavailable` → sécurité inactive (pas de fermeture sur erreur)
+- Fail-safe — capteur `unavailable` → sécurité inactive
 
 ### Seuil lumineux
 
 | Option | Description |
 |--------|-------------|
-| **Lux / seuil** | En-dessous → considéré « non ensoleillé » en mode intermédiaire |
+| **Lux / seuil** | En-dessous → considéré « non ensoleillé » |
 | **Irradiance / seuil** | Idem |
 
 ### Contrôle manuel
@@ -255,38 +279,31 @@ flowchart TD
 
 | Entité | Nom | Alexa | Description |
 |--------|-----|-------|-------------|
-| `cover.*` | Les volets | "ouvre / ferme les volets" | Aggregate cover — toutes les entrées |
+| `cover.*` | Les volets | "ouvre / ferme les volets" | Aggregate cover |
 | `switch.*` | Les volets | "active / désactive les volets" | Contrôle adaptatif ON/OFF |
-| `switch.*` | Sécurité volets | "active la sécurité des volets" | Mode sécurité — entrées avec capteur de présence |
+| `switch.*` | Sécurité volets | "active la sécurité des volets" | Mode sécurité — toutes les entrées avec présence |
 | `select.*` | Mode de contrôle | — | `auto` · `off` · `all_open` · `all_closed` |
 | `scene.*_all_open` | Volets ouverts | "allume Volets ouverts" | Tous à 100 % |
 | `scene.*_all_closed` | Volets fermés | "allume Volets fermés" | Tous à 0 % |
 
 ### Appareils par entrée régulière
 
-#### Interrupteurs
-
 | Entité | Défaut | Description |
 |--------|--------|-------------|
+| `cover.<nom>` | — | **Entité principale** — position adaptative, open/close/set_position |
 | `switch.toggle_control_<nom>` | ON | Activer / désactiver le positionnement adaptatif |
 | `switch.manual_override_<nom>` | ON | Pause manuelle (auto-activé sur déplacement) |
-| `switch.security_mode_<nom>` | **OFF** | **Mode sécurité** — ferme les volets en absence *(visible si capteur de présence configuré)* |
+| `switch.security_mode_<nom>` | **OFF** | **Mode sécurité** *(visible si présence configurée)* |
 | `switch.climate_mode_<nom>` | ON | Mode climatique *(visible si configuré)* |
-| `switch.outside_temperature_<nom>` | OFF | Temp. extérieure pour détection été |
+| `switch.outside_temperature_<nom>` | OFF | Temp. ext. pour détection été |
 | `switch.lux_<nom>` | ON | Seuil lux |
 | `switch.irradiance_<nom>` | ON | Seuil irradiance |
-
-#### Capteurs
-
-| Entité | Description |
-|--------|-------------|
-| `cover.<nom>` | **Entité principale** — position adaptative ; open/close/set_position sur le groupe |
-| `sensor.cover_position_<nom>` | Position cible calculée (%) |
-| `sensor.start_sun_<nom>` / `sensor.end_sun_<nom>` | Timestamps entrée/sortie du soleil dans le champ de vision |
-| `sensor.control_method_<nom>` | Branche active (`summer` / `winter` / `intermediate`) |
-| `sensor.climate_debug_<nom>` *(diagnostic)* | Snapshot complet de la décision climatique |
-| `binary_sensor.manual_control_<nom>` | ON si au moins un volet est en contrôle manuel |
-| `button.reset_manual_control_<nom>` | Réinitialise le contrôle manuel immédiatement |
+| `sensor.cover_position_<nom>` | — | Position cible calculée (%) |
+| `sensor.start_sun_<nom>` / `end_sun` | — | Timestamps entrée/sortie soleil dans le champ de vision |
+| `sensor.control_method_<nom>` | — | Branche active (`summer` / `winter` / `intermediate`) |
+| `sensor.climate_debug_<nom>` *(diag.)* | — | Snapshot complet de la décision climatique |
+| `binary_sensor.manual_control_<nom>` | — | ON si au moins un volet en contrôle manuel |
+| `button.reset_manual_control_<nom>` | — | Réinitialise le contrôle manuel immédiatement |
 
 ---
 
@@ -347,7 +364,7 @@ automation:
 |----------|---------------|----------|
 | Le volet ne bouge pas | `switch.toggle_control` est OFF | Activer l'interrupteur |
 | Volet bloqué en mode manuel | Override manuel actif | Bouton de réinitialisation |
-| Volet reste fermé malgré retour à la maison | Security switch ON + presence entity absent ou unavailable | Vérifier capteur de présence |
+| Volet reste fermé malgré retour à la maison | Security switch ON + présence unavailable | Vérifier capteur de présence |
 | Switch sécurité absent | Pas de capteur de présence configuré | Ajouter `presence_entity` dans les options |
 | Branche climatique toujours « intermediate » | Pas d'entité de température | Ajouter un capteur |
 | Entité cover dupliquée | Résidu v1.7.x | Auto-nettoyé au démarrage (v1.8.11+) |
