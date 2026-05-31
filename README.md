@@ -163,9 +163,9 @@ flowchart TD
     TRANSP -- "Yes\n(filter only)" --> CALC
     TRANSP -- "No\n(opaque)" --> CLOSE["🪟 Close fully (0%)\nblock heat"]
 
-    SCHECK -- "No\n(intermediate)" --> LIGHT{"Overcast?\nlux ≤ threshold\nOR irradiance ≤ threshold?"}
-    LIGHT -- "Yes\n(dim light)" --> DEFAULT
-    LIGHT -- "No\n(sunny)" --> CALC
+    SCHECK -- "No\n(intermediate)" --> LIGHT{"Not sunny? — OR of 3 conditions\n① lux ≤ threshold  (if switch ON + entity set)\n② irradiance ≤ threshold  (if switch ON + entity set)\n③ weather state not in sunny list\nAbsent/OFF sensor = neutral"}
+    LIGHT -- "Yes\n(at least one true)" --> DEFAULT
+    LIGHT -- "No\n(all false → sunny)" --> CALC
 
     %% ── COMMON FINAL STEPS ────────────────────────
     LIMITS["🔧 Apply min / max position limits\n+ blind spot correction\n+ delta position check"]
@@ -187,12 +187,15 @@ flowchart TD
     style SECURITY fill:#ff9800,color:#fff,stroke:#e65100
     style SECPOS   fill:#ff9800,color:#fff,stroke:#e65100
     style PNONE    fill:#e8eaed,color:#000
+    style LIGHT    fill:#8e44ad,color:#fff,stroke:#6c3483
 ```
 
-> **Execution priority**: Security (1) > Climate (2) > Basic (3)
+> **Execution priority**: Security (1) > Climate (2) > Basic (3).
 > Security is evaluated **before** the time window check — it closes covers even outside the configured start/end hours.
 >
 > **Transparent vs opaque**: a transparent/perforated blind can only filter light and cannot block heat even when closed — adaptive positioning is kept. An opaque blind *can* block heat, so 0% is the correct summer action.
+>
+> **Intermediate "not sunny?" — OR of 3 independent sources**: lux ≤ threshold OR irradiance ≤ threshold OR weather not sunny. One true → default position. Absent/disabled sensors are neutral (False) and never force a "not sunny" outcome on their own.
 
 ### Basic mode
 
@@ -212,7 +215,11 @@ This mode calculates the position based on extra parameters for presence, indoor
   - **Summer** (`temp > temp_high`):
     - Transparent/perforated blind → calculate position (filtering/shading only — cannot block heat)
     - Opaque blind → close fully (0%) to block heat
-  - **Intermediate**: Follows sun geometry if sunny/bright; falls back to default position when overcast or lux/irradiance below threshold.
+  - **Intermediate**: "not sunny?" is an **OR** of three independent sources:
+    - `lux ≤ threshold` (only if switch ON and entity configured — otherwise neutral)
+    - `irradiance ≤ threshold` (only if switch ON and entity configured — otherwise neutral)
+    - `weather state not in sunny list` (only if weather entity configured)
+    - One source true → default position. All false → adaptive calculation.
 
   For tilted blinds above summer threshold: slats are positioned at 45° ([found optimal](https://www.mdpi.com/1996-1073/13/7/1731)).
 
@@ -305,11 +312,12 @@ Security mode closes covers automatically when nobody is home, regardless of the
 | Outdoor Temperature Threshold | `None`  |       |                                               | If set, summer mode activates only when outside temp is also above this threshold |
 | Presence Entity               | `None`  |       |                                               | Used for both climate mode AND security mode                                                                                                         |
 | Weather Entity                | `None`  |       | `weather.home`                                | Can also serve as outdoor temperature sensor                                                                                                         |
+| Weather Condition             | `None`  |       |                                               | States considered "sunny" — if weather state not in this list → contributes "not sunny" (OR with lux + irradiance) |
 | Transparent Blind             | `False` |       |                                               | Enable if blind is perforated/mesh — filters only, keeps adaptive positioning in summer instead of closing to 0%                                     |
 | Lux Entity                    | `None`  |       | `sensor.lux`                                  | Returns measured lux                                                                                                                                 |
-| Lux Threshold                 | `1000`  |       |                                               | Below threshold → treated as "not sunny" in intermediate branch                                                                                      |
+| Lux Threshold                 | `1000`  |       |                                               | Below threshold → contributes "not sunny" (OR with irradiance + weather). Switch OFF = neutral.                                                      |
 | Irradiance Entity             | `None`  |       | `sensor.irradiance`                           | Returns measured irradiance                                                                                                                          |
-| Irradiance Threshold          | `300`   |       |                                               | Below threshold → treated as "not sunny" in intermediate branch                                                                                      |
+| Irradiance Threshold          | `300`   |       |                                               | Below threshold → contributes "not sunny" (OR with lux + weather). Switch OFF = neutral.                                                             |
 
 ### Blindspot
 
@@ -344,8 +352,8 @@ When climate mode is configured:
 | ------ | ------- | ----------- |
 | `switch.{type}_climate_mode_{name}` | `on` | Enables climate mode strategy |
 | `switch.{type}_outside_temperature_{name}` | `off` | Use outside temperature for summer threshold comparison |
-| `switch.{type}_lux_{name}` | `on` | Enable lux threshold check |
-| `switch.{type}_irradiance_{name}` | `on` | Enable irradiance threshold check |
+| `switch.{type}_lux_{name}` | `on` | Enable lux threshold — OFF = lux ignored (neutral) |
+| `switch.{type}_irradiance_{name}` | `on` | Enable irradiance threshold — OFF = irradiance ignored (neutral) |
 | `sensor.{type}_climate_debug_{name}` | | Diagnostic sensor with full climate decision snapshot |
 
 When a **presence entity** is configured:
