@@ -183,7 +183,7 @@ flowchart TD
     BCALC(["basic calculated\nshading / filtering only"])
     ZERO(["0% closed\n🔒 opaque — blocks heat"])
     INTER["INTERMEDIATE"]
-    LUX{"overcast?\nlux ≤ threshold\nor irradiance ≤ threshold?"}
+    LUX{"Not sunny? — OR of 3 conditions\n① lux ≤ threshold  (if switch ON + entity set)\n② irradiance ≤ threshold  (if switch ON + entity set)\n③ weather state not in sunny list\nAbsent/OFF sensor = neutral (False)"}
     LDEF["default position"]
     LCALC(["basic calculated\nsun tracking"])
     MM{"min / max\nposition?"}
@@ -200,8 +200,8 @@ flowchart TD
     TRANS -->|"YES (filter only)"| BCALC
     TRANS -->|"NO (opaque)"| ZERO
     SUM -->|NO| INTER --> LUX
-    LUX -->|YES| LDEF
-    LUX -->|NO| LCALC
+    LUX -->|"YES — at least one condition true\n→ not sunny"| LDEF
+    LUX -->|"NO — all conditions false\n→ sunny"| LCALC
 
     NONE & DDEF & C100 & BCALC & ZERO & LDEF & LCALC --> MM
     MM -->|YES| CLAMP --> COUT
@@ -213,10 +213,20 @@ flowchart TD
     style DDEF fill:#7f8c8d,color:#fff
     style LDEF fill:#7f8c8d,color:#fff
     style COUT fill:#2980b9,color:#fff
+    style LUX fill:#8e44ad,color:#fff,stroke:#6c3483
 ```
 
-> **Why transparent → calculate, opaque → close?**
-> A transparent/perforated blind can only filter light — it cannot meaningfully block heat even when fully closed. Adaptive positioning is therefore kept for maximum shading effect. An opaque blind *can* block heat entirely, so closing to 0% is the optimal summer action.
+> **Intermediate branch — "not sunny?" logic (OR of 3 independent sources):**
+>
+> | Condition | True when | Absent/OFF |
+> |---|---|---|
+> | `lux ≤ threshold` | switch `lux` ON + entity configured + value ≤ threshold | → **False** (neutral) |
+> | `irradiance ≤ threshold` | switch `irradiance` ON + entity configured + value ≤ threshold | → **False** (neutral) |
+> | `weather not sunny` | weather entity configured + state not in sunny list | → **True** (conservative default) |
+>
+> **OR logic**: one condition True → "not sunny" → default position. All False → "sunny" → adaptive calculation.
+> Absent or disabled sensors are **neutral** — they never force a "not sunny" decision on their own.
+> Sensor unavailable → **False** (fail-safe: no spurious default).
 
 ---
 
@@ -311,7 +321,7 @@ Enable via **Settings → [entry] → Configure → Climate settings**.
 | **Weather entity** | Temperature source when no sensor |
 | **Temp low / high** | Winter / summer thresholds (°C) |
 | **Use outside temperature** | Compare outside temp to `temp_high` |
-| **Weather condition** | States considered "sunny" |
+| **Weather condition** | States considered "sunny" — if weather state not in list → "not sunny" |
 | **Presence entity** | Used for both **climate mode** and **security mode** |
 | **Transparent blind** | Enable if blind is perforated/mesh — filters only, cannot block heat |
 
@@ -333,8 +343,10 @@ Enable via **Settings → [entry] → Configure → Climate settings**.
 
 | Option | Description |
 |--------|-------------|
-| **Lux entity / threshold** | Below threshold → treated as "not sunny" in intermediate branch |
-| **Irradiance entity / threshold** | Same for irradiance |
+| **Lux entity / threshold** | Below threshold → contributes "not sunny" (OR with irradiance + weather) |
+| **Lux switch** | OFF → lux ignored entirely (neutral) |
+| **Irradiance entity / threshold** | Below threshold → contributes "not sunny" (OR with lux + weather) |
+| **Irradiance switch** | OFF → irradiance ignored entirely (neutral) |
 
 ### Manual override
 
@@ -370,8 +382,8 @@ Enable via **Settings → [entry] → Configure → Climate settings**.
 | `switch.security_mode_<name>` | **OFF** | Security mode *(visible when presence entity configured)* |
 | `switch.climate_mode_<name>` | ON | Toggle climate mode *(visible when configured)* |
 | `switch.outside_temperature_<name>` | OFF | Use outside temp for summer detection |
-| `switch.lux_<name>` | ON | Enable lux threshold |
-| `switch.irradiance_<name>` | ON | Enable irradiance threshold |
+| `switch.lux_<name>` | ON | Enable lux threshold — OFF = lux ignored (neutral) |
+| `switch.irradiance_<name>` | ON | Enable irradiance threshold — OFF = irradiance ignored (neutral) |
 | `sensor.cover_position_<name>` | — | Calculated target position (%) |
 | `sensor.start_sun_<name>` / `end_sun` | — | Timestamps when sun enters/leaves FOV |
 | `sensor.control_method_<name>` | — | Active branch: `summer` / `winter` / `intermediate` |
@@ -441,6 +453,7 @@ automation:
 | Cover stays closed after returning home | Security switch ON + presence unavailable | Check presence sensor |
 | Security switch not visible | No presence entity configured | Add `presence_entity` in entry options |
 | Climate branch always "intermediate" | No temperature entity | Add a temperature sensor |
+| Cover always at default in intermediate | Lux/irradiance switch ON but entity missing | Add entity or turn switch OFF |
 | Duplicate cover entity | Legacy v1.7.x residue | Auto-fixed on startup (v1.8.11+) |
 
 ---
