@@ -175,13 +175,16 @@ flowchart TD
     NONE(["min_pos  ou  0 %\npersonne à la maison"])
     FOV{"soleil dans le\nchamp de vision ?\ncover.valid"}
     DDEF["position par défaut"]
-    WIN{"HIVER ?\ntemp_inside < temp_low"}
+
+    WIN{"❄️ HIVER ?\ntemp_hiver < temp_basse\ntemp_hiver = intérieur préféré\n              extérieur en fallback"}
     C100(["100 % ouvert\n☀️ capter la chaleur solaire"])
-    SUM{"ÉTÉ ?\ntemp_ref > temp_high\nET outside_high"}
+
+    SUM{"🌡️ ÉTÉ ?\ntemp_été > temp_haute\nET outside_high\ntemp_été = extérieur si temp_switch=ON\n           sinon intérieur\noutside_high = extérieur > seuil_été_ext\n              (True si non configuré)"}
     TRANS{"Transparent / perforé ?\n(filtre seulement —\nne bloque pas la chaleur)"}
     BCALC(["position calculée (basique)\nfiltrage / atténuation seulement"])
     ZERO(["0 % fermé\n🔒 opaque — bloque la chaleur"])
-    INTER["INTERMÉDIAIRE"]
+
+    INTER["INTERMÉDIAIRE\n(temp_basse ≤ temp ≤ temp_haute)"]
     LUX{"Non ensoleillé ? — OU de 3 conditions\n① lux ≤ seuil  (si switch ON + entité configurée)\n② irradiance ≤ seuil  (si switch ON + entité configurée)\n③ état météo absent de la liste 'ensoleillé'\nCapteur absent / switch OFF = neutre (False)"}
     LDEF["position par défaut"]
     LCALC(["position calculée (basique)\nsuivi solaire"])
@@ -213,19 +216,23 @@ flowchart TD
     style LDEF fill:#7f8c8d,color:#fff
     style COUT fill:#2980b9,color:#fff
     style LUX fill:#8e44ad,color:#fff,stroke:#6c3483
+    style WIN fill:#1a5276,color:#fff
+    style SUM fill:#922b21,color:#fff
 ```
 
-> **Branche intermédiaire — logique « non ensoleillé ? » (OU de 3 sources indépendantes) :**
+> **Classification par seuils — trois branches mutuellement exclusives** (`temp_basse < temp_haute` par construction) :
 >
-> | Condition | Vraie quand | Absent / switch OFF |
-> |---|---|---|
-> | `lux ≤ seuil` | switch `lux` ON + entité configurée + valeur ≤ seuil | → **False** (neutre) |
-> | `irradiance ≤ seuil` | switch `irradiance` ON + entité configurée + valeur ≤ seuil | → **False** (neutre) |
-> | `météo non ensoleillée` | entité météo configurée + état absent de la liste sunny | → **True** (conservateur par défaut) |
+> | Branche | Condition | Température de référence |
+> |---------|-----------|--------------------------|
+> | **HIVER** | `temp_hiver < temp_basse` | `intérieur` préféré, `extérieur` fallback — toujours |
+> | **ÉTÉ** | `temp_été > temp_haute` ET `outside_high` | `extérieur` si `temp_switch=ON`, sinon `intérieur` |
+> | **INTERMÉDIAIRE** | ni HIVER ni ÉTÉ | — |
 >
-> **Logique OR** : une condition vraie → « non ensoleillé » → position par défaut. Toutes fausses → « ensoleillé » → calcul adaptatif.
-> Un capteur absent ou désactivé est **neutre** — il ne force jamais une décision « non ensoleillé » à lui seul.
-> Capteur `unavailable` → **False** (fail-safe : pas de repli sur erreur capteur).
+> **Pourquoi l'asymétrie ?** HIVER vérifie le confort intérieur (est-ce que la pièce est froide ?). ÉTÉ utilise optionnellement la température extérieure (`temp_switch=ON`) pour confirmer qu'il fait vraiment chaud dehors — évite de fermer prématurément par une journée tiède mais nuageuse.
+>
+> **Priorité quand `temp_switch=ON`** : l'intérieur peut être froid (→ HIVER) pendant que l'extérieur est chaud (→ ÉTÉ) simultanément. Le code évalue ÉTÉ en premier, puis vérifie `not is_summer AND is_winter` — **HIVER gagne** dans ce cas limite.
+>
+> **Guard `outside_high`** : seuil secondaire sur `temp_summer_outside`. Vaut `True` par défaut (inactif) si non configuré — ÉTÉ s'active sur `temp_été > temp_haute` seul.
 
 ---
 
@@ -316,12 +323,13 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 
 | Option | Description |
 |--------|-------------|
-| **Entité de température** | Capteur intérieur |
-| **Entité de température extérieure** | Capteur extérieur (optionnel) |
-| **Entité météo** | Source de température si pas de capteur |
-| **Temp basse / haute** | Seuils hiver / été (°C) |
-| **Utiliser la température extérieure** | Comparer la temp. ext. à `temp_haute` |
-| **Conditions météo** | États considérés « ensoleillé » — si état météo absent de cette liste → « non ensoleillé » |
+| **Entité de température** | Capteur intérieur — utilisé pour HIVER ; fallback ÉTÉ si `temp_switch=OFF` |
+| **Entité de température extérieure** | Capteur extérieur — utilisé pour ÉTÉ si `temp_switch=ON` ; fallback HIVER |
+| **Entité météo** | Source de température si pas de capteur ; pilote aussi le check « non ensoleillé » |
+| **Temp basse / haute** | Seuil HIVER (en-dessous → ouvre 100%) / Seuil ÉTÉ (au-dessus → ferme 0%) |
+| **Utiliser la température extérieure** (`temp_switch`) | `ON` → temp extérieure prioritaire pour le check ÉTÉ. HIVER utilise toujours l'intérieur. |
+| **Seuil température extérieure été** (`temp_summer_outside`) | Guard secondaire : ÉTÉ ne s'active que si l'extérieur dépasse aussi ce seuil. Inactif si non configuré. |
+| **Conditions météo** | États « ensoleillé » — état absent de cette liste → contribue « non ensoleillé » (OU avec lux + irradiance) |
 | **Entité de présence** | Utilisée pour le mode climatique **et** le mode sécurité |
 | **Store transparent** | Activer si le store est perforé/maille — filtre seulement, ne bloque pas la chaleur |
 
@@ -381,7 +389,7 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 | `switch.manual_override_<nom>` | ON | Pause manuelle (auto-activé sur déplacement) |
 | `switch.security_mode_<nom>` | **OFF** | Mode sécurité *(visible si présence configurée)* |
 | `switch.climate_mode_<nom>` | ON | Mode climatique *(visible si configuré)* |
-| `switch.outside_temperature_<nom>` | OFF | Temp. ext. pour détection été |
+| `switch.outside_temperature_<nom>` | OFF | `temp_switch` — temp extérieure prioritaire pour le check ÉTÉ |
 | `switch.lux_<nom>` | ON | Seuil lux — OFF = lux ignoré (neutre) |
 | `switch.irradiance_<nom>` | ON | Seuil irradiance — OFF = irradiance ignorée (neutre) |
 | `sensor.cover_position_<nom>` | — | Position cible calculée (%) |
@@ -408,42 +416,6 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 
 ---
 
-## Exemples d'automatisation
-
-### Activer la sécurité au départ
-
-```yaml
-automation:
-  - alias: "Sécurité volets au départ"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.presence_home
-        to: "off"
-        for: "00:05:00"
-    action:
-      - service: switch.turn_on
-        target:
-          entity_id: switch.security_mode_salon
-```
-
-### Mode soirée via select
-
-```yaml
-automation:
-  - alias: "Fermer tous les volets le soir"
-    trigger:
-      - platform: time
-        at: "21:00:00"
-    action:
-      - service: select.select_option
-        target:
-          entity_id: select.mode_de_controle
-        data:
-          option: all_closed
-```
-
----
-
 ## Dépannage
 
 | Symptôme | Cause probable | Solution |
@@ -453,6 +425,7 @@ automation:
 | Volet reste fermé malgré retour à la maison | Security switch ON + présence unavailable | Vérifier capteur de présence |
 | Switch sécurité absent | Pas de capteur de présence configuré | Ajouter `presence_entity` dans les options |
 | Branche climatique toujours « intermediate » | Pas d'entité de température | Ajouter un capteur |
+| Toujours ÉTÉ même si froid à l'intérieur | `temp_switch=ON` + chaud dehors | Normal — extérieur utilisé pour ÉTÉ quand temp_switch=ON |
 | Toujours en position par défaut en intermédiaire | Switch lux/irradiance ON mais entité absente | Ajouter l'entité ou désactiver le switch |
 | Entité cover dupliquée | Résidu v1.7.x | Auto-nettoyé au démarrage (v1.8.11+) |
 
