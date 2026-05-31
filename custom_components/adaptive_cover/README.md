@@ -176,13 +176,16 @@ flowchart TD
     NONE(["min_pos  or  0%\nnobody home"])
     FOV{"sun in FOV?\ncover.valid"}
     DDEF["default position"]
-    WIN{"WINTER?\ntemp_inside < temp_low"}
+
+    WIN{"❄️ WINTER?\ntemp_winter < temp_low\ntemp_winter = inside preferred\n              outside as fallback"}
     C100(["100% open\n☀️ capture solar heat"])
-    SUM{"SUMMER?\ntemp_ref > temp_high\nAND outside_high"}
+
+    SUM{"🌡️ SUMMER?\ntemp_summer > temp_high\nAND outside_high\ntemp_summer = outside if temp_switch=ON\n              else inside\noutside_high = outside > temp_summer_outside\n              (True if not configured)"}
     TRANS{"Transparent / perforated?\n(filters only —\ncannot fully block heat)"}
     BCALC(["basic calculated\nshading / filtering only"])
     ZERO(["0% closed\n🔒 opaque — blocks heat"])
-    INTER["INTERMEDIATE"]
+
+    INTER["INTERMEDIATE\n(temp_low ≤ temp ≤ temp_high)"]
     LUX{"Not sunny? — OR of 3 conditions\n① lux ≤ threshold  (if switch ON + entity set)\n② irradiance ≤ threshold  (if switch ON + entity set)\n③ weather state not in sunny list\nAbsent/OFF sensor = neutral (False)"}
     LDEF["default position"]
     LCALC(["basic calculated\nsun tracking"])
@@ -214,19 +217,23 @@ flowchart TD
     style LDEF fill:#7f8c8d,color:#fff
     style COUT fill:#2980b9,color:#fff
     style LUX fill:#8e44ad,color:#fff,stroke:#6c3483
+    style WIN fill:#1a5276,color:#fff
+    style SUM fill:#922b21,color:#fff
 ```
 
-> **Intermediate branch — "not sunny?" logic (OR of 3 independent sources):**
+> **Temperature classification — three mutually exclusive branches** (`temp_low < temp_high` by design):
 >
-> | Condition | True when | Absent/OFF |
-> |---|---|---|
-> | `lux ≤ threshold` | switch `lux` ON + entity configured + value ≤ threshold | → **False** (neutral) |
-> | `irradiance ≤ threshold` | switch `irradiance` ON + entity configured + value ≤ threshold | → **False** (neutral) |
-> | `weather not sunny` | weather entity configured + state not in sunny list | → **True** (conservative default) |
+> | Branch | Condition | Temp reference |
+> |--------|-----------|----------------|
+> | **WINTER** | `temp_winter < temp_low` | `inside` preferred, `outside` fallback — always |
+> | **SUMMER** | `temp_summer > temp_high` AND `outside_high` | `outside` if `temp_switch=ON`, else `inside` |
+> | **INTERMEDIATE** | neither WINTER nor SUMMER | — |
 >
-> **OR logic**: one condition True → "not sunny" → default position. All False → "sunny" → adaptive calculation.
-> Absent or disabled sensors are **neutral** — they never force a "not sunny" decision on their own.
-> Sensor unavailable → **False** (fail-safe: no spurious default).
+> **Why the asymmetry?** WINTER checks indoor comfort (you want to know if the room is cold). SUMMER optionally uses outdoor temperature (`temp_switch=ON`) to confirm it is genuinely hot outside before closing blinds — avoiding premature closure on a warm-but-cloudy day.
+>
+> **Priority when `temp_switch=ON`**: inside could be cold (→ WINTER) while outside is hot (→ SUMMER) simultaneously. The code resolves this by evaluating SUMMER first, then checking `not is_summer AND is_winter` — **WINTER wins** in the edge case.
+>
+> **`outside_high` guard**: secondary threshold on `temp_summer_outside`. Defaults to `True` (inactive) when not configured — SUMMER activates on `temp_summer > temp_high` alone.
 
 ---
 
@@ -316,12 +323,13 @@ Enable via **Settings → [entry] → Configure → Climate settings**.
 
 | Option | Description |
 |--------|-------------|
-| **Temperature entity** | Indoor sensor |
-| **Outside temperature entity** | Outdoor sensor (optional) |
-| **Weather entity** | Temperature source when no sensor |
-| **Temp low / high** | Winter / summer thresholds (°C) |
-| **Use outside temperature** | Compare outside temp to `temp_high` |
-| **Weather condition** | States considered "sunny" — if weather state not in list → "not sunny" |
+| **Temperature entity** | Indoor sensor — used for WINTER check; fallback for SUMMER when `temp_switch=OFF` |
+| **Outside temperature entity** | Outdoor sensor — used for SUMMER when `temp_switch=ON`; optional WINTER fallback |
+| **Weather entity** | Temperature source when no sensor; also drives "not sunny" check |
+| **Temp low / high** | WINTER threshold (below → open 100%) / SUMMER threshold (above → close 0%) |
+| **Use outside temperature** (`temp_switch`) | `ON` → outdoor temp is primary for SUMMER check. WINTER always uses indoor. |
+| **Outdoor temperature threshold** (`temp_summer_outside`) | Extra guard: SUMMER activates only if outdoor temp also exceeds this. Inactive when not set. |
+| **Weather condition** | States considered "sunny" — if weather state not in list → contributes "not sunny" (OR with lux + irradiance) |
 | **Presence entity** | Used for both **climate mode** and **security mode** |
 | **Transparent blind** | Enable if blind is perforated/mesh — filters only, cannot block heat |
 
@@ -381,7 +389,7 @@ Enable via **Settings → [entry] → Configure → Climate settings**.
 | `switch.manual_override_<name>` | ON | Pause adaptive control (auto-set on manual move) |
 | `switch.security_mode_<name>` | **OFF** | Security mode *(visible when presence entity configured)* |
 | `switch.climate_mode_<name>` | ON | Toggle climate mode *(visible when configured)* |
-| `switch.outside_temperature_<name>` | OFF | Use outside temp for summer detection |
+| `switch.outside_temperature_<name>` | OFF | `temp_switch` — use outside temp as primary for SUMMER check |
 | `switch.lux_<name>` | ON | Enable lux threshold — OFF = lux ignored (neutral) |
 | `switch.irradiance_<name>` | ON | Enable irradiance threshold — OFF = irradiance ignored (neutral) |
 | `sensor.cover_position_<name>` | — | Calculated target position (%) |
@@ -453,6 +461,7 @@ automation:
 | Cover stays closed after returning home | Security switch ON + presence unavailable | Check presence sensor |
 | Security switch not visible | No presence entity configured | Add `presence_entity` in entry options |
 | Climate branch always "intermediate" | No temperature entity | Add a temperature sensor |
+| Always summer even when cold inside | `temp_switch=ON` + hot outside | Expected — outside temp used for summer when temp_switch ON |
 | Cover always at default in intermediate | Lux/irradiance switch ON but entity missing | Add entity or turn switch OFF |
 | Duplicate cover entity | Legacy v1.7.x residue | Auto-fixed on startup (v1.8.11+) |
 
