@@ -1,5 +1,7 @@
 """Fetch sun data."""
 
+from __future__ import annotations
+
 from datetime import date, datetime, timedelta
 
 import pandas as pd
@@ -10,58 +12,46 @@ from homeassistant.helpers.sun import get_astral_location
 class SunData:
     """Access local sun data."""
 
-    def __init__(self, timezone, hass: HomeAssistant) -> None:  # noqa: D107
+    def __init__(self, timezone: str, hass: HomeAssistant) -> None:
+        """Initialise location, elevation and timezone from HA config."""
         self.hass = hass
-        location, elevation = get_astral_location(self.hass)
-        self.location = location  # astral.location.Location
-        self.elevation = elevation
+        self.location, self.elevation = get_astral_location(self.hass)
         self.timezone = timezone
 
     @property
     def times(self) -> pd.DatetimeIndex:
-        """Define time interval."""
+        """Define 5-minute time interval for today."""
         start_date = date.today()
-        end_date = start_date + timedelta(days=1)
-
-        times = pd.date_range(
-            start=start_date, end=end_date, freq="5min", tz=self.timezone, name="time"
+        return pd.date_range(
+            start=start_date,
+            end=start_date + timedelta(days=1),
+            freq="5min",
+            tz=self.timezone,
+            name="time",
         )
-        return times
 
     @property
-    def solar_azimuth(self) -> list:
-        """Create list with solar azimuth data per 5 minutes."""
-        index = 0
-        azi_list = []
-        for _i in self.times:
-            azi_list.append(
-                self.location.solar_azimuth(self.times[index], self.elevation)
-            )
-            index += 1
-        return azi_list
+    def solar_azimuth(self) -> list[float]:
+        """Return solar azimuth for each 5-minute slot today."""
+        # OPTIM: list comprehension — eliminates manual index for-loop
+        return [
+            self.location.solar_azimuth(t, self.elevation)
+            for t in self.times
+        ]
 
     @property
-    def solar_elevation(self) -> list:
-        """Create list with solar elevation data per 5 minutes."""
-        index = 0
-        ele_list = []
-        for _i in self.times:
-            ele_list.append(
-                self.location.solar_elevation(self.times[index], self.elevation)
-            )
-            index += 1
-        return ele_list
+    def solar_elevation(self) -> list[float]:
+        """Return solar elevation for each 5-minute slot today."""
+        # OPTIM: list comprehension — eliminates manual index for-loop
+        return [
+            self.location.solar_elevation(t, self.elevation)
+            for t in self.times
+        ]
 
     def sunset(self) -> datetime:
-        """Fetch sunset time."""
+        """Return today's sunset time (UTC)."""
         return self.location.sunset(date.today(), local=False)
 
     def sunrise(self) -> datetime:
-        """Fetch sunrise time."""
+        """Return today's sunrise time (UTC)."""
         return self.location.sunrise(date.today(), local=False)
-
-    # def df_today(self)-> pd.DataFrame:
-    #     """Create dataframe with azimuth and elevation data"""
-    #     df_today = pd.DataFrame({"azimuth":self.solar_azimuth, "elevation":self.solar_elevation})
-    #     df_today = df_today.set_index(self.times)
-    #     return df_today

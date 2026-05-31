@@ -1,43 +1,31 @@
-"""This module provides a logging adapter that adds a configuration name to log messages."""
+"""Logging adapter that prefixes messages with the integration instance name."""
+
+from __future__ import annotations
 
 import logging
 
 
 class ConfigContextAdapter(logging.LoggerAdapter):
-    """A logging adapter that adds a configuration name to log messages."""
+    """Add the config entry name as a prefix to all log messages.
 
-    def __init__(self, logger, extra=None):
-        """Initialize the ConfigContextAdapter.
+    Usage:
+        logger = ConfigContextAdapter(logging.getLogger(__name__))
+        logger.set_config_name("My Blind")
+        logger.debug("Sun in window: %s", True)
+        # → logs: "[My Blind] Sun in window: True"
+    """
 
-        Args:
-            logger (logging.Logger): The logger instance to which this adapter is attached.
-            extra (dict, optional): Additional context information. Defaults to None.
-
-        """
+    def __init__(self, logger: logging.Logger, extra: dict | None = None) -> None:
+        """Initialise the adapter with an optional name prefix."""
         super().__init__(logger, extra or {})
-        self.config_name = None
+        self._config_name: str | None = None
 
-    def set_config_name(self, config_name):
-        """Set the configuration name.
+    def set_config_name(self, name: str | None) -> None:
+        """Store the config-entry name used as log prefix."""
+        self._config_name = name
 
-        Args:
-            config_name (str): The name of the configuration to set.
-
-        """
-        self.config_name = config_name
-
-    def process(self, msg, kwargs):
-        """Process the log message and add the configuration name if set.
-
-        Args:
-            msg (str): The log message.
-            kwargs (dict): Additional keyword arguments.
-
-        Returns:
-            tuple: The processed log message and keyword arguments.
-
-        """
-        if self.config_name:
-            return f"[{self.config_name}] {msg}", kwargs
-        else:
-            return f"[Unknown] {msg}", kwargs
+    def process(self, msg: str, kwargs: dict) -> tuple[str, dict]:
+        """Prepend the config-entry name to every log message."""
+        if self._config_name:
+            msg = f"[{self._config_name}] {msg}"
+        return msg, kwargs

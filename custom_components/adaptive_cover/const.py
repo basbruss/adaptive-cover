@@ -61,7 +61,6 @@ CONF_IRRADIANCE_ENTITY = "irradiance_entity"
 CONF_IRRADIANCE_THRESHOLD = "irradiance_threshold"
 CONF_OUTSIDE_THRESHOLD = "outside_threshold"
 
-
 CONF_DELTA_POSITION = "delta_position"
 CONF_DELTA_TIME = "delta_time"
 CONF_START_TIME = "start_time"
@@ -74,12 +73,25 @@ CONF_MANUAL_OVERRIDE_RESET = "manual_override_reset"
 CONF_MANUAL_THRESHOLD = "manual_threshold"
 CONF_MANUAL_IGNORE_INTERMEDIATE = "manual_ignore_intermediate"
 
+# Security mode — closes covers when nobody is home.
+# The value is NOT stored in config options; the switch entity manages the
+# runtime toggle directly on the coordinator (``coordinator.security_toggle``).
+# The constant is kept here for translation key alignment and documentation.
+CONF_SECURITY_MODE = "security_mode"
+
 STRATEGY_MODE_BASIC = "basic"
 STRATEGY_MODE_CLIMATE = "climate"
 STRATEGY_MODES = [
     STRATEGY_MODE_BASIC,
     STRATEGY_MODE_CLIMATE,
 ]
+
+
+# Marker stored in ``ConfigEntry.data`` for the singleton "All Blinds" hub
+# entry. Hub entries have no per-cover configuration; they expose only the
+# aggregate ``cover.*`` entity that controls every other Adaptive Cover entry.
+CONF_IS_HUB = "is_hub"
+ALL_BLINDS_TITLE = "All Blinds"
 
 
 class SensorType:

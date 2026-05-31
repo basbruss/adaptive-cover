@@ -1,5 +1,7 @@
 """Generate values for all types of covers."""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -10,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from numpy import cos, sin, tan
 from numpy import radians as rad
 
-from .helpers import get_domain, get_safe_state
+from .helpers import get_domain, get_safe_state, is_presence_detected, state_attr
 from .sun import SunData
 from .config_context_adapter import ConfigContextAdapter
 
@@ -65,11 +67,10 @@ class AdaptiveGeneralCover(ABC):
 
         if solpos[frame].empty:
             return None, None
-        else:
-            return (
-                solpos[frame].index[0].to_pydatetime(),
-                solpos[frame].index[-1].to_pydatetime(),
-            )
+        return (
+            solpos[frame].index[0].to_pydatetime(),
+            solpos[frame].index[-1].to_pydatetime(),
+        )
 
     @property
     def _get_azimuth_edges(self) -> tuple[int, int]:
@@ -168,7 +169,7 @@ class AdaptiveGeneralCover(ABC):
     @property
     def apply_min_position(self) -> bool:
         """Check if min position is applied."""
-        if self.min_pos is not None and self.min_pos != 0:
+        if self.min_pos is not None and self.min_pos != 0:  # noqa: C0121
             if self.min_pos_bool:
                 return self.direct_sun_valid
             return True
@@ -228,7 +229,7 @@ class NormalCoverState:
 
 
 @dataclass
-class ClimateCoverData:
+class ClimateCoverData:  # pylint: disable=too-many-instance-attributes
     """Fetch additional data."""
 
     hass: HomeAssistant
@@ -280,42 +281,65 @@ class ClimateCoverData:
             return temp
 
     @property
-    def get_current_temperature(self) -> float:
-        """Get temperature."""
+    def get_current_temperature(self) -> float | None:
+        """Return current temperature as float, or None if unavailable.
+
+        .. deprecated::
+            Prefer `temperature_for_winter` / `temperature_for_summer`.
+        """
         if self.temp_switch:
-            if self.outside_temperature:
-                return float(self.outside_temperature)
-        if self.inside_temperature:
-            return float(self.inside_temperature)
+            outside = self.outside_temperature
+            if outside is not None:
+                return float(outside)
+        inside = self.inside_temperature
+        if inside is not None:
+            return float(inside)
+        return None
+
+    @property
+    def temperature_for_winter(self) -> float | None:
+        """Temperature used for the winter (heating) check — inside preferred."""
+        inside = self.inside_temperature
+        if inside is not None:
+            return float(inside)
+        outside = self.outside_temperature
+        if outside is not None:
+            return float(outside)
+        return None
+
+    @property
+    def temperature_for_summer(self) -> float | None:
+        """Temperature used for the summer (cooling) check — outside preferred when temp_switch=True."""
+        if self.temp_switch:
+            outside = self.outside_temperature
+            if outside is not None:
+                return float(outside)
+        inside = self.inside_temperature
+        if inside is not None:
+            return float(inside)
+        return None
 
     @property
     def is_presence(self):
-        """Checks if people are present."""
-        presence = None
-        if self.presence_entity is not None:
-            presence = get_safe_state(self.hass, self.presence_entity)
-        # set to true if no sensor is defined
-        if presence is not None:
-            domain = get_domain(self.presence_entity)
-            if domain == "device_tracker":
-                return presence == "home"
-            if domain == "zone":
-                return int(presence) > 0
-            if domain in ["binary_sensor", "input_boolean"]:
-                return presence == "on"
-        return True
+        """Check if people are present.
+
+        Delegates to ``helpers.is_presence_detected`` so that the same logic
+        is shared with the security mode in the coordinator.
+        """
+        return is_presence_detected(self.hass, self.presence_entity)
 
     @property
     def is_winter(self) -> bool:
-        """Check if temperature is below threshold."""
-        if self.temp_low is not None and self.get_current_temperature is not None:
-            is_it = self.get_current_temperature < self.temp_low
+        """Check if the room temperature is below the heating threshold."""
+        temp = self.temperature_for_winter
+        if self.temp_low is not None and temp is not None:
+            is_it = temp < self.temp_low
         else:
             is_it = False
 
         self.logger.debug(
-            "is_winter(): current_temperature < temp_low: %s < %s = %s",
-            self.get_current_temperature,
+            "is_winter(): inside_temp < temp_low: %s < %s = %s",
+            temp,
             self.temp_low,
             is_it,
         )
@@ -333,15 +357,16 @@ class ClimateCoverData:
 
     @property
     def is_summer(self) -> bool:
-        """Check if temperature is over threshold."""
-        if self.temp_high is not None and self.get_current_temperature is not None:
-            is_it = self.get_current_temperature > self.temp_high and self.outside_high
+        """Check if temperature exceeds the cooling threshold."""
+        temp = self.temperature_for_summer
+        if self.temp_high is not None and temp is not None:
+            is_it = temp > self.temp_high and self.outside_high
         else:
             is_it = False
 
         self.logger.debug(
-            "is_summer(): current_temp > temp_high and outside_high?: %s > %s and %s = %s",
-            self.get_current_temperature,
+            "is_summer(): temp > temp_high and outside_high?: %s > %s and %s = %s",
+            temp,
             self.temp_high,
             self.outside_high,
             is_it,
@@ -404,44 +429,62 @@ class ClimateCoverState(NormalCoverState):
         return self.normal_without_presence()
 
     def normal_with_presence(self) -> int:
-        """Determine state for horizontal and vertical covers with occupants."""
+        """Determine state for horizontal and vertical covers with occupants.
+
+        Priority tree (presence=True):
+
+        1. Sun NOT in window (cover.valid=False)
+               → default position
+        2. Sun in window (cover.valid=True)
+           a. WINTER  → 100% open
+           b. SUMMER  → 0% closed (opaque) or basic (transparent)
+           c. INTERMEDIATE
+                  overcast / low lux / low irradiance → default
+                  sunny → basic calculated
+        """
 
         is_summer = self.climate_data.is_summer
 
-        # Check if it's not summer and either lux, irradiance or sunny weather is present
-        if not is_summer and (
+        if not self.cover.valid:
+            self.cover.logger.debug("n_w_p(): sun not in window → default")
+            return self.cover.default
+
+        if not is_summer and self.climate_data.is_winter:
+            self.cover.logger.debug(
+                "n_w_p(): Winter and sun is in front of window = use 100"
+            )
+            return 100
+
+        if is_summer:
+            if self.climate_data.transparent_blind:
+                self.cover.logger.debug(
+                    "n_w_p(): Summer + transparent blind → basic (shade only)"
+                )
+                return super().get_state()
+            self.cover.logger.debug(
+                "n_w_p(): Summer + opaque blind → 0% (fully closed)"
+            )
+            return 0
+
+        if (
             self.climate_data.lux
             or self.climate_data.irradiance
             or not self.climate_data.is_sunny
         ):
-            # If it's winter and the cover is valid, return 100
-            if self.climate_data.is_winter and self.cover.valid:
-                self.cover.logger.debug(
-                    "n_w_p(): Winter and sun is in front of window = use 100"
-                )
-                return 100
-            # Otherwise, return the default cover state
             self.cover.logger.debug(
-                "n_w_p(): it's not summer and sunny weather is not present = use default"
+                "n_w_p(): Intermediate + no direct sun → default"
             )
             return self.cover.default
 
-        # If it's summer and there's a transparent blind, return 0
-        if is_summer and self.climate_data.transparent_blind:
-            return 0
-
-        # If none of the above conditions are met, get the state from the parent class
-        self.cover.logger.debug("n_w_p(): None of the climate conditions are met")
+        self.cover.logger.debug(
+            "n_w_p(): Intermediate + sunny → basic calculated (shade only)"
+        )
         return super().get_state()
 
     def normal_without_presence(self) -> int:
-        """Determine state for horizontal and vertical covers without occupants."""
-        if self.cover.valid:
-            if self.climate_data.is_summer:
-                return 0
-            if self.climate_data.is_winter:
-                return 100
-        return self.cover.default
+        """Determine state without occupants → min_pos or 0 %."""
+        min_pos = self.cover.min_pos
+        return min_pos if min_pos is not None else 0
 
     def tilt_with_presence(self, degrees: int) -> int:
         """Determine state for tilted blinds with occupants."""
@@ -451,26 +494,21 @@ class ClimateCoverState(NormalCoverState):
             or not self.climate_data.is_sunny
         ):
             if self.climate_data.is_summer:
-                # If it's summer, return 45 degrees
                 return 45 / degrees * 100
             return super().get_state()
         return 80 / degrees * 100
 
     def tilt_without_presence(self, degrees: int) -> int:
-        """Determine state for tilted blinds without occupants."""
-        beta = np.rad2deg(self.cover.beta)
-        if self.cover.valid:
-            if self.climate_data.is_summer:
-                # block out all light in summer
-                return 0
-            if self.climate_data.is_winter and self.cover.mode == "mode2":
-                # parallel to sun beams, not possible with single direction
-                return (beta + 90) / degrees * 100
-            return 80 / degrees * 100
-        return super().get_state()
+        """Determine state for tilted blinds without occupants → min_pos or 0 %."""
+        assert isinstance(self.cover, AdaptiveTiltCover)
+        min_pos = self.cover.min_pos
+        return min_pos if min_pos is not None else 0
 
     def tilt_state(self):
         """Add tilt specific controls."""
+        assert isinstance(self.cover, AdaptiveTiltCover), (
+            "tilt_state requires AdaptiveTiltCover"
+        )
         degrees = 90
         if self.cover.mode == "mode2":
             degrees = 180
@@ -509,7 +547,6 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
 
     def calculate_position(self) -> float:
         """Calculate blind height."""
-        # calculate blind height
         blind_height = np.clip(
             (self.distance / cos(rad(self.gamma))) * tan(rad(self.sol_elev)),
             0,
@@ -544,7 +581,6 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
         length = ((self.h_win - vertical_position) * sin(rad(a_angle))) / sin(
             rad(c_angle)
         )
-        # return np.clip(length, 0, self.awn_length)
         return length
 
     def calculate_percentage(self) -> float:
@@ -589,9 +625,8 @@ class AdaptiveTiltCover(AdaptiveGeneralCover):
 
     def calculate_percentage(self):
         """Convert tilt angle to percentages or default value."""
-        # 0 degrees is closed, 90 degrees is open, 180 degrees is closed
-        percentage_single = self.calculate_position() / 90 * 100  # single directional
-        percentage_bi = self.calculate_position() / 180 * 100  # bi-directional
+        percentage_single = self.calculate_position() / 90 * 100
+        percentage_bi = self.calculate_position() / 180 * 100
 
         if self.mode == "mode1":
             percentage = percentage_single

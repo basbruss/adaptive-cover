@@ -75,6 +75,8 @@ from .const import (
     CONF_MIN_POSITION,
     CONF_ENABLE_MAX_POSITION,
     CONF_ENABLE_MIN_POSITION,
+    CONF_IS_HUB,
+    ALL_BLINDS_TITLE,
 )
 
 # DEFAULT_NAME = "Adaptive Cover"
@@ -380,13 +382,21 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry):
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
         """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
+        # FIX HA 2025.12 (PR #439): OptionsFlowHandler() with no argument.
+        # HA now injects config_entry automatically via the inherited property.
+        return OptionsFlowHandler()
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None):
-        """Handle the initial step."""
-        # errors = {}
+        """Initial step — menu to pick between a cover entry or the All-Blinds hub."""
+        return self.async_show_menu(
+            step_id="user",
+            menu_options=["cover_entry", "all_blinds"],
+        )
+
+    async def async_step_cover_entry(self, user_input: dict[str, Any] | None = None):
+        """Collect name + cover type for a regular Adaptive Cover entry."""
         if user_input:
             self.config = user_input
             if self.config[CONF_MODE] == SensorType.BLIND:
@@ -395,7 +405,32 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 return await self.async_step_horizontal()
             if self.config[CONF_MODE] == SensorType.TILT:
                 return await self.async_step_tilt()
-        return self.async_show_form(step_id="user", data_schema=CONFIG_SCHEMA)
+        return self.async_show_form(step_id="cover_entry", data_schema=CONFIG_SCHEMA)
+
+    async def async_step_all_blinds(self, user_input: dict[str, Any] | None = None):
+        """Create the singleton 'All Blinds' hub entry (no per-cover options).
+
+        Refuses creation if a hub entry already exists. The hub aggregates
+        every other Adaptive Cover entry into one ``cover.*`` entity.
+        """
+        # Only one hub allowed
+        for existing in self._async_current_entries():
+            if existing.data.get(CONF_IS_HUB):
+                return self.async_abort(reason="single_instance_allowed")
+        return self.async_create_entry(
+            title=ALL_BLINDS_TITLE,
+            data={"name": ALL_BLINDS_TITLE, CONF_IS_HUB: True},
+            options={},
+        )
+
+    async def async_step_import(self, import_data: dict[str, Any]):
+        """Programmatic hub bootstrap from ``__init__._async_bootstrap_hub_entry``.
+
+        Same single-instance guard as the manual ``all_blinds`` step.
+        """
+        if not import_data.get(CONF_IS_HUB):
+            return self.async_abort(reason="unknown")
+        return await self.async_step_all_blinds()
 
     async def async_step_vertical(self, user_input: dict[str, Any] | None = None):
         """Show basic config for vertical blinds."""
@@ -634,21 +669,34 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 class OptionsFlowHandler(OptionsFlow):
     """Options to adjust parameters."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize options flow."""
-        # HA 2025.12+ exposes ``config_entry`` as a read-only property on
-        # ``OptionsFlow`` and injects it automatically, so we must not
-        # assign it here anymore (was deprecated since HA 2024.12).
-        self.current_config: dict = dict(config_entry.data)
-        self.options = dict(config_entry.options)
-        self.sensor_type: SensorType = (
-            self.current_config.get(CONF_SENSOR_TYPE) or SensorType.BLIND
-        )
+    # FIX HA 2025.12 (PR #439):
+    # Removed __init__(self, config_entry) which attempted to assign
+    # self.config_entry = config_entry on a read-only property since HA 2025.12.
+    #
+    # Since HA 2025.12, the OptionsFlow base class exposes config_entry
+    # as a read-only property injected automatically by HA.
+    # config_entry must no longer be passed as an argument or assigned in __init__.
+    #
+    # Solution: move initialisation into async_step_init() where
+    # self.config_entry is already available via the inherited property.
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Manage the options."""
+        """Manage the options — initialise les attributs dépendants de config_entry ici."""
+        # Initialisation moved from __init__ (fix HA 2025.12)
+        if not hasattr(self, "_options_initialized"):
+            self.current_config: dict = dict(self.config_entry.data)
+            self.options: dict = dict(self.config_entry.options)
+            self.sensor_type: SensorType = (
+                self.current_config.get(CONF_SENSOR_TYPE) or SensorType.BLIND
+            )
+            self._options_initialized = True
+
+        # Hub entries (All Blinds aggregator) have no per-cover options.
+        if self.current_config.get(CONF_IS_HUB):
+            return self.async_abort(reason="hub_no_options")
+
         options = ["automation", "blind"]
         if self.options[CONF_CLIMATE_MODE]:
             options.append("climate")
@@ -890,7 +938,8 @@ class OptionsFlowHandler(OptionsFlow):
         """Update config entry options."""
         return self.async_create_entry(title="", data=self.options)
 
-    def optional_entities(self, keys: list, user_input: dict[str, Any] | None = None):
+    @staticmethod
+    def optional_entities(keys: list, user_input: dict[str, Any] | None = None):
         """Set value to None if key does not exist."""
         for key in keys:
             if key not in user_input:

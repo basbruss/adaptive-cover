@@ -98,7 +98,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .helpers import get_datetime_from_str, get_last_updated, get_safe_state
+from .helpers import get_datetime_from_str, get_last_updated, get_safe_state, is_presence_detected
 
 
 @dataclass
@@ -117,6 +117,7 @@ class AdaptiveCoverData:
     climate_mode_toggle: bool
     states: dict
     attributes: dict
+    climate_debug: dict | None = None
 
 
 class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
@@ -138,12 +139,18 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._temp_toggle = None
         self._control_toggle = None
         self._manual_toggle = None
-        self._lux_toggle = None
-        self._irradiance_toggle = None
+        self._security_toggle = False  # OFF by default; restored by switch.py
+
+        self._lux_toggle = (
+            True if self.config_entry.options.get(CONF_LUX_ENTITY) else None
+        )
+        self._irradiance_toggle = (
+            True if self.config_entry.options.get(CONF_IRRADIANCE_ENTITY) else None
+        )
+
         self._start_time = None
         self._sun_end_time = None
         self._sun_start_time = None
-        # self._end_time = None
         self.manual_reset = self.config_entry.options.get(
             CONF_MANUAL_OVERRIDE_RESET, False
         )
@@ -160,6 +167,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.manager = AdaptiveCoverManager(self.manual_duration, self.logger)
         self.wait_for_target = {}
         self.target_call = {}
+        self._climate_debug: dict | None = None
         self.ignore_intermediate_states = self.config_entry.options.get(
             CONF_MANUAL_IGNORE_INTERMEDIATE, False
         )
@@ -176,10 +184,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     async def async_timed_refresh(self, event) -> None:
         """Control state at end time."""
-
         now = dt.datetime.now()
-        if self.end_time is not None:
-            time = self.end_time
+        time = self.end_time
         if self.end_time_entity is not None:
             time = get_safe_state(self.hass, self.end_time_entity)
 
@@ -275,19 +281,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         options = self.config_entry.options
         self._update_options(options)
 
-        # Get data for the blind
         cover_data = self.get_blind_data(options=options)
 
-        # Update manager with covers
         self._update_manager_and_covers()
 
-        # Access climate data if climate mode is enabled
         if self._climate_mode:
             self.climate_mode_data(options, cover_data)
         else:
             self.logger.debug("Control method is %s", self.control_method)
 
-        # calculate the state of the cover
         self.normal_cover_state = NormalCoverState(cover_data)
         self.logger.debug(
             "Determined normal cover state to be %s", self.normal_cover_state
@@ -306,7 +308,6 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         ):
             await self.async_timed_end_time()
 
-        # Handle types of changes
         if self.state_change:
             await self.async_handle_state_change(state, options)
         if self.cover_state_change:
@@ -317,7 +318,6 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             await self.async_handle_timed_refresh(options)
 
         normal_cover = self.normal_cover_state.cover
-        # Run the solar_times method in a separate thread
         if (
             self.first_refresh
             or self._sun_start_time is None
@@ -353,13 +353,22 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 ],
                 "blind_spot": options.get(CONF_BLIND_SPOT_ELEVATION),
             },
+            climate_debug=self._climate_debug,
         )
 
     async def async_handle_state_change(self, state: int, options):
-        """Handle state change from tracked entities."""
+        """Handle state change from tracked entities.
+
+        Security mode takes priority over adaptive positioning:
+        when active, every cover (except those in manual override) is moved
+        to the security position instead of the calculated adaptive position.
+        """
         if self.control_toggle:
             for cover in self.entities:
-                await self.async_handle_call_service(cover, state, options)
+                if self.security_active:
+                    await self._apply_security_position(cover, options)
+                else:
+                    await self.async_handle_call_service(cover, state, options)
         else:
             self.logger.debug("State change but control toggle is off")
         self.state_change = False
@@ -380,10 +389,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.logger.debug("Cover state change handled")
 
     async def async_handle_first_refresh(self, state: int, options):
-        """Handle first refresh."""
+        """Handle first refresh.
+
+        Security mode is applied immediately on startup when active.
+        """
         if self.control_toggle:
             for cover in self.entities:
-                if (
+                if self.security_active:
+                    await self._apply_security_position(cover, options)
+                elif (
                     self.check_adaptive_time
                     and not self.manager.is_cover_manual(cover)
                     and self.check_position_delta(cover, state, options)
@@ -395,21 +409,27 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.logger.debug("First refresh handled")
 
     async def async_handle_timed_refresh(self, options):
-        """Handle timed refresh."""
+        """Handle timed refresh (sunset position).
+
+        Security mode overrides the sunset position when active.
+        """
         self.logger.debug(
             "This is a timed refresh, using sunset position: %s",
             options.get(CONF_SUNSET_POS),
         )
         if self.control_toggle:
             for cover in self.entities:
-                await self.async_set_manual_position(
-                    cover,
-                    (
-                        inverse_state(options.get(CONF_SUNSET_POS))
-                        if self._inverse_state
-                        else options.get(CONF_SUNSET_POS)
-                    ),
-                )
+                if self.security_active:
+                    await self._apply_security_position(cover, options)
+                else:
+                    await self.async_set_manual_position(
+                        cover,
+                        (
+                            inverse_state(options.get(CONF_SUNSET_POS))
+                            if self._inverse_state
+                            else options.get(CONF_SUNSET_POS)
+                        ),
+                    )
         else:
             self.logger.debug("Timed refresh but control toggle is off")
         self.timed_refresh = False
@@ -451,6 +471,64 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             )
             self.logger.debug("Run %s with data %s", service, service_data)
             await self.hass.services.async_call(COVER_DOMAIN, service, service_data)
+
+    async def _apply_security_position(self, entity: str, options) -> None:
+        """Move a cover to its security position.
+
+        Security position rules:
+          - Climate mode active + branch is winter or intermediate
+              → CONF_MIN_POSITION (keeps the house ventilated / slightly shaded)
+          - All other cases (no climate, or climate summer)
+              → 0 % (fully closed — maximum protection)
+
+        Covers in manual override are skipped: the user's explicit action
+        takes precedence over the security mode.
+
+        Unlike ``async_set_position``, this method does NOT call
+        ``manager.mark_manual_control`` — security is not a user gesture and
+        must not block the automatic return to adaptive positioning when
+        presence is restored.
+        """
+        if self.manager.is_cover_manual(entity):
+            self.logger.debug(
+                "Security mode: skipping %s (manual override active)", entity
+            )
+            return
+
+        if self._climate_mode and self.control_method in ("intermediate", "winter"):
+            pos = options.get(CONF_MIN_POSITION) or 0
+            self.logger.debug(
+                "Security mode: %s → min_position=%s (climate branch: %s)",
+                entity,
+                pos,
+                self.control_method,
+            )
+        else:
+            pos = 0
+            self.logger.debug(
+                "Security mode: %s → 0 %% (full close — no climate or summer branch)",
+                entity,
+            )
+
+        await self.async_set_manual_position(entity, pos)
+
+    @property
+    def security_active(self) -> bool:
+        """True when security mode is ON and no presence detected.
+
+        Returns False (inactive) when no presence entity is configured —
+        security mode requires a presence sensor to be meaningful.
+        """
+        if not self._security_toggle:
+            return False
+        presence_entity = self.config_entry.options.get(CONF_PRESENCE_ENTITY)
+        if presence_entity is None:
+            return False
+        active = not is_presence_detected(self.hass, presence_entity)
+        self.logger.debug(
+            "Security active? %s (presence_entity=%s)", active, presence_entity
+        )
+        return active
 
     def _update_options(self, options):
         """Update options."""
@@ -528,11 +606,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             return now >= time
         if self.start_time is not None:
             time = get_datetime_from_str(self.start_time)
-
             self.logger.debug(
                 "Start time: %s, now: %s, now >= time: %s", time, now, now >= time
             )
-            self._start_time
+            self._start_time = time
             return now >= time
         return True
 
@@ -565,11 +642,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         return True
 
     def _get_current_position(self, entity) -> int | None:
-        """Get current position of cover."""
+        """Get current position of cover (single state lookup)."""
         state = self.hass.states.get(entity)
-        if self._cover_type == "cover_tilt":
-            return state.attributes.get("current_tilt_position") if state else None
-        return state.attributes.get("current_position") if state else None
+        if state is None:
+            return None
+        attr = "current_tilt_position" if self._cover_type == "cover_tilt" else "current_position"
+        return state.attributes.get(attr)
 
     def check_position(self, entity, state):
         """Check if position is different as state."""
@@ -621,12 +699,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     @property
     def pos_sun(self):
-        """Fetch information for sun position."""
+        """Fetch sun azimuth + elevation in a single state lookup."""
         state = self.hass.states.get("sun.sun")
-        return [
-            state.attributes.get("azimuth") if state else None,
-            state.attributes.get("elevation") if state else None,
-        ]
+        if state is None:
+            return [None, None]
+        attrs = state.attributes
+        return [attrs.get("azimuth"), attrs.get("elevation")]
 
     def common_data(self, options):
         """Update shared parameters."""
@@ -677,32 +755,82 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     def climate_mode_data(self, options, cover_data):
         """Update climate mode data and control method."""
-        climate = ClimateCoverData(*self.get_climate_data(options))
-        self.climate_state = round(ClimateCoverState(cover_data, climate).get_state())
-        climate_data = ClimateCoverState(cover_data, climate).climate_data
+        climate_args = self.get_climate_data(options)
+        climate = ClimateCoverData(
+            hass=climate_args[0],
+            logger=climate_args[1],
+            temp_entity=climate_args[2],
+            temp_low=climate_args[3],
+            temp_high=climate_args[4],
+            presence_entity=climate_args[5],
+            weather_entity=climate_args[6],
+            weather_condition=climate_args[7],
+            outside_entity=climate_args[8],
+            temp_switch=climate_args[9],
+            blind_type=climate_args[10],
+            transparent_blind=climate_args[11],
+            lux_entity=climate_args[12],
+            irradiance_entity=climate_args[13],
+            lux_threshold=climate_args[14],
+            irradiance_threshold=climate_args[15],
+            temp_summer_outside=climate_args[16],
+            _use_lux=climate_args[17],
+            _use_irradiance=climate_args[18],
+        )
+
+        climate_state_obj = ClimateCoverState(cover_data, climate)
+        self.climate_state = round(climate_state_obj.get_state())
+        climate_data = climate_state_obj.climate_data
+
         if climate_data.is_summer and self.switch_mode:
             self.control_method = "summer"
-        if climate_data.is_winter and self.switch_mode:
+        elif climate_data.is_winter and self.switch_mode:
             self.control_method = "winter"
+        else:
+            self.control_method = "intermediate"
+
         self.logger.debug(
             "Climate mode control method was set to %s", self.control_method
         )
 
-    def vertical_data(self, options):
+        inside_raw = climate_data.inside_temperature
+        outside_raw = climate_data.outside_temperature
+        self._climate_debug = {
+            "is_winter": climate_data.is_winter,
+            "is_summer": climate_data.is_summer,
+            "is_presence": climate_data.is_presence,
+            "sun_in_window": climate_state_obj.cover.valid,
+            "temp_inside": float(inside_raw) if inside_raw is not None else None,
+            "temp_outside": float(outside_raw) if outside_raw is not None else None,
+            "temp_used_winter": climate_data.temperature_for_winter,
+            "temp_used_summer": climate_data.temperature_for_summer,
+            "temp_low": climate_data.temp_low,
+            "temp_high": climate_data.temp_high,
+            "temp_switch": climate_data.temp_switch,
+            "is_sunny": climate_data.is_sunny,
+            "lux_below_threshold": climate_data.lux,
+            "irradiance_below_threshold": climate_data.irradiance,
+            "active_branch": self.control_method,
+        }
+
+    @staticmethod
+    def vertical_data(options):
         """Update data for vertical blinds."""
         return [
             options.get(CONF_DISTANCE),
             options.get(CONF_HEIGHT_WIN),
         ]
 
-    def horizontal_data(self, options):
+    @staticmethod
+    def horizontal_data(options):
         """Update data for horizontal blinds."""
         return [
             options.get(CONF_LENGTH_AWNING),
             options.get(CONF_AWNING_ANGLE),
         ]
 
-    def tilt_data(self, options):
+    @staticmethod
+    def tilt_data(options):
         """Update data for tilted blinds."""
         return [
             options.get(CONF_TILT_DISTANCE),
@@ -730,7 +858,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         if self._inverse_state and self._use_interpolation:
             self.logger.info(
-                "Inverse state is not supported with interpolation, you can inverse the state by arranging the list from high to low"
+                "Inverse state is not supported with interpolation, "
+                "you can inverse the state by arranging the list from high to low"
             )
 
         if self._inverse_state and not self._use_interpolation:
@@ -764,6 +893,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     @switch_mode.setter
     def switch_mode(self, value):
+        """Set climate switch mode."""
         self._switch_mode = value
 
     @property
@@ -773,6 +903,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     @temp_toggle.setter
     def temp_toggle(self, value):
+        """Set outside temperature toggle."""
         self._temp_toggle = value
 
     @property
@@ -782,6 +913,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     @control_toggle.setter
     def control_toggle(self, value):
+        """Set automation control toggle."""
         self._control_toggle = value
 
     @property
@@ -791,6 +923,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     @manual_toggle.setter
     def manual_toggle(self, value):
+        """Set manual override toggle."""
         self._manual_toggle = value
 
     @property
@@ -800,6 +933,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     @lux_toggle.setter
     def lux_toggle(self, value):
+        """Set lux sensor toggle."""
         self._lux_toggle = value
 
     @property
@@ -809,7 +943,18 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
     @irradiance_toggle.setter
     def irradiance_toggle(self, value):
+        """Set irradiance sensor toggle."""
         self._irradiance_toggle = value
+
+    @property
+    def security_toggle(self):
+        """Security mode toggle — closes covers when nobody is home."""
+        return self._security_toggle
+
+    @security_toggle.setter
+    def security_toggle(self, value):
+        """Set security mode toggle."""
+        self._security_toggle = value
 
 
 class AdaptiveCoverManager:

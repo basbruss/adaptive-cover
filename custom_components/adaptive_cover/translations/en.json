@@ -3,6 +3,12 @@
   "config": {
     "step": {
       "user": {
+        "menu_options": {
+          "cover_entry": "Add a cover group (Vertical / Horizontal / Tilt)",
+          "all_blinds": "Add 'All Blinds' aggregator (one per integration)"
+        }
+      },
+      "cover_entry": {
         "data": {
           "name": "Name",
           "blueprint": "Add blueprint to HomeAssistant",
@@ -38,7 +44,7 @@
         "data": {
           "set_azimuth": "Window Azimuth",
           "window_height": "Window Height",
-          "distance_shaded_area": "Glare Zone",
+          "distance_shaded_area": "Shaded area",
           "default_percentage": "Default Position",
           "min_position": "Minimum Position",
           "max_position": "Maximum Position",
@@ -60,7 +66,7 @@
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
           "window_height": "Specify window height in meters",
-          "distance_shaded_area": "Objects within this distance from the cover recieve direct sunlight. Distance measured horizontally from the bottom of the cover when the cover is fully extended.",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
           "default_percentage": "Default cover position as a percentage",
           "min_position": "Minimum adjustable cover position as a percentage",
           "max_position": "Maximum adjustable cover position as a percentage",
@@ -108,7 +114,7 @@
       "weather": {
         "data": { "weather_state": "Weather Conditions" },
         "data_description": {
-          "weather_state": "Choose weather conditions that indicate the possibility of direct sunlight."
+          "weather_state": "Choose the weather conditions that enable automatic window control."
         },
         "title": "Weather Conditions"
       },
@@ -118,7 +124,7 @@
           "length_awning": "Awning Span Length",
           "window_height": "Awning Height",
           "angle": "Awning Angle",
-          "distance_shaded_area": "Glare Zone",
+          "distance_shaded_area": "Shaded area",
           "default_percentage": "Default Position",
           "min_position": "Minimum Position",
           "max_position": "Maximum Position",
@@ -142,7 +148,7 @@
           "window_height": "Adjust the height of the awning from the level of the workarea",
           "length_awning": "Total span length in meters",
           "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
-          "distance_shaded_area": "Objects within this distance from the cover recieve direct sunlight",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
           "default_percentage": "Default cover position as a percentage",
           "min_position": "Minimum adjustable cover position as a percentage",
           "max_position": "Maximum adjustable cover position as a percentage",
@@ -186,7 +192,7 @@
           "slat_depth": "Depth of each individual slat in centimeters",
           "slat_distance": "Vertical distance between two slats in centimeters",
           "default_percentage": "Default cover position as a percentage",
-          "min_position": "Minimum adjustable cover position as a percentage",
+          "min_position": "Minimum Position",
           "max_position": "Maximum adjustable cover position as a percentage",
           "fov_left": "Degrees to consider from the left side of the window center",
           "fov_right": "Degrees to consider from the right side of the window center",
@@ -228,6 +234,10 @@
         "title": "Range Adjustment",
         "description": "Adjust the values at which your Cover effectively opens or closes. Ideal for Covers that don't fully open at 0% or close at 100%. \n The first two sliders are for a 2 point adjustment, the list options are for a multiple point adjustment"
       }
+    },
+    "abort": {
+      "single_instance_allowed": "Only one 'All Blinds' aggregator can be configured.",
+      "hub_no_options": "The 'All Blinds' aggregator has no per-cover options."
     }
   },
   "options": {
@@ -271,7 +281,7 @@
         "data": {
           "set_azimuth": "Window Azimuth",
           "window_height": "Window Height",
-          "distance_shaded_area": "Glare Zone",
+          "distance_shaded_area": "Shaded area",
           "default_percentage": "Default Position",
           "min_position": "Minimum Position",
           "max_position": "Maximum Position",
@@ -293,7 +303,7 @@
         "data_description": {
           "set_azimuth": "Adjust Azimuth",
           "window_height": "Specify window height in meters",
-          "distance_shaded_area": "Objects within this distance from the cover recieve direct sunlight. Distance measured horizontally from the bottom of the cover when the cover is fully extended.",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
           "default_percentage": "Default cover position as a percentage",
           "min_position": "Minimum adjustable cover position as a percentage",
           "max_position": "Maximum adjustable cover position as a percentage",
@@ -341,7 +351,7 @@
       "weather": {
         "data": { "weather_state": "Weather Conditions" },
         "data_description": {
-          "weather_state": "Choose weather conditions that indicate the possibility of direct sunlight."
+          "weather_state": "Choose the weather conditions that enable automatic window control."
         },
         "title": "Weather Conditions"
       },
@@ -351,7 +361,7 @@
           "length_awning": "Awning Span Length",
           "window_height": "Awning Height",
           "angle": "Awning Angle",
-          "distance_shaded_area": "Glare Zone",
+          "distance_shaded_area": "Shaded area",
           "default_percentage": "Default Position",
           "min_position": "Minimum Position",
           "max_position": "Maximum Position",
@@ -375,7 +385,7 @@
           "window_height": "Adjust the height of the awning from the level of the workarea",
           "length_awning": "Total span length in meters",
           "angle": "Angle of the attached awning measured perpendicular from the wall to the ground",
-          "distance_shaded_area": "Objects within this distance from the cover recieve direct sunlight",
+          "distance_shaded_area": "Distance from cover to shaded area in meters",
           "default_percentage": "Default cover position as a percentage",
           "min_position": "Minimum adjustable cover position as a percentage",
           "max_position": "Maximum adjustable cover position as a percentage",
@@ -461,6 +471,9 @@
         "title": "Range Adjustment",
         "description": "Adjust the values at which your Cover effectively opens or closes. Ideal for Covers that don't fully open at 0% or close at 100%. \n The first two sliders are for a 2 point adjustment, the list options are for a multiple point adjustment"
       }
+    },
+    "abort": {
+      "hub_no_options": "The 'All Blinds' aggregator has no per-cover options."
     }
   },
   "selector": {
@@ -475,6 +488,24 @@
       "options": {
         "mode1": "single direction (0% = closed / 100% = open)",
         "mode2": "bi-directional (0% = closed / 50% = open / 100% = closed)"
+      }
+    }
+  },
+  "entity": {
+    "select": {
+      "adaptive_control_mode": {
+        "name": "Control mode",
+        "state": {
+          "auto": "Auto",
+          "off": "Off",
+          "all_open": "All open",
+          "all_closed": "All closed"
+        }
+      }
+    },
+    "switch": {
+      "security_toggle": {
+        "name": "Security mode"
       }
     }
   }

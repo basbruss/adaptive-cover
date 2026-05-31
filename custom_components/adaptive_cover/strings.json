@@ -451,5 +451,12 @@
         "mode2": "bi-directional (0% = closed / 50% = open / 100% = closed)"
       }
     }
+  },
+  "entity": {
+    "switch": {
+      "security_toggle": {
+        "name": "Security mode"
+      }
+    }
   }
 }

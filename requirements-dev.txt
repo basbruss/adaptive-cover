@@ -1,7 +1,7 @@
 -r requirements.txt
-pre-commit~=3.7
-ruff~=0.4
+pre-commit~=4.6
+ruff~=0.15
 colorlog~=6.10
 pvlib~=0.15
 matplotlib~=3.10
-ipykernel~=6.29
+ipykernel~=7.2

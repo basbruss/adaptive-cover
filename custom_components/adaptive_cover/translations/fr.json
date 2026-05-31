@@ -3,6 +3,12 @@
   "config": {
     "step": {
       "user": {
+        "menu_options": {
+          "cover_entry": "Ajouter un groupe de volets (Vertical / Horizontal / Jalousie)",
+          "all_blinds": "Ajouter l'agrégateur « Tous les volets » (unique)"
+        }
+      },
+      "cover_entry": {
         "data": {
           "name": "Nom",
           "blueprint": "Ajout du blueprint à HomeAssistant",
@@ -228,6 +234,10 @@
         "title": "Réglage de la plage",
 		    "description": "Ajustez les valeurs auxquelles votre Vvolet s'ouvre ou se ferme efficacement. Idéal pour les volets qui ne s'ouvrent pas complètement à 0 % ou ne se ferment pas à 100 %. \n Les deux premiers curseurs sont destinés à un réglage à 2 points, les options de liste sont destinées à un réglage à plusieurs points"
       }
+    },
+    "abort": {
+      "single_instance_allowed": "Un seul agrégateur « Tous les volets » peut être configuré.",
+      "hub_no_options": "L'agrégateur « Tous les volets » n'a pas d'options par volet."
     }
   },
   "options": {
@@ -461,6 +471,9 @@
             "title": "Réglage de la plage",
             "description": "Ajustez les valeurs auxquelles votre volet s'ouvre ou se ferme efficacement. Idéal pour les volets qui ne s'ouvrent pas complètement à 0 % ou ne se ferment pas à 100 %. \n Les deux premiers curseurs sont destinés à un réglage à 2 points, les options de liste sont destinées à un réglage à plusieurs points"
           }
+      },
+      "abort": {
+        "hub_no_options": "L'agrégateur « Tous les volets » n'a pas d'options par volet."
       }
     },
     "selector": {
@@ -475,6 +488,19 @@
         "options": {
           "mode1": "sens unique (0% = fermé / 100% = ouvert)",
           "mode2": "bidirectionnel (0% = fermé / 50% = ouvert / 100% = fermé)"
+        }
+      }
+    },
+    "entity": {
+      "select": {
+        "adaptive_control_mode": {
+          "name": "Mode de contrôle",
+          "state": {
+            "auto": "Auto",
+            "off": "Arrêt",
+            "all_open": "Tous ouverts",
+            "all_closed": "Tous fermés"
+          }
         }
       }
     }
