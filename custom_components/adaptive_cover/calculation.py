@@ -262,7 +262,8 @@ class ClimateCoverData:  # pylint: disable=too-many-instance-attributes
                 self.outside_entity,
             )
         elif self.weather_entity:
-            temp = state_attr(self.hass, self.weather_entity, "temperature")
+            state = self.hass.states.get(self.weather_entity)
+            temp = state.attributes.get("temperature") if state else None
         return temp
 
     @property
@@ -275,7 +276,8 @@ class ClimateCoverData:  # pylint: disable=too-many-instance-attributes
                     self.temp_entity,
                 )
             else:
-                temp = state_attr(self.hass, self.temp_entity, "current_temperature")
+                state = self.hass.states.get(self.temp_entity)
+                temp = state.attributes.get("current_temperature") if state else None
             return temp
 
     @property
