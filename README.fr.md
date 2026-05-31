@@ -150,15 +150,12 @@ flowchart TD
 
     %% ── MODE CLIMATIQUE ───────────────────────────
     CLMODE -- Oui --> PRES{"Présence\ndétectée ?"}
-
-    %% ── SANS PRÉSENCE ─────────────────────────────
     PRES -- "Non" --> PNONE["min_position ou 0%"]
 
-    %% ── AVEC PRÉSENCE ─────────────────────────────
-    PRES -- "Oui" --> WCHECK{"❄️ HIVER ?\ntemp < temp_basse"}
+    PRES -- "Oui" --> WCHECK{"❄️ HIVER ?\ntemp_hiver < temp_basse\ntemp_hiver = intérieur préféré\n              extérieur en fallback"}
     WCHECK -- Oui --> OPEN["🪟 Ouverture totale (100%)\napports solaires"]
 
-    WCHECK -- Non --> SCHECK{"🌡️ ÉTÉ ?\ntemp > temp_haute"}
+    WCHECK -- Non --> SCHECK{"🌡️ ÉTÉ ?\ntemp_été > temp_haute\nET outside_high\ntemp_été = extérieur si temp_switch=ON\n           sinon intérieur\noutside_high = extérieur > seuil_été_ext\n              (True si non configuré)"}
     SCHECK -- Oui --> TRANSP{"Store transparent / perforé ?\n(filtre seulement —\nne bloque pas la chaleur)"}
     TRANSP -- "Oui\n(filtre seulement)" --> CALC
     TRANSP -- "Non\n(opaque)" --> CLOSE["🪟 Fermeture totale (0%)\nbloquer la chaleur"]
@@ -188,14 +185,22 @@ flowchart TD
     style SECPOS   fill:#ff9800,color:#fff,stroke:#e65100
     style PNONE    fill:#e8eaed,color:#000
     style LIGHT    fill:#8e44ad,color:#fff,stroke:#6c3483
+    style WCHECK  fill:#1a5276,color:#fff
+    style SCHECK  fill:#922b21,color:#fff
 ```
 
 > **Priorité d'exécution** : Sécurité (1) > Climatique (2) > Basique (3).
-> La sécurité est évaluée **avant** la fenêtre horaire — elle ferme les volets même en dehors des heures configurées.
+> La sécurité est évaluée **avant** la fenêtre horaire.
 >
-> **Transparent vs opaque** : un store transparent/perforé ne fait que filtrer — ne bloque pas la chaleur même fermé. Store opaque → 0% en été.
+> **Classification par seuils — trois branches mutuellement exclusives** (`temp_basse < temp_haute` par construction) :
 >
-> **Intermédiaire « non ensoleillé ? » — OU de 3 sources indépendantes** : lux ≤ seuil OU irradiance ≤ seuil OU météo non ensoleillée. Une vraie → position par défaut. Capteur absent/désactivé = neutre (False), n'influence pas la décision seul.
+> | Branche | Condition | Température de référence |
+> |---------|-----------|--------------------------|
+> | **HIVER** | `temp_hiver < temp_basse` | `intérieur` préféré, `extérieur` fallback — toujours |
+> | **ÉTÉ** | `temp_été > temp_haute` ET `outside_high` | `extérieur` si `temp_switch=ON`, sinon `intérieur` |
+> | **INTERMÉDIAIRE** | ni HIVER ni ÉTÉ | — |
+>
+> **Pourquoi l'asymétrie ?** HIVER vérifie le confort intérieur. ÉTÉ utilise optionnellement la température extérieure (`temp_switch=ON`) pour confirmer qu'il fait vraiment chaud dehors. **HIVER gagne** dans le cas limite où les deux conditions seraient vraies simultanément (seulement possible quand `temp_switch=ON`).
 
 ### Mode basique
 
@@ -211,14 +216,16 @@ Ce mode calcule la position en tenant compte de paramètres supplémentaires : p
 
 - **Avec présence** (ou sans entité de présence configurée) :
 
-  - **Hiver** (`temp < temp_basse`) : ouvre à 100% pour capter la chaleur solaire, quels que soient lux/météo.
-  - **Été** (`temp > temp_haute`) :
-    - Store transparent/perforé → position calculée (filtrage/atténuation seulement — ne bloque pas la chaleur)
-    - Store opaque → ferme à 0% pour bloquer la chaleur
+  - **Hiver** (`temp_hiver < temp_basse`) : ouvre à 100% pour capter la chaleur solaire.
+    - `temp_hiver` = température intérieure (extérieure en fallback si intérieure non configurée).
+  - **Été** (`temp_été > temp_haute` ET `outside_high`) : ferme ou atténue.
+    - `temp_été` = température extérieure si `temp_switch=ON`, sinon intérieure.
+    - `outside_high` = guard secondaire : extérieur > `seuil_été_ext` (True par défaut si non configuré).
+    - Store transparent/perforé → position calculée (filtrage seulement)
+    - Store opaque → ferme à 0%
   - **Intermédiaire** : « non ensoleillé ? » est un **OU** de trois sources indépendantes :
-    - `lux ≤ seuil` (seulement si switch ON et entité configurée — sinon neutre)
-    - `irradiance ≤ seuil` (seulement si switch ON et entité configurée — sinon neutre)
-    - `état météo absent de la liste « ensoleillé »` (seulement si entité météo configurée)
+    - `lux ≤ seuil` / `irradiance ≤ seuil` (seulement si switch ON et entité configurée)
+    - `état météo absent de la liste « ensoleillé »`
     - Une source vraie → position par défaut. Toutes fausses → calcul adaptatif.
 
   Pour les jalousies en mode été : les lames se positionnent à 45° ([reconnu comme optimal](https://www.mdpi.com/1996-1073/13/7/1731)).
@@ -236,10 +243,10 @@ Le mode sécurité ferme automatiquement les volets quand personne n'est à la m
 | Climatique + branche `hiver` ou `intermédiaire` | `min_position` (ou 0% si non configuré) |
 
 **Comportements clés :**
-- **L'override manuel résiste toujours** — les volets déjà en contrôle manuel ne sont jamais déplacés par la sécurité
-- **Retour automatique** — quand la présence est restaurée, le positionnement adaptatif reprend sans action manuelle
-- **Fail-safe** — capteur de présence indisponible → sécurité inactive (pas de fermeture sur erreur capteur)
-- **Hors fenêtre horaire** — la sécurité s'applique même en dehors des heures de début/fin configurées
+- **L'override manuel résiste toujours**
+- **Retour automatique** à la présence
+- **Fail-safe** — capteur indisponible → sécurité inactive
+- **Hors fenêtre horaire** — la sécurité s'applique quand même
 
 ## Paramètres
 
@@ -305,14 +312,15 @@ Le mode sécurité ferme automatiquement les volets quand personne n'est à la m
 
 | Paramètre | Défaut | Plage | Exemple | Description |
 | --------- | ------ | ----- | ------- | ----------- |
-| Entité température intérieure | `Aucune` | | `climate.salon` \| `sensor.temp_interieur` | |
-| Température de confort minimale | 21 | 0-86 | | Seuil hiver — en dessous, ouverture pour apports solaires |
-| Température de confort maximale | 25 | 0-86 | | Seuil été — au-dessus, fermeture pour bloquer la chaleur |
-| Entité température extérieure | `Aucune` | | `sensor.temp_exterieur` | |
-| Seuil température extérieure | `Aucun` | | | Si défini, le mode été ne s'active que si la temp. ext. dépasse aussi ce seuil |
+| Entité température intérieure | `Aucune` | | `climate.salon` \| `sensor.temp_interieur` | Utilisée pour HIVER ; fallback ÉTÉ si `temp_switch=OFF` |
+| Température de confort minimale | 21 | 0-86 | | Seuil HIVER — en-dessous → ouvre 100% |
+| Température de confort maximale | 25 | 0-86 | | Seuil ÉTÉ — au-dessus → ferme 0% |
+| Entité température extérieure | `Aucune` | | `sensor.temp_exterieur` | Utilisée pour ÉTÉ si `temp_switch=ON` ; fallback HIVER |
+| Seuil température extérieure été | `Aucun` | | | Guard secondaire : ÉTÉ s'active seulement si l'extérieur dépasse aussi ce seuil. Inactif si non configuré. |
+| Utiliser la temp. extérieure (`temp_switch`) | `Faux` | | | `ON` → temp extérieure prioritaire pour le check ÉTÉ. HIVER utilise toujours l'intérieur. |
 | Entité de présence | `Aucune` | | | Utilisée pour le mode climatique **et** le mode sécurité |
-| Entité météo | `Aucune` | | `weather.maison` | Peut aussi servir de source de température extérieure |
-| Conditions météo | `Aucune` | | | États considérés « ensoleillé » — état absent de cette liste → contribue « non ensoleillé » (OU avec lux + irradiance) |
+| Entité météo | `Aucune` | | `weather.maison` | Source de température si pas de capteur ; pilote aussi le check « non ensoleillé » |
+| Conditions météo | `Aucune` | | | États « ensoleillé » — état absent de cette liste → contribue « non ensoleillé » (OU avec lux + irradiance) |
 | Store transparent | `Faux` | | | Activer si le store est perforé/maille — filtre seulement, ne bloque pas la chaleur |
 | Entité lux | `Aucune` | | `sensor.lux` | Mesure d'éclairement en lux |
 | Seuil lux | `1000` | | | En-dessous → contribue « non ensoleillé » (OU avec irradiance + météo). Switch OFF = neutre. |
@@ -349,7 +357,7 @@ Quand le mode climatique est configuré :
 | Entité | Défaut | Description |
 | ------ | ------ | ----------- |
 | `switch.{type}_climate_mode_{nom}` | `on` | Active la stratégie climatique |
-| `switch.{type}_outside_temperature_{nom}` | `off` | Utilise la température extérieure pour la détection du mode été |
+| `switch.{type}_outside_temperature_{nom}` | `off` | `temp_switch` — temp extérieure prioritaire pour le check ÉTÉ |
 | `switch.{type}_lux_{nom}` | `on` | Active le seuil lux — OFF = lux ignoré (neutre) |
 | `switch.{type}_irradiance_{nom}` | `on` | Active le seuil d'irradiance — OFF = irradiance ignorée (neutre) |
 | `sensor.{type}_climate_debug_{nom}` | | Capteur de diagnostic avec snapshot complet de la décision climatique |
@@ -383,21 +391,16 @@ Il peut aussi être ajouté manuellement : **Paramètres → Intégrations → A
 
 ### Contrôle vocal
 
-L'appareil hub est conçu pour une intégration native avec les assistants vocaux — aucune routine personnalisée nécessaire :
-
 | Commande vocale | Entité déclenchée | Action |
 |---|---|---|
-| *« Alexa, active les volets »* | switch **Les volets** ON | Contrôle adaptatif activé, dérogations effacées |
+| *« Alexa, active les volets »* | switch **Les volets** ON | Contrôle adaptatif activé |
 | *« Alexa, désactive les volets »* | switch **Les volets** OFF | Contrôle adaptatif désactivé |
 | *« Alexa, ouvre les volets »* | cover **Les volets** open | Tous les volets → 100% |
 | *« Alexa, ferme les volets »* | cover **Les volets** close | Tous les volets → 0% |
-| *« Alexa, active la sécurité des volets »* | switch **Sécurité volets** ON | Mode sécurité activé — volets ferment en absence |
+| *« Alexa, active la sécurité des volets »* | switch **Sécurité volets** ON | Mode sécurité activé |
 | *« Alexa, désactive la sécurité des volets »* | switch **Sécurité volets** OFF | Mode sécurité désactivé |
 
-> Alexa route les commandes par type d'entité : `active/désactive` → switch, `ouvre/ferme` → cover.  
-> Les mêmes noms d'entités fonctionnent avec **Google Assistant** et **Assist**.
-
-Pour forcer la re-synchronisation Alexa après une mise à jour : dites *« Alexa, découvre mes appareils »* ou allez dans l'app Alexa → Appareils → Plus → Découvrir des appareils.
+> Alexa route les commandes par type d'entité : `active/désactive` → switch, `ouvre/ferme` → cover.
 
 ## Fonctionnalités planifiées
 
