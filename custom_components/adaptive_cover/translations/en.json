@@ -192,7 +192,7 @@
           "slat_depth": "Depth of each individual slat in centimeters",
           "slat_distance": "Vertical distance between two slats in centimeters",
           "default_percentage": "Default cover position as a percentage",
-          "min_position": "Minimum adjustable cover position as a percentage",
+          "min_position": "Minimum Position",
           "max_position": "Maximum adjustable cover position as a percentage",
           "fov_left": "Degrees to consider from the left side of the window center",
           "fov_right": "Degrees to consider from the right side of the window center",
@@ -501,6 +501,11 @@
           "all_open": "All open",
           "all_closed": "All closed"
         }
+      }
+    },
+    "switch": {
+      "security_toggle": {
+        "name": "Security mode"
       }
     }
   }
