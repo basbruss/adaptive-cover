@@ -182,7 +182,7 @@ flowchart TD
     BCALC(["position calculée (basique)\nfiltrage / atténuation seulement"])
     ZERO(["0 % fermé\n🔒 opaque — bloque la chaleur"])
     INTER["INTERMÉDIAIRE"]
-    LUX{"nuageux ?\nlux ≤ seuil\nou irradiance ≤ seuil ?"}
+    LUX{"Non ensoleillé ? — OU de 3 conditions\n① lux ≤ seuil  (si switch ON + entité configurée)\n② irradiance ≤ seuil  (si switch ON + entité configurée)\n③ état météo absent de la liste 'ensoleillé'\nCapteur absent / switch OFF = neutre (False)"}
     LDEF["position par défaut"]
     LCALC(["position calculée (basique)\nsuivi solaire"])
     MM{"limites min / max ?"}
@@ -199,8 +199,8 @@ flowchart TD
     TRANS -->|"OUI (filtre)"| BCALC
     TRANS -->|"NON (opaque)"| ZERO
     SUM -->|NON| INTER --> LUX
-    LUX -->|OUI| LDEF
-    LUX -->|NON| LCALC
+    LUX -->|"OUI — au moins une condition vraie\n→ non ensoleillé"| LDEF
+    LUX -->|"NON — toutes conditions fausses\n→ ensoleillé"| LCALC
 
     NONE & DDEF & C100 & BCALC & ZERO & LDEF & LCALC --> MM
     MM -->|OUI| CLAMP --> COUT
@@ -212,10 +212,20 @@ flowchart TD
     style DDEF fill:#7f8c8d,color:#fff
     style LDEF fill:#7f8c8d,color:#fff
     style COUT fill:#2980b9,color:#fff
+    style LUX fill:#8e44ad,color:#fff,stroke:#6c3483
 ```
 
-> **Pourquoi transparent → calculer, opaque → fermer ?**
-> Un store transparent/perforé ne peut que filtrer la lumière — il ne bloque pas la chaleur même fermé à 100%. Le positionnement adaptatif est donc conservé pour l'ombrage optimal. Un store opaque *peut* bloquer la chaleur, donc 0% est l'action optimale en été.
+> **Branche intermédiaire — logique « non ensoleillé ? » (OU de 3 sources indépendantes) :**
+>
+> | Condition | Vraie quand | Absent / switch OFF |
+> |---|---|---|
+> | `lux ≤ seuil` | switch `lux` ON + entité configurée + valeur ≤ seuil | → **False** (neutre) |
+> | `irradiance ≤ seuil` | switch `irradiance` ON + entité configurée + valeur ≤ seuil | → **False** (neutre) |
+> | `météo non ensoleillée` | entité météo configurée + état absent de la liste sunny | → **True** (conservateur par défaut) |
+>
+> **Logique OR** : une condition vraie → « non ensoleillé » → position par défaut. Toutes fausses → « ensoleillé » → calcul adaptatif.
+> Un capteur absent ou désactivé est **neutre** — il ne force jamais une décision « non ensoleillé » à lui seul.
+> Capteur `unavailable` → **False** (fail-safe : pas de repli sur erreur capteur).
 
 ---
 
@@ -311,7 +321,7 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 | **Entité météo** | Source de température si pas de capteur |
 | **Temp basse / haute** | Seuils hiver / été (°C) |
 | **Utiliser la température extérieure** | Comparer la temp. ext. à `temp_haute` |
-| **Conditions météo** | États météo considérés comme « ensoleillé » |
+| **Conditions météo** | États considérés « ensoleillé » — si état météo absent de cette liste → « non ensoleillé » |
 | **Entité de présence** | Utilisée pour le mode climatique **et** le mode sécurité |
 | **Store transparent** | Activer si le store est perforé/maille — filtre seulement, ne bloque pas la chaleur |
 
@@ -333,8 +343,10 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 
 | Option | Description |
 |--------|-------------|
-| **Lux / seuil** | En-dessous → considéré « non ensoleillé » en mode intermédiaire |
-| **Irradiance / seuil** | Idem |
+| **Lux / seuil** | En-dessous → contribue « non ensoleillé » (OU avec irradiance + météo) |
+| **Switch lux** | OFF → lux ignoré entièrement (neutre) |
+| **Irradiance / seuil** | En-dessous → contribue « non ensoleillé » (OU avec lux + météo) |
+| **Switch irradiance** | OFF → irradiance ignorée entièrement (neutre) |
 
 ### Contrôle manuel
 
@@ -370,8 +382,8 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 | `switch.security_mode_<nom>` | **OFF** | Mode sécurité *(visible si présence configurée)* |
 | `switch.climate_mode_<nom>` | ON | Mode climatique *(visible si configuré)* |
 | `switch.outside_temperature_<nom>` | OFF | Temp. ext. pour détection été |
-| `switch.lux_<nom>` | ON | Seuil lux |
-| `switch.irradiance_<nom>` | ON | Seuil irradiance |
+| `switch.lux_<nom>` | ON | Seuil lux — OFF = lux ignoré (neutre) |
+| `switch.irradiance_<nom>` | ON | Seuil irradiance — OFF = irradiance ignorée (neutre) |
 | `sensor.cover_position_<nom>` | — | Position cible calculée (%) |
 | `sensor.start_sun_<nom>` / `end_sun` | — | Timestamps entrée/sortie du soleil dans le champ de vision |
 | `sensor.control_method_<nom>` | — | Branche active : `summer` / `winter` / `intermediate` |
@@ -441,6 +453,7 @@ automation:
 | Volet reste fermé malgré retour à la maison | Security switch ON + présence unavailable | Vérifier capteur de présence |
 | Switch sécurité absent | Pas de capteur de présence configuré | Ajouter `presence_entity` dans les options |
 | Branche climatique toujours « intermediate » | Pas d'entité de température | Ajouter un capteur |
+| Toujours en position par défaut en intermédiaire | Switch lux/irradiance ON mais entité absente | Ajouter l'entité ou désactiver le switch |
 | Entité cover dupliquée | Résidu v1.7.x | Auto-nettoyé au démarrage (v1.8.11+) |
 
 ---
