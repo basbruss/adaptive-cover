@@ -150,15 +150,12 @@ flowchart TD
 
     %% ── CLIMATE MODE ──────────────────────────────
     CLMODE -- Yes --> PRES{"Presence\ndetected?"}
-
-    %% ── NO PRESENCE ───────────────────────────────
     PRES -- "No" --> PNONE["min_position or 0%"]
 
-    %% ── PRESENCE ──────────────────────────────────
-    PRES -- "Yes" --> WCHECK{"❄️ WINTER?\ntemp < temp_low"}
+    PRES -- "Yes" --> WCHECK{"❄️ WINTER?\ntemp_winter < temp_low\ntemp_winter = inside preferred\n              outside as fallback"}
     WCHECK -- Yes --> OPEN["🪟 Open fully (100%)\nsolar gain"]
 
-    WCHECK -- No --> SCHECK{"🌡️ SUMMER?\ntemp > temp_high"}
+    WCHECK -- No --> SCHECK{"🌡️ SUMMER?\ntemp_summer > temp_high\nAND outside_high\ntemp_summer = outside if temp_switch=ON\n              else inside\noutside_high = outside > temp_summer_outside\n              (True if not configured)"}
     SCHECK -- Yes --> TRANSP{"Transparent / perforated blind?\n(filters only —\ncannot fully block heat)"}
     TRANSP -- "Yes\n(filter only)" --> CALC
     TRANSP -- "No\n(opaque)" --> CLOSE["🪟 Close fully (0%)\nblock heat"]
@@ -188,14 +185,22 @@ flowchart TD
     style SECPOS   fill:#ff9800,color:#fff,stroke:#e65100
     style PNONE    fill:#e8eaed,color:#000
     style LIGHT    fill:#8e44ad,color:#fff,stroke:#6c3483
+    style WCHECK  fill:#1a5276,color:#fff
+    style SCHECK  fill:#922b21,color:#fff
 ```
 
 > **Execution priority**: Security (1) > Climate (2) > Basic (3).
-> Security is evaluated **before** the time window check — it closes covers even outside the configured start/end hours.
+> Security is evaluated **before** the time window check.
 >
-> **Transparent vs opaque**: a transparent/perforated blind can only filter light and cannot block heat even when closed — adaptive positioning is kept. An opaque blind *can* block heat, so 0% is the correct summer action.
+> **Climate classification — three mutually exclusive branches** (`temp_low < temp_high` by design):
 >
-> **Intermediate "not sunny?" — OR of 3 independent sources**: lux ≤ threshold OR irradiance ≤ threshold OR weather not sunny. One true → default position. Absent/disabled sensors are neutral (False) and never force a "not sunny" outcome on their own.
+> | Branch | Condition | Temp reference |
+> |--------|-----------|----------------|
+> | **WINTER** | `temp_winter < temp_low` | `inside` preferred, `outside` fallback — always |
+> | **SUMMER** | `temp_summer > temp_high` AND `outside_high` | `outside` if `temp_switch=ON`, else `inside` |
+> | **INTERMEDIATE** | neither WINTER nor SUMMER | — |
+>
+> **Why the asymmetry?** WINTER checks indoor comfort. SUMMER optionally uses outdoor temp (`temp_switch=ON`) to confirm genuine heat outside. **WINTER wins** in the edge case where both conditions are true simultaneously (only possible when `temp_switch=ON`).
 
 ### Basic mode
 
@@ -211,17 +216,19 @@ This mode calculates the position based on extra parameters for presence, indoor
 
 - **Presence** (or no Presence Entity set):
 
-  - **Winter** (`temp < temp_low`): Opens fully (100%) to capture solar heat, regardless of lux/weather.
-  - **Summer** (`temp > temp_high`):
-    - Transparent/perforated blind → calculate position (filtering/shading only — cannot block heat)
-    - Opaque blind → close fully (0%) to block heat
+  - **Winter** (`temp_winter < temp_low`): Opens fully (100%) to capture solar heat.
+    - `temp_winter` = indoor temperature (outdoor as fallback if indoor not configured).
+  - **Summer** (`temp_summer > temp_high` AND `outside_high`): Closes or shades.
+    - `temp_summer` = outdoor temperature if `temp_switch=ON`, else indoor.
+    - `outside_high` = extra guard: outdoor > `temp_summer_outside` threshold (True by default if not set).
+    - Transparent/perforated blind → calculate position (filtering only)
+    - Opaque blind → close fully (0%)
   - **Intermediate**: "not sunny?" is an **OR** of three independent sources:
-    - `lux ≤ threshold` (only if switch ON and entity configured — otherwise neutral)
-    - `irradiance ≤ threshold` (only if switch ON and entity configured — otherwise neutral)
-    - `weather state not in sunny list` (only if weather entity configured)
+    - `lux ≤ threshold` / `irradiance ≤ threshold` (only if switch ON and entity configured)
+    - `weather state not in sunny list`
     - One source true → default position. All false → adaptive calculation.
 
-  For tilted blinds above summer threshold: slats are positioned at 45° ([found optimal](https://www.mdpi.com/1996-1073/13/7/1731)).
+  For tilted blinds above summer threshold: slats positioned at 45° ([found optimal](https://www.mdpi.com/1996-1073/13/7/1731)).
 
 ### Security mode
 
@@ -238,7 +245,7 @@ Security mode closes covers automatically when nobody is home, regardless of the
 **Key behaviours:**
 - **Manual override always wins** — covers already in manual control are never moved by security
 - **Automatic return** — when presence is restored, adaptive positioning resumes without manual action
-- **Fail-safe** — unavailable presence sensor → security inactive (no spurious closing on sensor error)
+- **Fail-safe** — unavailable presence sensor → security inactive
 - **Outside time window** — security applies even outside the configured start/end hours
 
 ## Variables
@@ -303,29 +310,30 @@ Security mode closes covers automatically when nobody is home, regardless of the
 
 ### Climate
 
-| Variables                     | Default | Range | Example                                       | Description                                                                                                                                          |
-| ----------------------------- | ------- | ----- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Indoor Temperature Entity     | `None`  |       | `climate.living_room` \| `sensor.indoor_temp` |                                                                                                                                                      |
-| Minimum Comfort Temperature   | 21      | 0-86  |                                               | Winter threshold — below this, open for solar gain                                                                                                   |
-| Maximum Comfort Temperature   | 25      | 0-86  |                                               | Summer threshold — above this, close to block heat                                                                                                   |
-| Outdoor Temperature Entity    | `None`  |       | `sensor.outdoor_temp`                         |                                                                                                                                                      |
-| Outdoor Temperature Threshold | `None`  |       |                                               | If set, summer mode activates only when outside temp is also above this threshold |
-| Presence Entity               | `None`  |       |                                               | Used for both climate mode AND security mode                                                                                                         |
-| Weather Entity                | `None`  |       | `weather.home`                                | Can also serve as outdoor temperature sensor                                                                                                         |
-| Weather Condition             | `None`  |       |                                               | States considered "sunny" — if weather state not in this list → contributes "not sunny" (OR with lux + irradiance) |
-| Transparent Blind             | `False` |       |                                               | Enable if blind is perforated/mesh — filters only, keeps adaptive positioning in summer instead of closing to 0%                                     |
-| Lux Entity                    | `None`  |       | `sensor.lux`                                  | Returns measured lux                                                                                                                                 |
-| Lux Threshold                 | `1000`  |       |                                               | Below threshold → contributes "not sunny" (OR with irradiance + weather). Switch OFF = neutral.                                                      |
-| Irradiance Entity             | `None`  |       | `sensor.irradiance`                           | Returns measured irradiance                                                                                                                          |
-| Irradiance Threshold          | `300`   |       |                                               | Below threshold → contributes "not sunny" (OR with lux + weather). Switch OFF = neutral.                                                             |
+| Variables                     | Default | Range | Example                                       | Description |
+| ----------------------------- | ------- | ----- | --------------------------------------------- | ----------- |
+| Indoor Temperature Entity     | `None`  |       | `climate.living_room` \| `sensor.indoor_temp` | Used for WINTER check; fallback for SUMMER when `temp_switch=OFF` |
+| Minimum Comfort Temperature   | 21      | 0-86  |                                               | WINTER threshold — below this, open 100% for solar gain |
+| Maximum Comfort Temperature   | 25      | 0-86  |                                               | SUMMER threshold — above this, close 0% to block heat |
+| Outdoor Temperature Entity    | `None`  |       | `sensor.outdoor_temp`                         | Used for SUMMER when `temp_switch=ON`; optional WINTER fallback |
+| Outdoor Temperature Threshold | `None`  |       |                                               | Extra SUMMER guard: activates only when outdoor temp also exceeds this. Inactive when not set. |
+| Use Outside Temperature (`temp_switch`) | `False` | | | `ON` → outdoor temp primary for SUMMER check. WINTER always uses indoor. |
+| Presence Entity               | `None`  |       |                                               | Used for both climate mode AND security mode |
+| Weather Entity                | `None`  |       | `weather.home`                                | Temperature source when no sensor; also drives "not sunny" check |
+| Weather Condition             | `None`  |       |                                               | States considered "sunny" — state not in list → contributes "not sunny" (OR with lux + irradiance) |
+| Transparent Blind             | `False` |       |                                               | Enable if blind is perforated/mesh — filters only, keeps adaptive positioning in summer |
+| Lux Entity                    | `None`  |       | `sensor.lux`                                  | Measured lux |
+| Lux Threshold                 | `1000`  |       |                                               | Below threshold → "not sunny" (OR with irradiance + weather). Switch OFF = neutral. |
+| Irradiance Entity             | `None`  |       | `sensor.irradiance`                           | Measured irradiance |
+| Irradiance Threshold          | `300`   |       |                                               | Below threshold → "not sunny" (OR with lux + weather). Switch OFF = neutral. |
 
 ### Blindspot
 
-| Variables            | Default | Range                 | Description                                                                                                          |
-| -------------------- | ------- | --------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Blind Spot Left      | None    | 0-max(fov_right, 180) | Start point of the blind spot on the predefined field of view                                                        |
-| Blind Spot Right     | None    | 1-max(fov_right, 180) | End point of the blind spot on the predefined field of view                                                          |
-| Blind Spot Elevation | None    | 0-90                  | Minimal sun elevation for the blindspot to apply                                                                     |
+| Variables            | Default | Range                 | Description |
+| -------------------- | ------- | --------------------- | ----------- |
+| Blind Spot Left      | None    | 0-max(fov_right, 180) | Start point of the blind spot on the predefined field of view |
+| Blind Spot Right     | None    | 1-max(fov_right, 180) | End point of the blind spot on the predefined field of view |
+| Blind Spot Elevation | None    | 0-90                  | Minimal sun elevation for the blindspot to apply |
 
 ## Entities
 
@@ -351,7 +359,7 @@ When climate mode is configured:
 | Entity | Default | Description |
 | ------ | ------- | ----------- |
 | `switch.{type}_climate_mode_{name}` | `on` | Enables climate mode strategy |
-| `switch.{type}_outside_temperature_{name}` | `off` | Use outside temperature for summer threshold comparison |
+| `switch.{type}_outside_temperature_{name}` | `off` | `temp_switch` — outdoor temp primary for SUMMER check |
 | `switch.{type}_lux_{name}` | `on` | Enable lux threshold — OFF = lux ignored (neutral) |
 | `switch.{type}_irradiance_{name}` | `on` | Enable irradiance threshold — OFF = irradiance ignored (neutral) |
 | `sensor.{type}_climate_debug_{name}` | | Diagnostic sensor with full climate decision snapshot |
