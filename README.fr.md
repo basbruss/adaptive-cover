@@ -163,9 +163,9 @@ flowchart TD
     TRANSP -- "Oui\n(filtre seulement)" --> CALC
     TRANSP -- "Non\n(opaque)" --> CLOSE["🪟 Fermeture totale (0%)\nbloquer la chaleur"]
 
-    SCHECK -- "Non\n(intermédiaire)" --> LIGHT{"Couvert ?\nlux ≤ seuil\nOU irradiance ≤ seuil ?"}
-    LIGHT -- "Oui\n(lumière faible)" --> DEFAULT
-    LIGHT -- "Non\n(ensoleillé)" --> CALC
+    SCHECK -- "Non\n(intermédiaire)" --> LIGHT{"Non ensoleillé ? — OU de 3 conditions\n① lux ≤ seuil  (si switch ON + entité configurée)\n② irradiance ≤ seuil  (si switch ON + entité configurée)\n③ état météo absent de la liste 'ensoleillé'\nCapteur absent / switch OFF = neutre"}
+    LIGHT -- "Oui\n(au moins une condition vraie)" --> DEFAULT
+    LIGHT -- "Non\n(toutes fausses → ensoleillé)" --> CALC
 
     %% ── ÉTAPES FINALES COMMUNES ───────────────────
     LIMITS["🔧 Application limites min / max\n+ correction zone aveugle\n+ vérification delta position"]
@@ -187,12 +187,15 @@ flowchart TD
     style SECURITY fill:#ff9800,color:#fff,stroke:#e65100
     style SECPOS   fill:#ff9800,color:#fff,stroke:#e65100
     style PNONE    fill:#e8eaed,color:#000
+    style LIGHT    fill:#8e44ad,color:#fff,stroke:#6c3483
 ```
 
-> **Priorité d'exécution** : Sécurité (1) > Climatique (2) > Basique (3)
+> **Priorité d'exécution** : Sécurité (1) > Climatique (2) > Basique (3).
 > La sécurité est évaluée **avant** la fenêtre horaire — elle ferme les volets même en dehors des heures configurées.
 >
-> **Transparent vs opaque** : un store transparent/perforé ne fait que filtrer la lumière — il ne bloque pas la chaleur même fermé à 100%. Le positionnement adaptatif est conservé. Un store opaque *peut* bloquer la chaleur, donc 0% est l'action optimale en été.
+> **Transparent vs opaque** : un store transparent/perforé ne fait que filtrer — ne bloque pas la chaleur même fermé. Store opaque → 0% en été.
+>
+> **Intermédiaire « non ensoleillé ? » — OU de 3 sources indépendantes** : lux ≤ seuil OU irradiance ≤ seuil OU météo non ensoleillée. Une vraie → position par défaut. Capteur absent/désactivé = neutre (False), n'influence pas la décision seul.
 
 ### Mode basique
 
@@ -212,7 +215,11 @@ Ce mode calcule la position en tenant compte de paramètres supplémentaires : p
   - **Été** (`temp > temp_haute`) :
     - Store transparent/perforé → position calculée (filtrage/atténuation seulement — ne bloque pas la chaleur)
     - Store opaque → ferme à 0% pour bloquer la chaleur
-  - **Intermédiaire** : suit la géométrie solaire si ensoleillé/lumineux ; revient à la position par défaut si couvert ou lux/irradiance sous le seuil.
+  - **Intermédiaire** : « non ensoleillé ? » est un **OU** de trois sources indépendantes :
+    - `lux ≤ seuil` (seulement si switch ON et entité configurée — sinon neutre)
+    - `irradiance ≤ seuil` (seulement si switch ON et entité configurée — sinon neutre)
+    - `état météo absent de la liste « ensoleillé »` (seulement si entité météo configurée)
+    - Une source vraie → position par défaut. Toutes fausses → calcul adaptatif.
 
   Pour les jalousies en mode été : les lames se positionnent à 45° ([reconnu comme optimal](https://www.mdpi.com/1996-1073/13/7/1731)).
 
@@ -305,11 +312,12 @@ Le mode sécurité ferme automatiquement les volets quand personne n'est à la m
 | Seuil température extérieure | `Aucun` | | | Si défini, le mode été ne s'active que si la temp. ext. dépasse aussi ce seuil |
 | Entité de présence | `Aucune` | | | Utilisée pour le mode climatique **et** le mode sécurité |
 | Entité météo | `Aucune` | | `weather.maison` | Peut aussi servir de source de température extérieure |
-| Store transparent | `Faux` | | | Activer si le store est perforé/maille — filtre seulement, garde le positionnement adaptatif en été au lieu de fermer à 0% |
+| Conditions météo | `Aucune` | | | États considérés « ensoleillé » — état absent de cette liste → contribue « non ensoleillé » (OU avec lux + irradiance) |
+| Store transparent | `Faux` | | | Activer si le store est perforé/maille — filtre seulement, ne bloque pas la chaleur |
 | Entité lux | `Aucune` | | `sensor.lux` | Mesure d'éclairement en lux |
-| Seuil lux | `1000` | | | En dessous du seuil → considéré « non ensoleillé » en mode intermédiaire |
+| Seuil lux | `1000` | | | En-dessous → contribue « non ensoleillé » (OU avec irradiance + météo). Switch OFF = neutre. |
 | Entité irradiance | `Aucune` | | `sensor.irradiance` | Mesure d'irradiance solaire |
-| Seuil irradiance | `300` | | | En dessous du seuil → considéré « non ensoleillé » en mode intermédiaire |
+| Seuil irradiance | `300` | | | En-dessous → contribue « non ensoleillé » (OU avec lux + météo). Switch OFF = neutre. |
 
 ### Zone aveugle
 
@@ -342,8 +350,8 @@ Quand le mode climatique est configuré :
 | ------ | ------ | ----------- |
 | `switch.{type}_climate_mode_{nom}` | `on` | Active la stratégie climatique |
 | `switch.{type}_outside_temperature_{nom}` | `off` | Utilise la température extérieure pour la détection du mode été |
-| `switch.{type}_lux_{nom}` | `on` | Active le seuil lux |
-| `switch.{type}_irradiance_{nom}` | `on` | Active le seuil d'irradiance |
+| `switch.{type}_lux_{nom}` | `on` | Active le seuil lux — OFF = lux ignoré (neutre) |
+| `switch.{type}_irradiance_{nom}` | `on` | Active le seuil d'irradiance — OFF = irradiance ignorée (neutre) |
 | `sensor.{type}_climate_debug_{nom}` | | Capteur de diagnostic avec snapshot complet de la décision climatique |
 
 Quand un **capteur de présence** est configuré :
