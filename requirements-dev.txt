@@ -4,4 +4,4 @@ ruff~=0.15
 colorlog~=6.10
 pvlib~=0.15
 matplotlib~=3.10
-ipykernel~=7.2
+ipykernel~=7.3
