@@ -29,6 +29,7 @@ Basée sur le capteur template de ce fil de forum : [Automatic Blinds](https://c
     - [Vertical](#vertical)
     - [Horizontal](#horizontal)
     - [Jalousie (tilt)](#jalousie-tilt)
+    - [Incliné](#incliné)
     - [Automatisation](#automatisation)
     - [Climatique](#climatique)
     - [Zone aveugle](#zone-aveugle)
@@ -99,20 +100,20 @@ Redémarrer Home Assistant et ajouter l'intégration.
 
 ## Configuration initiale
 
-Adaptive Cover prend en charge trois types de volets : `Vertical`, `Horizontal` et `Jalousie (Vénitien)`.
+Adaptive Cover prend en charge quatre types de volets : `Vertical`, `Horizontal`, `Jalousie (Vénitien)` et `Incliné` (toit / Velux).
 Chaque type possède ses propres paramètres. Pour configurer un capteur, il faut d'abord déterminer l'azimut de la fenêtre via [Open Street Map Compass](https://osmcompass.com/).
 
 Lors du premier ajout de l'intégration, un menu propose deux options :
-- **Ajouter un groupe de volets** — configure un groupe Vertical, Horizontal ou Jalousie (une entrée par fenêtre ou pièce).
+- **Ajouter un groupe de volets** — configure un groupe Vertical, Horizontal, Jalousie ou Incliné (une entrée par fenêtre ou pièce).
 - **Ajouter l'agrégateur « Tous les volets »** — crée l'appareil hub singleton qui contrôle tous les groupes en même temps. Créé automatiquement au premier démarrage si absent.
 
 ## Types de volets
 
-|              | Vertical                      | Horizontal                      | Jalousie                        |
-| ------------ | ----------------------------- | ------------------------------- | ------------------------------- |
-|              | ![vertical](images/image.png) | ![horizontal](images/image-2.png) | ![jalousie](images/image-1.png) |
-| **Mouvement** | Haut / Bas                   | Déploiement / Rétractation      | Inclinaison des lames           |
-|              | [paramètres](#vertical)       | [paramètres](#horizontal)       | [paramètres](#jalousie-tilt)    |
+|              | Vertical                      | Horizontal                      | Jalousie                        | Incliné                         |
+| ------------ | ----------------------------- | ------------------------------- | ------------------------------- | ------------------------------- |
+|              | ![vertical](images/image.png) | ![horizontal](images/image-2.png) | ![jalousie](images/image-1.png) | fenêtre de toit / Velux         |
+| **Mouvement** | Haut / Bas                   | Déploiement / Rétractation      | Inclinaison des lames           | Haut / Bas (vitrage incliné)    |
+|              | [paramètres](#vertical)       | [paramètres](#horizontal)       | [paramètres](#jalousie-tilt)    | [paramètres](#incliné)          |
 
 ## Modes de fonctionnement
 
@@ -291,6 +292,16 @@ Le mode sécurité ferme automatiquement les volets quand personne n'est à la m
 | Profondeur de lame | 3 | 0,1-15 | Largeur de chaque lame |
 | Espacement des lames | 2 | 0,1-15 | Distance verticale entre deux lames en position horizontale |
 | Mode tilt | Bidirectionnel | | `mode1` : 0°–90° / `mode2` : 0°–180° bidirectionnel |
+
+### Incliné
+
+Pour les fenêtres de toit / lucarnes (par ex. Velux) dont le vitrage est incliné par rapport à l'horizontale. Généralise le modèle vertical : à `Inclinaison de la surface = 90°` le comportement est identique à un volet `Vertical`, à `0°` à une lucarne plate.
+
+| Paramètre | Défaut | Plage | Description |
+| --------- | ------ | ----- | ----------- |
+| Hauteur de fenêtre | 2,1 | 0,1-6 | Longueur du vitrage mesurée le long de la pente |
+| Zone d'éblouissement | 0,5 | 0,1-2 | Distance où la lumière directe atteint encore la zone |
+| Inclinaison de la surface | 45 | 0-90 | Inclinaison du vitrage par rapport à l'horizontale (90° = fenêtre verticale, 0° = lucarne plate) |
 
 ### Automatisation
 

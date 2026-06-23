@@ -91,6 +91,7 @@ class _AdaptiveCoverBase(CoordinatorEntity[AdaptiveDataUpdateCoordinator], Senso
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
+            "cover_sloped": "Sloped",
         }
         self.coordinator = coordinator
         self.data = coordinator.data

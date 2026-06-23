@@ -224,6 +224,48 @@
         },
         "title": "Bereik Aanpassing",
         "description": "Pas de waarden aan waarbij jouw Cover effectief opent of sluit. Ideaal voor Covers die niet volledig openen bij 0% of sluiten bij 100%."
+      },
+      "sloped": {
+        "data": {
+          "set_azimuth": "Raam Azimuth",
+          "window_height": "Glazing length (along the slope)",
+          "distance_shaded_area": "Beschaduwde gebied",
+          "default_percentage": "Standaard positie",
+          "min_position": "Minimale positie",
+          "max_position": "Maximale positie",
+          "enable_min_position": "Forceer alleen de minimale positie wanneer de zon voor het raam staat",
+          "enable_max_position": "Forceer alleen de maximale positie wanneer de zon voor het raam staat",
+          "fov_left": "Links gezichtsveld",
+          "fov_right": "Rechts gezichtsveld",
+          "group": "Cover Entiteiten",
+          "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
+          "sunset_position": "Zonsondergang Posistie",
+          "sunset_offset": "Afwijking Zonsondergang",
+          "climate_mode": "Klimaatmodus",
+          "blind_spot": "Configureer schaduwzone",
+          "min_elevation": "Minimale zonhoogte",
+          "max_elevation": "Maximale zonhoogte",
+          "interp": "Stel aangepaste open/sluit posities in voor jouw Cover, als deze niet volledig functioneert bij 0-100%",
+          "surface_tilt": "Roof pitch (tilt from horizontal)"
+        },
+        "data_description": {
+          "set_azimuth": "Stel Azimuth in",
+          "window_height": "Specificeer raamhoogte in meters",
+          "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",
+          "default_percentage": "Standaard bekledingspositie als percentage",
+          "min_position": "Minimale verstelbare bekledingspositie als percentage",
+          "max_position": "Maximale verstelbare bekledingspositie als percentage",
+          "fov_left": "Gezichtshoek naar links van het raamcentrum",
+          "fov_right": "Gezichtshoek naar rechts van het raamcentrum",
+          "group": "Selecteer entiteiten om te besturen via integratie",
+          "sunset_position": "Positie om naar over te schakelen na zonsondergang",
+          "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
+          "climate_mode": "Configureer variabelen voor klimaatmodus",
+          "surface_tilt": "Glazing inclination: 90° = vertical window, 0° = flat skylight"
+        },
+        "description": "Voeg configuratie variabelen toe",
+        "title": "Sloped cover (roof / Velux)"
       }
     }
   },
@@ -446,6 +488,48 @@
         },
         "title": "Bereik Aanpassing",
         "description": "Pas de waarden aan waarbij jouw Cover effectief opent of sluit. Ideaal voor Covers die niet volledig openen bij 0% of sluiten bij 100%."
+      },
+      "sloped": {
+        "data": {
+          "set_azimuth": "Raam Azimuth",
+          "window_height": "Glazing length (along the slope)",
+          "distance_shaded_area": "Beschaduwde gebied",
+          "default_percentage": "Standaard positie",
+          "min_position": "Minimale positie",
+          "max_position": "Maximale positie",
+          "enable_min_position": "Forceer alleen de minimale positie wanneer de zon voor het raam staat",
+          "enable_max_position": "Forceer alleen de maximale positie wanneer de zon voor het raam staat",
+          "fov_left": "Links gezichtsveld",
+          "fov_right": "Rechts gezichtsveld",
+          "group": "Cover Entiteiten",
+          "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
+          "sunset_position": "Zonsondergang Posistie",
+          "sunset_offset": "Afwijking Zonsondergang",
+          "climate_mode": "Klimaatmodus",
+          "blind_spot": "Configureer schaduwzone",
+          "min_elevation": "Minimale zonhoogte",
+          "max_elevation": "Maximale zonhoogte",
+          "interp": "Stel aangepaste open/sluit posities in voor jouw Cover, als deze niet volledig functioneert bij 0-100%",
+          "surface_tilt": "Roof pitch (tilt from horizontal)"
+        },
+        "data_description": {
+          "set_azimuth": "Stel Azimuth in",
+          "window_height": "Specificeer raamhoogte in meters",
+          "distance_shaded_area": "Afstand van bekleding tot beschaduwd gebied in meters",
+          "default_percentage": "Standaard bekledingspositie als percentage",
+          "min_position": "Minimale verstelbare bekledingspositie als percentage",
+          "max_position": "Maximale verstelbare bekledingspositie als percentage",
+          "fov_left": "Gezichtshoek naar links van het raamcentrum",
+          "fov_right": "Gezichtshoek naar rechts van het raamcentrum",
+          "group": "Selecteer entiteiten om te besturen via integratie",
+          "sunset_position": "Positie om naar over te schakelen na zonsondergang",
+          "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
+          "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
+          "climate_mode": "Configureer variabelen voor klimaatmodus",
+          "surface_tilt": "Glazing inclination: 90° = vertical window, 0° = flat skylight"
+        },
+        "description": "Voeg configuratie variabelen toe",
+        "title": "Sloped cover (roof / Velux)"
       }
     }
   },
@@ -454,7 +538,8 @@
       "options": {
         "cover_blind": "Verticaal scherm",
         "cover_awning": "Horizontaal scherm",
-        "cover_tilt": "Kantelbaar scherm"
+        "cover_tilt": "Kantelbaar scherm",
+        "cover_sloped": "Roof window / skylight (Velux)"
       }
     },
     "tilt_mode": {

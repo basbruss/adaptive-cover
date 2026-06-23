@@ -106,7 +106,9 @@
         "title": "Configuraciones climáticas"
       },
       "weather": {
-        "data": { "weather_state": "Condiciones climáticas" },
+        "data": {
+          "weather_state": "Condiciones climáticas"
+        },
         "data_description": {
           "weather_state": "Seleccione las condiciones climáticas que permitan el control automático de las ventanas."
         },
@@ -227,6 +229,49 @@
         },
         "title": "Rango de ajuste",
         "description": "Ajuste los valores a los que la cubierta se abre o cierra eficazmente. Ideal para cubiertas que no abren completamente al 0 % ni cierran al 100 %. \n Los dos primeros controles deslizantes son para un ajuste de 2 puntos, las opciones de lista son para un ajuste de varios puntos"
+      },
+      "sloped": {
+        "data": {
+          "set_azimuth": "Azimut de la ventana",
+          "window_height": "Glazing length (along the slope)",
+          "distance_shaded_area": "Área sombreada",
+          "default_percentage": "Posición por defecto",
+          "min_position": "Posición mínima",
+          "max_position": "Posición máxima",
+          "enable_min_position": "Forzar la posición mínima solo si el sol está enfrente de la ventana",
+          "enable_max_position": "Forzar la posición máxima solo si el sol está enfrente de la ventana",
+          "fov_left": "Campo de visión izquierdo",
+          "fov_right": "Campo de visión derecho",
+          "group": "Entidades de las persianas",
+          "inverse_state": "Invertir el estado (se necesita para algunas persianas que no siguen las directrices de HA)",
+          "sunset_position": "Posición al ocaso",
+          "sunset_offset": "Desfase del Ocaso",
+          "sunrise_offset": "Desfase del Orto",
+          "climate_mode": "Modo Clima",
+          "blind_spot": "Configura punto ciego",
+          "min_elevation": "Elevación mínima del sol",
+          "max_elevation": "Elevación máxima del sol",
+          "interp": "Configurar posiciones personalizadas para posiciones abierto/cerrado de My Cover, si no funcionan sobre aperturas 0-100%",
+          "surface_tilt": "Roof pitch (tilt from horizontal)"
+        },
+        "data_description": {
+          "set_azimuth": "Indicar azimut",
+          "window_height": "Indicar la altura de la ventana en metros",
+          "distance_shaded_area": "Distancia de la persiana al área sombreada en metros",
+          "default_percentage": "Posición por defecto de la persiana como porcentaje",
+          "min_position": "Posición mínima ajustable de la persiana como porcentaje",
+          "max_position": "Posición máxima ajustable de la persiana como porcentaje",
+          "fov_left": "Ángulo de visión hacia la izquierda del centro de la ventana",
+          "fov_right": "Ángulo de visión hacia la derecha del centro de la ventana",
+          "group": "Seleccionar entidades para controlar vía la integración",
+          "sunset_position": "Posición a la que cambiar tras el Ocaso",
+          "sunset_offset": "Desfase (±) desde el Ocaso en minutos",
+          "sunrise_offset": "Desfase (±) desde el Orto en minutos",
+          "climate_mode": "Configurar variables para el modo clima",
+          "surface_tilt": "Glazing inclination: 90° = vertical window, 0° = flat skylight"
+        },
+        "description": "Agregar variables de configuración al sensor",
+        "title": "Sloped cover (roof / Velux)"
       }
     }
   },
@@ -339,7 +384,9 @@
         "title": "Climate settings"
       },
       "weather": {
-        "data": { "weather_state": "Condiciones climáticas" },
+        "data": {
+          "weather_state": "Condiciones climáticas"
+        },
         "data_description": {
           "weather_state": "Elija las Condiciones climáticas que permitan el control automático de ventanas."
         },
@@ -460,6 +507,49 @@
         },
         "title": "Rango de ajustes",
         "description": "Ajuste los valores con los que la persiana se abre o cierra. Ideal para persianas que no se abren completamente al 0 % ni se cierran al 100 %. Los dos primeros controles deslizantes son para un ajuste de 2 puntos; las opciones de lista son para un ajuste de varios puntos."
+      },
+      "sloped": {
+        "data": {
+          "set_azimuth": "Azimut de ventana",
+          "window_height": "Glazing length (along the slope)",
+          "distance_shaded_area": "Área sombreada",
+          "default_percentage": "Posición predeterminada",
+          "min_position": "Posición mínima",
+          "max_position": "Posición máxima",
+          "enable_min_position": "Sólo fuerce la posición máxima cuando el sol esté frente a la ventana",
+          "enable_max_position": "Forzar la posición máxima solo cuando el sol esté frente a la ventana",
+          "fov_left": "Campo de visión izquierdo",
+          "fov_right": "Campo de visión derecho",
+          "group": "Entidades de persiana",
+          "inverse_state": "Invertir el estado (necesario para algunas cubiertas que no siguen las pautas de HA)",
+          "sunset_position": "Posición al Ocaso",
+          "sunset_offset": "Desfase del Ocaso",
+          "sunrise_offset": "Desfase del Orto",
+          "climate_mode": "Modo Clima",
+          "blind_spot": "Configurar punto ciego",
+          "min_elevation": "Elevación mínima del sol",
+          "max_elevation": "Elevación máxima del sol",
+          "interp": "Establezca posiciones de apertura y cierre personalizadas para My Cover, si no funciona completamente al 0-100 %",
+          "surface_tilt": "Roof pitch (tilt from horizontal)"
+        },
+        "data_description": {
+          "set_azimuth": "Ajustar azimut",
+          "window_height": "Especifique la altura de la ventana en metros",
+          "distance_shaded_area": "Distancia desde la persiana área sombreada en metros",
+          "default_percentage": "Posición por defecto de la persiana como porcentaje",
+          "min_position": "Posición mínima de la cubierta ajustable como porcentaje",
+          "max_position": "Posición máxima ajustable de la persiana como porcentaje",
+          "fov_left": "Ángulo del campo de visión a la izquierda del centro de la ventana",
+          "fov_right": "Ángulo del campo de visión a la derecha del centro de la ventana",
+          "group": "Seleccionar entidades para controlar via integración",
+          "sunset_position": "Posición a la que cambiar después del Ocaso",
+          "sunset_offset": "Desfase (±) respecto del Ocaso en minutos",
+          "sunrise_offset": "Desfase (±) respecto del Orto en minutos",
+          "climate_mode": "Configurar variables para Modo Clima",
+          "surface_tilt": "Glazing inclination: 90° = vertical window, 0° = flat skylight"
+        },
+        "description": "Agregar variables de configuración al sensor",
+        "title": "Sloped cover (roof / Velux)"
       }
     }
   },
@@ -468,7 +558,8 @@
       "options": {
         "cover_blind": "Persiana vertical",
         "cover_awning": "Persiana horizontal",
-        "cover_tilt": "Persiana inclinada"
+        "cover_tilt": "Persiana inclinada",
+        "cover_sloped": "Roof window / skylight (Velux)"
       }
     },
     "tilt_mode": {

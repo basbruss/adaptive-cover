@@ -590,6 +590,43 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
 
 
 @dataclass
+class AdaptiveSlopedCover(AdaptiveVerticalCover):
+    """Calculate state for sloped glazing (roof / Velux windows).
+
+    Generalises the vertical model with the glazing's inclination from the
+    horizontal (``surface_tilt``): 90° is a vertical window (identical to
+    :class:`AdaptiveVerticalCover`), 0° a flat skylight. ``h_win`` is reused as
+    the glazing length measured along the slope, ``distance`` as the depth of
+    the work area to keep shaded.
+    """
+
+    surface_tilt: float
+
+    def calculate_position(self) -> float:
+        """Slope-distance to cover, measured from the lower edge.
+
+        Derived from projecting the grazing ray through a point at slope
+        distance ``s`` onto the floor: ``d = s·cos(tilt) + (s·sin(tilt)/tan(ε))·cos(γ)``.
+        Solving for ``s`` and reducing to the vertical formula at ``tilt = 90°``.
+        """
+        tilt = rad(self.surface_tilt)
+        denominator = cos(tilt) * tan(rad(self.sol_elev)) + sin(tilt) * cos(
+            rad(self.gamma)
+        )
+        # Sun grazing the plane or behind it → no useful beam, cover fully.
+        if denominator <= 0:
+            return self.h_win
+        position = np.clip(
+            self.distance * tan(rad(self.sol_elev)) / denominator,
+            0,
+            self.h_win,
+        )
+        return position
+
+    # calculate_percentage inherited from AdaptiveVerticalCover (position / h_win).
+
+
+@dataclass
 class AdaptiveTiltCover(AdaptiveGeneralCover):
     """Calculate state for tilted blinds."""
 
