@@ -66,6 +66,7 @@ from .const import (
     CONF_TILT_DEPTH,
     CONF_TILT_DISTANCE,
     CONF_TILT_MODE,
+    CONF_SURFACE_TILT,
     CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
@@ -81,7 +82,12 @@ from .const import (
 
 # DEFAULT_NAME = "Adaptive Cover"
 
-SENSOR_TYPE_MENU = [SensorType.BLIND, SensorType.AWNING, SensorType.TILT]
+SENSOR_TYPE_MENU = [
+    SensorType.BLIND,
+    SensorType.AWNING,
+    SensorType.TILT,
+    SensorType.SLOPED,
+]
 
 
 CONFIG_SCHEMA = vol.Schema(
@@ -222,6 +228,16 @@ TILT_OPTIONS = vol.Schema(
         ),
     }
 ).extend(OPTIONS.schema)
+
+SLOPED_OPTIONS = vol.Schema(
+    {
+        vol.Required(CONF_SURFACE_TILT, default=45): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=90, step=1, mode="slider", unit_of_measurement="°"
+            )
+        ),
+    }
+).extend(VERTICAL_OPTIONS.schema)
 
 CLIMATE_OPTIONS = vol.Schema(
     {
@@ -405,6 +421,8 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 return await self.async_step_horizontal()
             if self.config[CONF_MODE] == SensorType.TILT:
                 return await self.async_step_tilt()
+            if self.config[CONF_MODE] == SensorType.SLOPED:
+                return await self.async_step_sloped()
         return self.async_show_form(step_id="cover_entry", data_schema=CONFIG_SCHEMA)
 
     async def async_step_all_blinds(self, user_input: dict[str, Any] | None = None):
@@ -512,6 +530,33 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             step_id="tilt", data_schema=CLIMATE_MODE.extend(TILT_OPTIONS.schema)
         )
 
+    async def async_step_sloped(self, user_input: dict[str, Any] | None = None):
+        """Show basic config for sloped (roof / Velux) covers."""
+        self.type_blind = SensorType.SLOPED
+        if user_input is not None:
+            if (
+                user_input.get(CONF_MAX_ELEVATION) is not None
+                and user_input.get(CONF_MIN_ELEVATION) is not None
+            ):
+                if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
+                    return self.async_show_form(
+                        step_id="sloped",
+                        data_schema=CLIMATE_MODE.extend(SLOPED_OPTIONS.schema),
+                        errors={
+                            CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"
+                        },
+                    )
+            self.config.update(user_input)
+            if self.config[CONF_INTERP]:
+                return await self.async_step_interp()
+            if self.config[CONF_ENABLE_BLIND_SPOT]:
+                return await self.async_step_blind_spot()
+            return await self.async_step_automation()
+        return self.async_show_form(
+            step_id="sloped",
+            data_schema=CLIMATE_MODE.extend(SLOPED_OPTIONS.schema),
+        )
+
     async def async_step_interp(self, user_input: dict[str, Any] | None = None):
         """Show interpolation options."""
         if user_input is not None:
@@ -596,6 +641,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
+            "cover_sloped": "Sloped",
         }
         return self.async_create_entry(
             title=f"{type[self.type_blind]} {self.config['name']}",
@@ -623,6 +669,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_TILT_DISTANCE: self.config.get(CONF_TILT_DISTANCE),
                 CONF_TILT_DEPTH: self.config.get(CONF_TILT_DEPTH),
                 CONF_TILT_MODE: self.config.get(CONF_TILT_MODE),
+                CONF_SURFACE_TILT: self.config.get(CONF_SURFACE_TILT),
                 CONF_TEMP_ENTITY: self.config.get(CONF_TEMP_ENTITY),
                 CONF_PRESENCE_ENTITY: self.config.get(CONF_PRESENCE_ENTITY),
                 CONF_WEATHER_ENTITY: self.config.get(CONF_WEATHER_ENTITY),
@@ -730,6 +777,8 @@ class OptionsFlowHandler(OptionsFlow):
             return await self.async_step_horizontal()
         if self.sensor_type == SensorType.TILT:
             return await self.async_step_tilt()
+        if self.sensor_type == SensorType.SLOPED:
+            return await self.async_step_sloped()
 
     async def async_step_vertical(self, user_input: dict[str, Any] | None = None):
         """Show basic config for vertical blinds."""
@@ -835,6 +884,45 @@ class OptionsFlowHandler(OptionsFlow):
             return await self._update_options()
         return self.async_show_form(
             step_id="tilt",
+            data_schema=self.add_suggested_values_to_schema(
+                schema, user_input or self.options
+            ),
+        )
+
+    async def async_step_sloped(self, user_input: dict[str, Any] | None = None):
+        """Show basic config for sloped (roof / Velux) covers."""
+        self.type_blind = SensorType.SLOPED
+        schema = CLIMATE_MODE.extend(SLOPED_OPTIONS.schema)
+        if self.options[CONF_CLIMATE_MODE]:
+            schema = SLOPED_OPTIONS
+        if user_input is not None:
+            keys = [
+                CONF_MIN_ELEVATION,
+                CONF_MAX_ELEVATION,
+            ]
+            self.optional_entities(keys, user_input)
+            if (
+                user_input.get(CONF_MAX_ELEVATION) is not None
+                and user_input.get(CONF_MIN_ELEVATION) is not None
+            ):
+                if user_input[CONF_MAX_ELEVATION] <= user_input[CONF_MIN_ELEVATION]:
+                    return self.async_show_form(
+                        step_id="sloped",
+                        data_schema=CLIMATE_MODE.extend(SLOPED_OPTIONS.schema),
+                        errors={
+                            CONF_MAX_ELEVATION: "Must be greater than 'Minimal Elevation'"
+                        },
+                    )
+            self.options.update(user_input)
+            if self.options.get(CONF_INTERP, False):
+                return await self.async_step_interp()
+            if self.options[CONF_ENABLE_BLIND_SPOT]:
+                return await self.async_step_blind_spot()
+            if self.options[CONF_CLIMATE_MODE]:
+                return await self.async_step_climate()
+            return await self._update_options()
+        return self.async_show_form(
+            step_id="sloped",
             data_schema=self.add_suggested_values_to_schema(
                 schema, user_input or self.options
             ),
