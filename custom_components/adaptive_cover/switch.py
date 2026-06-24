@@ -165,6 +165,7 @@ class AdaptiveCoverSwitch(
             "cover_blind": "Vertical",
             "cover_awning": "Horizontal",
             "cover_tilt": "Tilt",
+            "cover_sloped": "Sloped",
         }
         self._name = config_entry.data["name"]
         self._state: bool | None = None

@@ -81,6 +81,49 @@
         "description": "Ajouter des variables de configuration au capteur",
         "title": "Volet Vertical"
       },
+      "sloped": {
+        "data": {
+          "set_azimuth": "Azimut de la fenêtre",
+          "window_height": "Longueur du vitrage (selon la pente)",
+          "surface_tilt": "Inclinaison du toit",
+          "distance_shaded_area": "Zone ombrée",
+          "default_percentage": "Position par défaut",
+          "min_position": "Position minimale",
+          "max_position": "Position maximale",
+          "enable_min_position": "Forcer la position minimale uniquement lorsque le soleil est devant la fenêtre",
+          "enable_max_position": "Forcer la position maximale uniquement lorsque le soleil est devant la fenêtre",
+          "fov_left": "Angle du champ de vision gauche",
+          "fov_right": "Angle du champ de vision droit",
+          "group": "Entités de Volets",
+          "inverse_state": "Inverser l'état (nécessaire pour certaines couvertures qui ne suivent pas les directives HA)",
+          "sunset_position": "Position du coucher de soleil",
+          "sunset_offset": "Décalage du coucher de soleil",
+          "sunrise_offset": "Décalage du lever du soleil",
+          "climate_mode": "Mode climatique",
+          "blind_spot": "Configurer l'angle mort",
+          "min_elevation": "Élévation minimale du soleil",
+          "max_elevation": "Élévation maximale du soleil",
+          "interp": "Définir des positions d'ouverture/fermeture personnalisées pour mon Volet, si il ne fonctionne pas complètement à 0-100%"
+        },
+        "data_description": {
+          "set_azimuth": "Ajuster l'azimut",
+          "window_height": "Spécifier la longueur du vitrage le long de la pente en mètres",
+          "surface_tilt": "Inclinaison du vitrage : 90° = fenêtre verticale, 0° = verrière plate",
+          "distance_shaded_area": "Distance entre le volet et la zone à ombrager en bas en mètres",
+          "default_percentage": "Position du volet par défaut en journée en pourcentage",
+          "min_position": "Position de volet réglable minimale en pourcentage",
+          "max_position": "Position du volet réglable maximale en pourcentage",
+          "fov_left": "Angle du champ de vision à gauche du centre de la fenêtre",
+          "fov_right": "Angle de champ de vision à droite du centre de la fenêtre",
+          "group": "Sélectionner les entités à contrôler via l'intégration",
+          "sunset_position": "Position vers laquelle basculer après le coucher du soleil",
+          "sunset_offset": "Décalage (±) par rapport à l'heure du coucher du soleil en minutes",
+          "sunrise_offset": "Décalage (±) par rapport à l'heure du lever du soleil en minutes",
+          "climate_mode": "Configurer les variables pour le mode climatique"
+        },
+        "description": "Ajouter des variables de configuration au capteur",
+        "title": "Volet de toit (Velux)"
+      },
       "climate": {
         "data": {
     		  "temp_entity": "Entité de température intérieure",
@@ -318,6 +361,49 @@
         "description": "Ajouter des variables de configuration au capteur",
         "title": "Volet verticale"
         },
+      "sloped": {
+        "data": {
+          "set_azimuth": "Azimut de la fenêtre",
+          "window_height": "Longueur du vitrage (selon la pente)",
+          "surface_tilt": "Inclinaison du toit",
+          "distance_shaded_area": "Zone ombrée",
+          "default_percentage": "Position par défaut",
+          "min_position": "Position minimale",
+          "max_position": "Position maximale",
+          "enable_min_position": "Forcer la position minimale uniquement lorsque le soleil est devant la fenêtre",
+          "enable_max_position": "Forcer la position maximale uniquement lorsque le soleil est devant la fenêtre",
+          "fov_left": "Champ de vision gauche",
+          "fov_right": "Champ de vision droit",
+          "group": "Entités Volet",
+          "inverse_state": "Inverser l'état (nécessaire pour certaines couvertures qui ne suivent pas les directives HA)",
+          "sunset_position": "Position du coucher de soleil",
+          "sunset_offset": "Décalage du coucher de soleil",
+          "sunrise_offset": "Décalage du lever du soleil",
+          "climate_mode": "Mode climatique",
+          "blind_spot": "Configurer l'angle mort",
+          "min_elevation": "Élévation minimale du soleil",
+          "max_elevation": "Élévation maximale du soleil",
+          "interp": "Définir des positions d'ouverture/fermeture personnalisées pour My Cover, si elle ne fonctionne pas complètement à 0-100%"
+        },
+        "data_description": {
+          "set_azimuth": "Ajuster l'azimut",
+          "window_height": "Spécifier la longueur du vitrage le long de la pente en mètres",
+          "surface_tilt": "Inclinaison du vitrage : 90° = fenêtre verticale, 0° = verrière plate",
+          "distance_shaded_area": "Distance entre la couverture et la zone ombragée en mètres",
+          "default_percentage": "Position de couverture par défaut en pourcentage",
+          "min_position": "Position de couverture réglable minimale en pourcentage",
+          "max_position": "Position de couverture réglable maximale en pourcentage",
+          "fov_left": "Angle de champ de vision à gauche du centre de la fenêtre",
+          "fov_right": "Angle de champ de vision à droite du centre de la fenêtre",
+          "group": "Sélectionner les entités à contrôler via l'intégration",
+          "sunset_position": "Position vers laquelle basculer après le coucher du soleil",
+          "sunset_offset": "Décalage (±) par rapport à l'heure du coucher du soleil en minutes",
+          "sunrise_offset": "Décalage (±) par rapport à l'heure du lever du soleil en minutes",
+          "climate_mode": "Configurer les variables pour le mode climatique"
+        },
+        "description": "Ajouter des variables de configuration au capteur",
+        "title": "Volet de toit (Velux)"
+        },
         "climate": {
           "data": {
       		  "temp_entity": "Entité de température intérieure",
@@ -481,7 +567,8 @@
         "options": {
           "cover_blind": "Volet Vertical",
           "cover_awning": "Store banne",
-          "cover_tilt": "Persiennes"
+          "cover_tilt": "Persiennes",
+          "cover_sloped": "Fenêtre de toit (Velux)"
         }
       },
       "tilt_mode": {

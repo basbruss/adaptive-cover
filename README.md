@@ -29,6 +29,7 @@ This integration builds upon the template sensor from this forum post [Automatic
     - [Vertical](#vertical)
     - [Horizontal](#horizontal)
     - [Tilt](#tilt)
+    - [Sloped](#sloped)
     - [Automation](#automation)
     - [Climate](#climate)
     - [Blindspot](#blindspot)
@@ -99,20 +100,20 @@ Restart Home-Assistant and add the integration.
 
 ## Setup
 
-Adaptive Cover supports (for now) three types of covers/blinds; `Vertical` and `Horizontal` and `Venetian (Tilted)` blinds.
+Adaptive Cover supports (for now) four types of covers/blinds; `Vertical`, `Horizontal`, `Venetian (Tilted)` and `Sloped` (roof / Velux) blinds.
 Each type has its own specific parameters to setup a sensor. To setup the sensor you first need to find out the azimuth of the window(s). This can be done by finding your location on [Open Street Map Compass](https://osmcompass.com/).
 
 When adding the integration for the first time, a menu is shown:
-- **Add a cover group** — configure a Vertical, Horizontal or Tilt blind group (one per window or room).
+- **Add a cover group** — configure a Vertical, Horizontal, Tilt or Sloped blind group (one per window or room).
 - **Add 'All Blinds' aggregator** — creates the singleton hub device that controls all groups at once. Created automatically on first setup if not yet present.
 
 ## Cover Types
 
-|              | Vertical                      | Horizontal                      | Tilted                          |
-| ------------ | ----------------------------- | ------------------------------- | ------------------------------- |
-|              | ![alt text](images/image.png) | ![alt text](images/image-2.png) | ![alt text](images/image-1.png) |
-| **Movement** | Up/Down                       | In/Out                          | Tilting                         |
-|              | [variables](#vertical)        | [variables](#horizontal)        | [variables](#tilt)              |
+|              | Vertical                      | Horizontal                      | Tilted                          | Sloped                          |
+| ------------ | ----------------------------- | ------------------------------- | ------------------------------- | ------------------------------- |
+|              | ![alt text](images/image.png) | ![alt text](images/image-2.png) | ![alt text](images/image-1.png) | roof / Velux window             |
+| **Movement** | Up/Down                       | In/Out                          | Tilting                         | Up/Down (inclined glazing)      |
+|              | [variables](#vertical)        | [variables](#horizontal)        | [variables](#tilt)              | [variables](#sloped)            |
 
 ## Modes
 
@@ -291,6 +292,16 @@ Security mode closes covers automatically when nobody is home, regardless of the
 | Slat Depth    | 3              | 0.1-15 | Width of each slat                                         |
 | Slat Distance | 2              | 0.1-15 | Vertical distance between two slats in horizontal position |
 | Tilt Mode     | Bi-directional |        | `mode1`: single direction 0°–90° / `mode2`: bi-directional 0°–180° |
+
+### Sloped
+
+For roof / skylight windows (e.g. Velux) whose glazing is inclined from the horizontal. Generalises the vertical model: at `Surface Tilt = 90°` it behaves exactly like a `Vertical` cover, at `0°` like a flat skylight.
+
+| Variables     | Default | Range | Description                                                                                       |
+| ------------- | ------- | ----- | ------------------------------------------------------------------------------------------------- |
+| Window Height | 2.1     | 0.1-6 | Length of the glazing measured along the slope                                                    |
+| Glare Zone    | 0.5     | 0.1-2 | Objects within this distance of the cover receive direct sunlight                                 |
+| Surface Tilt  | 45      | 0-90  | Inclination of the glazing from the horizontal (90° = vertical window, 0° = flat skylight)        |
 
 ### Automation
 
