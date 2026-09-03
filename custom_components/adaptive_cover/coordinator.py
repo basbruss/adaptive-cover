@@ -576,7 +576,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             return False
         return target < current
 
-    async def async_set_adaptive_position(self, entity, state: int, options=None) -> None:
+    async def async_set_adaptive_position(
+        self, entity, state: int, options=None
+    ) -> bool:
         """Apply an ALGORITHM-chosen position, honoring the opening guard.
 
         Counterpart of async_set_position, reserved for positions the
@@ -586,6 +588,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         reports open (or is unavailable/unknown — fail-safe, never
         silently treated as closed), a move that would close this cover is
         withheld rather than sent.
+
+        Returns True if the move was actually sent (or bypassed the guard
+        because it wasn't a closing move), False if withheld. Callers that
+        wait on wait_for_target after this — currently only button.py's
+        manual-override reset — must check this before waiting: a withheld
+        move never sets wait_for_target (that only happens inside
+        async_set_manual_position, right before the service call), so
+        waiting on it unconditionally would hang forever whenever this
+        returns False.
         """
         options = options if options is not None else self.config_entry.options
         if self._closing_blocked_by_opening(options, entity, state):
@@ -594,8 +605,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 state,
                 entity,
             )
-            return
+            return False
         await self.async_set_manual_position(entity, state)
+        return True
 
     async def async_set_manual_position(self, entity, state):
         """Call service to set cover position."""
