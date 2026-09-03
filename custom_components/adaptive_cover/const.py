@@ -73,6 +73,27 @@ CONF_MANUAL_OVERRIDE_RESET = "manual_override_reset"
 CONF_MANUAL_THRESHOLD = "manual_threshold"
 CONF_MANUAL_IGNORE_INTERMEDIATE = "manual_ignore_intermediate"
 
+# "Escape" covers — see #495. A manually-overridden cover normally resumes
+# automatic control on its own once CONF_MANUAL_OVERRIDE_DURATION elapses.
+# When this is on, that automatic resume never happens for this entry's
+# covers: manual control is held indefinitely, until it's explicitly handed
+# back — either via the "reset manual override" button/service, or by
+# turning the "Manual Override" (switch.manual_toggle) detection switch off
+# and back on. Nothing else changes — the target position sensor keeps
+# computing normally throughout, only the actual cover.set_cover_position
+# calls are withheld.
+#
+# Two things worth knowing:
+# - Manual-control state lives in memory only (AdaptiveCoverManager), not in
+#   the config entry. A Home Assistant restart clears it like any other
+#   manual override, regardless of this setting — "never" means "not on a
+#   timer," not "survives a restart."
+# - This is a per-config-entry setting, same scope as
+#   CONF_MANUAL_OVERRIDE_DURATION. A cover that needs this held-open
+#   protection and one that doesn't can't share the same entry — give the
+#   protected cover(s) their own entry if that's not already the case.
+CONF_NEVER_AUTO_CORRECT = "never_auto_correct"
+
 # Security mode — closes covers when nobody is home.
 # The value is NOT stored in config options; the switch entity manages the
 # runtime toggle directly on the coordinator (``coordinator.security_toggle``).
