@@ -3,6 +3,12 @@
 import logging
 
 DOMAIN = "adaptive_cover"
+
+# Fired a configurable number of seconds before a cover is actually moved to
+# a closing position (see CONF_NOTIFY_DELAY / CONF_NOTIFY_THRESHOLD), so
+# users can hook their own notification (TTS, push, a light flash, ...)
+# without the integration having to know anything about it.
+EVENT_WILL_CLOSE = f"{DOMAIN}_will_close"
 LOGGER = logging.getLogger(__package__)
 _LOGGER = logging.getLogger(__name__)
 
@@ -72,6 +78,12 @@ CONF_MANUAL_OVERRIDE_DURATION = "manual_override_duration"
 CONF_MANUAL_OVERRIDE_RESET = "manual_override_reset"
 CONF_MANUAL_THRESHOLD = "manual_threshold"
 CONF_MANUAL_IGNORE_INTERMEDIATE = "manual_ignore_intermediate"
+
+# Pre-close notification — lets automations warn (voice, push, whatever the
+# user already has) before a cover actually closes, instead of moving it
+# silently. See EVENT_WILL_CLOSE below.
+CONF_NOTIFY_DELAY = "notify_delay"
+CONF_NOTIFY_THRESHOLD = "notify_threshold"
 
 # Security mode — closes covers when nobody is home.
 # The value is NOT stored in config options; the switch entity manages the

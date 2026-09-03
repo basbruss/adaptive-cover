@@ -53,6 +53,8 @@ from .const import (
     CONF_MODE,
     CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
+    CONF_NOTIFY_DELAY,
+    CONF_NOTIFY_THRESHOLD,
     CONF_RETURN_SUNSET,
     CONF_SENSOR_TYPE,
     CONF_START_ENTITY,
@@ -341,6 +343,16 @@ AUTOMATION_CONFIG = vol.Schema(
             selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
         ),
         vol.Optional(CONF_RETURN_SUNSET, default=False): bool,
+        vol.Optional(CONF_NOTIFY_DELAY, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=600, step=5, mode="box", unit_of_measurement="seconds"
+            )
+        ),
+        vol.Optional(CONF_NOTIFY_THRESHOLD, default=20): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=99, step=1, mode="slider", unit_of_measurement="%"
+            )
+        ),
     }
 )
 

@@ -164,20 +164,24 @@ class AdaptiveCoverEntry(
         """Open all covers in this entry (manual)."""
         LOGGER.debug("AdaptiveCoverEntry: open → 100 %%")
         for entity_id in self._coordinator.entities:
-            await self._coordinator.async_set_position(entity_id, 100)
+            # A manual command bypasses async_set_position's pre-close
+            # notification on purpose — that hook exists for the algorithm's
+            # own decisions, not to delay an explicit user action. Matches
+            # AdaptiveCoverAll._move_all below, which already does this.
+            await self._coordinator.async_set_manual_position(entity_id, 100)
 
     async def async_close_cover(self, **kwargs: Any) -> None:
         """Close all covers in this entry (manual)."""
         LOGGER.debug("AdaptiveCoverEntry: close → 0 %%")
         for entity_id in self._coordinator.entities:
-            await self._coordinator.async_set_position(entity_id, 0)
+            await self._coordinator.async_set_manual_position(entity_id, 0)
 
     async def async_set_cover_position(self, **kwargs: Any) -> None:
         """Move all covers in this entry to a specific position (manual)."""
         position = int(kwargs.get(ATTR_POSITION, 100))
         LOGGER.debug("AdaptiveCoverEntry: set position %d %%", position)
         for entity_id in self._coordinator.entities:
-            await self._coordinator.async_set_position(entity_id, position)
+            await self._coordinator.async_set_manual_position(entity_id, position)
 
     async def async_stop_cover(self, **kwargs: Any) -> None:
         """No-op — individual covers handle their own stop."""

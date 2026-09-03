@@ -27,7 +27,9 @@
           "end_entity": "Entité indiquant la fin de periode",
           "manual_threshold": "Seuil de detection pour le mode manuel",
           "manual_ignore_intermediate": "Ignore les postions intermediares durant le mode manuel (ouverture & fermeture)",
-          "return_sunset": "Toujours ajuster la position en fonction du coucher de soleil à la fin ; utile si l'heure de fin est antérieure au coucher du soleil réel"
+          "return_sunset": "Toujours ajuster la position en fonction du coucher de soleil à la fin ; utile si l'heure de fin est antérieure au coucher du soleil réel",
+          "notify_delay": "Délai d'alerte avant fermeture",
+          "notify_threshold": "Seuil d'alerte avant fermeture"
         },
         "data_description": {
           "delta_position": "Changement de position minimum requis avant d'ajuster la position du volet",
@@ -37,7 +39,9 @@
           "manual_override_duration": "Durée du contrôle manuel avant de revenir au contrôle automatique",
           "manual_override_reset": "Option permettant de réinitialiser la durée du remplacement manuel après chaque ajustement manuel ; si elle est désactivée, la durée ne s'applique qu'au premier ajustement manuel",
           "end_time": "Heure de fin pour chaque jour ; après cette heure, le volet restera stationnaire",
-          "end_entity": "Entité représentant l'état de l'heure de fin, remplaçant l'heure de fin fixe définie ci-dessus. Utile pour automatiser l'heure de fin avec une entité"
+          "end_entity": "Entité représentant l'état de l'heure de fin, remplaçant l'heure de fin fixe définie ci-dessus. Utile pour automatiser l'heure de fin avec une entité",
+          "notify_delay": "Secondes avant que le volet ne se ferme réellement. 0 désactive complètement l'alerte. Permet de déclencher un avertissement (voix, notification, ...) avant le mouvement.",
+          "notify_threshold": "Position à partir de laquelle l'alerte se déclenche. S'applique uniquement lors du passage d'une position au-dessus de ce seuil à une position à ce seuil ou en dessous."
         }
       },
       "vertical": {
@@ -264,7 +268,9 @@
             "end_entity": "Entité indiquant l'heure de fin",
             "manual_threshold": "Seuil de commande manuelle",
             "manual_ignore_intermediate": "Ignorer les positions intermédiaires pendant la commande manuelle (ouverture et fermeture)",
-            "return_sunset": "Toujours ajuster la position à la valeur par défaut du coucher du soleil à l'heure de fin ; utile si l'heure de fin est antérieure au coucher du soleil réel"
+            "return_sunset": "Toujours ajuster la position à la valeur par défaut du coucher du soleil à l'heure de fin ; utile si l'heure de fin est antérieure au coucher du soleil réel",
+            "notify_delay": "Délai d'alerte avant fermeture",
+            "notify_threshold": "Seuil d'alerte avant fermeture"
           },
         "data_description": {
             "delta_position": "Changement de position minimum requis avant d'ajuster la position du capot",
@@ -274,7 +280,9 @@
             "manual_override_duration": "Durée du contrôle manuel avant la réinitialisation au contrôle automatique",
             "manual_override_reset": "Option permettant de réinitialiser la durée de remplacement manuel après chaque réglage manuel ; si elle est désactivée, la durée ne s'applique qu'au premier réglage manuel",
             "end_time": "Heure de fin pour chaque jour ; après cette heure, le capot restera stationnaire",
-            "end_entity": "Assurez-vous que la position est systématiquement ajustée au paramètre de coucher de soleil par défaut à l'heure de fin. Ceci est particulièrement utile lorsque l'heure de fin précède le coucher de soleil réel."
+            "end_entity": "Assurez-vous que la position est systématiquement ajustée au paramètre de coucher de soleil par défaut à l'heure de fin. Ceci est particulièrement utile lorsque l'heure de fin précède le coucher de soleil réel.",
+            "notify_delay": "Secondes avant que le volet ne se ferme réellement. 0 désactive complètement l'alerte. Permet de déclencher un avertissement (voix, notification, ...) avant le mouvement.",
+            "notify_threshold": "Position à partir de laquelle l'alerte se déclenche. S'applique uniquement lors du passage d'une position au-dessus de ce seuil à une position à ce seuil ou en dessous."
           }
       },
       "vertical": {

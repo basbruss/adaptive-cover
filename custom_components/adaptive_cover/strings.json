@@ -21,7 +21,9 @@
           "end_entity": "Entity indicating ending time",
           "manual_threshold": "Manual override threshold",
           "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
-          "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
+          "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset",
+          "notify_delay": "Pre-close notice delay",
+          "notify_threshold": "Pre-close notice threshold"
         },
         "data_description": {
           "delta_position": "Minimum change in position required before adjusting the cover's position",
@@ -31,7 +33,9 @@
           "manual_override_duration": "The duration of manual control before resetting to automatic control",
           "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment",
           "end_time": "Ending time for each day; after this time, the cover will remain stationary",
-          "end_entity": "Entity representing ending time state, overriding the fixed end time set above. Useful for automating the end time with an entity"
+          "end_entity": "Entity representing ending time state, overriding the fixed end time set above. Useful for automating the end time with an entity",
+          "notify_delay": "Seconds before the cover actually closes. 0 disables the pre-close event entirely. Lets you hook a warning (voice, push, ...) before the cover moves.",
+          "notify_threshold": "Position at or below which the notice fires. Only applies when the cover is moving from above this value to at or below it."
         }
       },
       "vertical": {
@@ -241,7 +245,9 @@
           "end_entity": "Entity indicating ending time",
           "manual_threshold": "Manual override threshold",
           "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
-          "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
+          "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset",
+          "notify_delay": "Pre-close notice delay",
+          "notify_threshold": "Pre-close notice threshold"
         },
         "data_description": {
           "delta_position": "Minimum change in position required before adjusting the cover's position",
@@ -251,7 +257,9 @@
           "manual_override_duration": "The duration of manual control before resetting to automatic control",
           "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment",
           "end_time": "Ending time for each day; after this time, the cover will remain stationary",
-          "end_entity": "Ensure that the position is consistently adjusted to the default sunset setting by the end time. This is particularly beneficial when the end time precedes the actual sunset."
+          "end_entity": "Ensure that the position is consistently adjusted to the default sunset setting by the end time. This is particularly beneficial when the end time precedes the actual sunset.",
+          "notify_delay": "Seconds before the cover actually closes. 0 disables the pre-close event entirely. Lets you hook a warning (voice, push, ...) before the cover moves.",
+          "notify_threshold": "Position at or below which the notice fires. Only applies when the cover is moving from above this value to at or below it."
         }
       },
       "vertical": {
