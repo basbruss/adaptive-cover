@@ -82,11 +82,26 @@ class AdaptiveCoverButton(
         for entity in self._entities:
             if self.coordinator.manager.is_cover_manual(entity):
                 _LOGGER.debug("Resetting manual override for: %s", entity)
-                await self.coordinator.async_set_position(
+                # The position applied here is the algorithm's own
+                # (coordinator.state), not a fresh user choice — this
+                # button means "resume automatic control", so it's guarded
+                # by the opening sensor like any other algorithmic move
+                # (#498). See async_set_adaptive_position.
+                #
+                # A withheld move (door open) never sets wait_for_target —
+                # that only happens inside async_set_manual_position, right
+                # before the actual service call — so waiting on it here
+                # unconditionally would hang forever. Only wait when the
+                # move was actually sent. Automatic control is resumed
+                # (manager.reset) either way: that's the button's actual
+                # purpose, and once the door closes, the next refresh will
+                # apply the pending position on its own.
+                applied = await self.coordinator.async_set_adaptive_position(
                     entity, self.coordinator.state
                 )
-                while self.coordinator.wait_for_target.get(entity):
-                    await asyncio.sleep(1)
+                if applied:
+                    while self.coordinator.wait_for_target.get(entity):
+                        await asyncio.sleep(1)
                 self.coordinator.manager.reset(entity)
             else:
                 _LOGGER.debug(

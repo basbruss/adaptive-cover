@@ -73,6 +73,13 @@ CONF_MANUAL_OVERRIDE_RESET = "manual_override_reset"
 CONF_MANUAL_THRESHOLD = "manual_threshold"
 CONF_MANUAL_IGNORE_INTERMEDIATE = "manual_ignore_intermediate"
 
+# Optional window/door contact sensor — see #498. While it reports open,
+# algorithmic (not user-explicit) closing moves are withheld for this
+# entry's covers. An unknown/unavailable state counts as OPEN, never
+# closed — a dead battery must degrade to "no protection", not "lie
+# closed" (see helpers.is_opening_open for the full fail-safe contract).
+CONF_OPENING_ENTITY = "opening_entity"
+
 # Security mode — closes covers when nobody is home.
 # The value is NOT stored in config options; the switch entity manages the
 # runtime toggle directly on the coordinator (``coordinator.security_toggle``).

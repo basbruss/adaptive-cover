@@ -21,6 +21,7 @@
           "end_entity": "Entity indicating ending time",
           "manual_threshold": "Manual override threshold",
           "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
+          "opening_entity": "Window or door sensor (optional)",
           "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
         },
         "data_description": {
@@ -31,6 +32,7 @@
           "manual_override_duration": "The duration of manual control before resetting to automatic control",
           "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment",
           "end_time": "Ending time for each day; after this time, the cover will remain stationary",
+          "opening_entity": "Contact sensor for a window or door. While it reports open, the integration will not close this cover automatically. An unknown or unavailable sensor counts as open, so a flat battery degrades the protection instead of closing on an open door.",
           "end_entity": "Entity representing ending time state, overriding the fixed end time set above. Useful for automating the end time with an entity"
         }
       },
@@ -241,6 +243,7 @@
           "end_entity": "Entity indicating ending time",
           "manual_threshold": "Manual override threshold",
           "manual_ignore_intermediate": "Ignore intermediate positions during manual override (opening and closing)",
+          "opening_entity": "Window or door sensor (optional)",
           "return_sunset": "Always adjust position to sunset default at end time; Useful if end time is before actual sunset"
         },
         "data_description": {
@@ -251,6 +254,7 @@
           "manual_override_duration": "The duration of manual control before resetting to automatic control",
           "manual_override_reset": "Option to reset the manual override duration after each manual adjustment; if disabled, the duration only applies to the first manual adjustment",
           "end_time": "Ending time for each day; after this time, the cover will remain stationary",
+          "opening_entity": "Contact sensor for a window or door. While it reports open, the integration will not close this cover automatically. An unknown or unavailable sensor counts as open, so a flat battery degrades the protection instead of closing on an open door.",
           "end_entity": "Ensure that the position is consistently adjusted to the default sunset setting by the end time. This is particularly beneficial when the end time precedes the actual sunset."
         }
       },

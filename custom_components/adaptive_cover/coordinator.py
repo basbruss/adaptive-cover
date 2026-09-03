@@ -77,6 +77,7 @@ from .const import (
     CONF_MAX_POSITION,
     CONF_MIN_ELEVATION,
     CONF_MIN_POSITION,
+    CONF_OPENING_ENTITY,
     CONF_OUTSIDE_THRESHOLD,
     CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
@@ -98,7 +99,13 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .helpers import get_datetime_from_str, get_last_updated, get_safe_state, is_presence_detected
+from .helpers import (
+    get_datetime_from_str,
+    get_last_updated,
+    get_safe_state,
+    is_opening_open,
+    is_presence_detected,
+)
 
 
 @dataclass
@@ -352,6 +359,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     options.get(CONF_FOV_RIGHT),
                 ],
                 "blind_spot": options.get(CONF_BLIND_SPOT_ELEVATION),
+                "opening_open": (
+                    is_opening_open(self.hass, options.get(CONF_OPENING_ENTITY))
+                    if options.get(CONF_OPENING_ENTITY)
+                    else None
+                ),
             },
             climate_debug=self._climate_debug,
         )
@@ -402,7 +414,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     and not self.manager.is_cover_manual(cover)
                     and self.check_position_delta(cover, state, options)
                 ):
-                    await self.async_set_position(cover, state)
+                    await self.async_set_adaptive_position(cover, state, options)
         else:
             self.logger.debug("First refresh but control toggle is off")
         self.first_refresh = False
@@ -422,13 +434,14 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 if self.security_active:
                     await self._apply_security_position(cover, options)
                 else:
-                    await self.async_set_manual_position(
+                    await self.async_set_adaptive_position(
                         cover,
                         (
                             inverse_state(options.get(CONF_SUNSET_POS))
                             if self._inverse_state
                             else options.get(CONF_SUNSET_POS)
                         ),
+                        options,
                     )
         else:
             self.logger.debug("Timed refresh but control toggle is off")
@@ -443,11 +456,73 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             and self.check_time_delta(entity)
             and not self.manager.is_cover_manual(entity)
         ):
-            await self.async_set_position(entity, state)
+            await self.async_set_adaptive_position(entity, state, options)
 
     async def async_set_position(self, entity, state: int):
-        """Call service to set cover position."""
+        """Call service to set cover position.
+
+        Explicit, user-requested position — the cover entity, the
+        All-Blinds hub scenes/select, and the like all call this directly.
+        NOT guarded by the opening sensor (#498): a user asking a cover to
+        close is a deliberate act, not an algorithmic decision the sensor
+        is meant to intercept. See async_set_adaptive_position for the
+        algorithm-chosen counterpart, which is guarded.
+        """
         await self.async_set_manual_position(entity, state)
+
+    def _closing_blocked_by_opening(self, options, entity: str, target: int) -> bool:
+        """Return True when *target* would close *entity* while its opening sensor is open.
+
+        Only downward moves are blocked (target < current position) —
+        opening moves and no-ops always pass, so this can never itself
+        cause a shutter to trap someone, only prevent one from closing on
+        an open door.
+
+        current position unknown (None) -> returns False, i.e. not
+        blocked. That's safe, not lax: check_position() already suppresses
+        the service call entirely when the current position can't be
+        read, so no movement happens in that case regardless.
+        """
+        entity_id = options.get(CONF_OPENING_ENTITY)
+        if not is_opening_open(self.hass, entity_id):
+            return False
+        current = self._get_current_position(entity)
+        if current is None:
+            return False
+        return target < current
+
+    async def async_set_adaptive_position(
+        self, entity, state: int, options=None
+    ) -> bool:
+        """Apply an ALGORITHM-chosen position, honoring the opening guard.
+
+        Counterpart of async_set_position, reserved for positions the
+        integration itself decided on (state-change recompute, first
+        refresh, sunset position, security mode, the manual-override reset
+        button/switch). See #498: while a configured window/door sensor
+        reports open (or is unavailable/unknown — fail-safe, never
+        silently treated as closed), a move that would close this cover is
+        withheld rather than sent.
+
+        Returns True if the move was actually sent (or bypassed the guard
+        because it wasn't a closing move), False if withheld. Callers that
+        wait on wait_for_target after this — currently only button.py's
+        manual-override reset — must check this before waiting: a withheld
+        move never sets wait_for_target (that only happens inside
+        async_set_manual_position, right before the service call), so
+        waiting on it unconditionally would hang forever whenever this
+        returns False.
+        """
+        options = options if options is not None else self.config_entry.options
+        if self._closing_blocked_by_opening(options, entity, state):
+            self.logger.debug(
+                "Closing move to %s%% withheld for %s: opening sensor reports open",
+                state,
+                entity,
+            )
+            return False
+        await self.async_set_manual_position(entity, state)
+        return True
 
     async def async_set_manual_position(self, entity, state):
         """Call service to set cover position."""
@@ -488,6 +563,16 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         ``manager.mark_manual_control`` — security is not a user gesture and
         must not block the automatic return to adaptive positioning when
         presence is restored.
+
+        Unlike #501's ``never_auto_correct`` guard, which security mode
+        deliberately overrides, the window/door opening guard (#498) DOES
+        apply here: security mode fires exactly when no presence is
+        detected, which is the canonical false-negative case (someone on
+        the terrace, phone left indoors). Closing a shutter over a
+        physically open door protects nothing — the opening stays
+        crossable regardless — and can trap a person. A security move that
+        *opens* the cover (target above its current position) is never
+        affected; only a close onto an open door is withheld.
         """
         if self.manager.is_cover_manual(entity):
             self.logger.debug(
@@ -510,7 +595,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 entity,
             )
 
-        await self.async_set_manual_position(entity, pos)
+        await self.async_set_adaptive_position(entity, pos, options)
 
     @property
     def security_active(self) -> bool:

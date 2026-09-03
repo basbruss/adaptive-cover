@@ -199,7 +199,11 @@ class AdaptiveCoverSwitch(
                     not self.coordinator.manager.is_cover_manual(entity)
                     and self.coordinator.check_adaptive_time
                 ):
-                    await self.coordinator.async_set_position(
+                    # Position is the algorithm's own (coordinator.state):
+                    # this switch means "resume automatic control", not a
+                    # fresh user-chosen position — guarded like any other
+                    # algorithmic move (#498).
+                    await self.coordinator.async_set_adaptive_position(
                         entity, self.coordinator.state
                     )
         await self.coordinator.async_refresh()

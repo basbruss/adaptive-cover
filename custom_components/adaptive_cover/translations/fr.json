@@ -27,6 +27,7 @@
           "end_entity": "Entité indiquant la fin de periode",
           "manual_threshold": "Seuil de detection pour le mode manuel",
           "manual_ignore_intermediate": "Ignore les postions intermediares durant le mode manuel (ouverture & fermeture)",
+          "opening_entity": "Capteur de fenêtre ou de porte (optionnel)",
           "return_sunset": "Toujours ajuster la position en fonction du coucher de soleil à la fin ; utile si l'heure de fin est antérieure au coucher du soleil réel"
         },
         "data_description": {
@@ -37,6 +38,7 @@
           "manual_override_duration": "Durée du contrôle manuel avant de revenir au contrôle automatique",
           "manual_override_reset": "Option permettant de réinitialiser la durée du remplacement manuel après chaque ajustement manuel ; si elle est désactivée, la durée ne s'applique qu'au premier ajustement manuel",
           "end_time": "Heure de fin pour chaque jour ; après cette heure, le volet restera stationnaire",
+          "opening_entity": "Capteur d'ouverture d'une fenêtre ou d'une porte. Tant qu'il indique « ouvert », l'intégration ne ferme plus ce volet automatiquement. Un capteur inconnu ou indisponible est compté comme ouvert : une pile vide dégrade la protection au lieu de fermer sur une porte ouverte.",
           "end_entity": "Entité représentant l'état de l'heure de fin, remplaçant l'heure de fin fixe définie ci-dessus. Utile pour automatiser l'heure de fin avec une entité"
         }
       },
@@ -264,6 +266,7 @@
             "end_entity": "Entité indiquant l'heure de fin",
             "manual_threshold": "Seuil de commande manuelle",
             "manual_ignore_intermediate": "Ignorer les positions intermédiaires pendant la commande manuelle (ouverture et fermeture)",
+            "opening_entity": "Capteur de fenêtre ou de porte (optionnel)",
             "return_sunset": "Toujours ajuster la position à la valeur par défaut du coucher du soleil à l'heure de fin ; utile si l'heure de fin est antérieure au coucher du soleil réel"
           },
         "data_description": {
@@ -274,6 +277,7 @@
             "manual_override_duration": "Durée du contrôle manuel avant la réinitialisation au contrôle automatique",
             "manual_override_reset": "Option permettant de réinitialiser la durée de remplacement manuel après chaque réglage manuel ; si elle est désactivée, la durée ne s'applique qu'au premier réglage manuel",
             "end_time": "Heure de fin pour chaque jour ; après cette heure, le capot restera stationnaire",
+            "opening_entity": "Capteur d'ouverture d'une fenêtre ou d'une porte. Tant qu'il indique « ouvert », l'intégration ne ferme plus ce volet automatiquement. Un capteur inconnu ou indisponible est compté comme ouvert : une pile vide dégrade la protection au lieu de fermer sur une porte ouverte.",
             "end_entity": "Assurez-vous que la position est systématiquement ajustée au paramètre de coucher de soleil par défaut à l'heure de fin. Ceci est particulièrement utile lorsque l'heure de fin précède le coucher de soleil réel."
           }
       },

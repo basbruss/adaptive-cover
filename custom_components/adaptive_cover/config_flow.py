@@ -77,6 +77,7 @@ from .const import (
     CONF_ENABLE_MIN_POSITION,
     CONF_IS_HUB,
     ALL_BLINDS_TITLE,
+    CONF_OPENING_ENTITY,
 )
 
 # DEFAULT_NAME = "Adaptive Cover"
@@ -336,6 +337,9 @@ AUTOMATION_CONFIG = vol.Schema(
             vol.Coerce(int), vol.Range(min=0, max=99)
         ),
         vol.Optional(CONF_MANUAL_IGNORE_INTERMEDIATE, default=False): bool,
+        vol.Optional(CONF_OPENING_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["binary_sensor", "input_boolean"])
+        ),
         vol.Optional(CONF_END_TIME, default="00:00:00"): selector.TimeSelector(),
         vol.Optional(CONF_END_ENTITY): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["sensor", "input_datetime"])
@@ -643,6 +647,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_MANUAL_IGNORE_INTERMEDIATE: self.config.get(
                     CONF_MANUAL_IGNORE_INTERMEDIATE
                 ),
+                CONF_OPENING_ENTITY: self.config.get(CONF_OPENING_ENTITY),
                 CONF_BLIND_SPOT_RIGHT: self.config.get(CONF_BLIND_SPOT_RIGHT, None),
                 CONF_BLIND_SPOT_LEFT: self.config.get(CONF_BLIND_SPOT_LEFT, None),
                 CONF_BLIND_SPOT_ELEVATION: self.config.get(
@@ -711,7 +716,12 @@ class OptionsFlowHandler(OptionsFlow):
     async def async_step_automation(self, user_input: dict[str, Any] | None = None):
         """Manage automation options."""
         if user_input is not None:
-            entities = [CONF_START_ENTITY, CONF_END_ENTITY, CONF_MANUAL_THRESHOLD]
+            entities = [
+                CONF_START_ENTITY,
+                CONF_END_ENTITY,
+                CONF_MANUAL_THRESHOLD,
+                CONF_OPENING_ENTITY,
+            ]
             self.optional_entities(entities, user_input)
             self.options.update(user_input)
             return await self._update_options()
