@@ -18,6 +18,7 @@ from homeassistant.const import (
     SERVICE_SET_COVER_TILT_POSITION,
 )
 from homeassistant.core import (
+    CALLBACK_TYPE,
     Event,
     EventStateChangedData,
     HomeAssistant,
@@ -88,6 +89,8 @@ from .const import (
     CONF_MIN_POSITION_ENTITY,
     CONF_NEVER_AUTO_CORRECT,
     CONF_OPENING_ENTITY,
+    CONF_NOTIFY_DELAY,
+    CONF_NOTIFY_THRESHOLD,
     CONF_OUTSIDE_THRESHOLD,
     CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
@@ -108,6 +111,7 @@ from .const import (
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
     DOMAIN,
+    EVENT_WILL_CLOSE,
     LOGGER,
 )
 from .helpers import (
@@ -221,6 +225,23 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._min_position: int | None = None
         self._max_position: int | None = None
         self._numeric_entity_warned: set[str] = set()
+
+        # Pre-close notification (see EVENT_WILL_CLOSE): a target position at
+        # or below the threshold is delayed by this many seconds, firing an
+        # event first, so users can hook a warning before the cover actually
+        # moves. 0 disables the feature entirely. Cancelled entries in
+        # self._pending_close are covers currently waiting out that delay.
+        # NumberSelector round-trips as a float (e.g. 60.0); cast once here
+        # so every consumer (the event payload, async_call_later) gets a
+        # plain int rather than a "close in 60.0s" event.
+        self._notify_delay = int(
+            self.config_entry.options.get(CONF_NOTIFY_DELAY, 0)
+        )
+        self._notify_threshold = int(
+            self.config_entry.options.get(CONF_NOTIFY_THRESHOLD, 20)
+        )
+        self._pending_close: dict[str, CALLBACK_TYPE] = {}
+        self.config_entry.async_on_unload(self._async_cancel_pending_close_notices)
 
     async def async_config_entry_first_refresh(self) -> None:
         """Config entry first refresh."""
@@ -568,7 +589,58 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         close is a deliberate act, not an algorithmic decision the sensor
         is meant to intercept. See async_set_adaptive_position for the
         algorithm-chosen counterpart, which is guarded.
+
+        If pre-close notification is configured (CONF_NOTIFY_DELAY > 0) and
+        this move crosses into "closing" territory, the move is delayed and
+        EVENT_WILL_CLOSE is fired first — see _schedule_close_notice.
+
+        Three cases, handled in this order:
+
+        1. Target is above the notify threshold ("opening" or "not closing"
+           enough to matter): any pending close for this entity is a stale
+           decision that's just been superseded — cancel it, then apply the
+           new, safer position right away. This is deliberately unconditional
+           (not gated behind a threshold check first) so a legitimate "open
+           back up" decision is never swallowed by an in-flight close timer.
+        2. Target is at/below the threshold and a close is already counting
+           down for this entity: do nothing. Letting the existing timer run
+           to completion is the whole point — without this, the very next
+           refresh cycle that reaches the same "close" conclusion would
+           short-circuit the delay by falling through to case 3 below.
+        3. Target is at/below the threshold and nothing is pending: schedule
+           a new notice (or apply immediately if notifications are off).
+
+        Two known, deliberately-accepted limitations, rather than silently
+        left unhandled:
+
+        - If the cover's current position can't be read (case 3, ``current
+          is None``), a notice is fired on the safe assumption that it's
+          worth a heads-up. ``async_set_manual_position`` may then no-op at
+          apply time (it also can't confirm the position differs), so the
+          event can rarely announce a move that doesn't actually happen. The
+          alternative — staying silent whenever the position is unknown — was
+          judged worse: it would mean never warning at all for a cover whose
+          state is flaky, which is exactly when a warning matters most.
+        - A very long delay (up to 600s) applies the position computed
+          *when the notice was scheduled*; case 2 doesn't refresh it if the
+          decision's magnitude changes while still below the threshold (a
+          higher, still-closing value doesn't retrigger case 1). The error
+          this can introduce is bounded to the [0, notify_threshold] range,
+          and is expected to matter only at delays well past what anyone
+          would realistically configure for a "you're about to be shut out"
+          warning.
         """
+        if state > self._notify_threshold:
+            self._cancel_pending_close(entity)
+            await self.async_set_manual_position(entity, state)
+            return
+        if entity in self._pending_close:
+            return
+        if self._notify_delay > 0:
+            current = self._get_current_position(entity)
+            if current is None or current > self._notify_threshold:
+                self._schedule_close_notice(entity, state)
+                return
         await self.async_set_manual_position(entity, state)
 
     def _closing_blocked_by_opening(self, options, entity: str, target: int) -> bool:
@@ -655,6 +727,68 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         await self.async_set_manual_position(entity, state)
         return True
 
+    def _cancel_pending_close(self, entity: str) -> None:
+        """Cancel and drop a pending close notice for entity, if any."""
+        cancel = self._pending_close.pop(entity, None)
+        if cancel is not None:
+            cancel()
+            self.logger.debug(
+                "Cancelled pending close notice for %s: superseded by a "
+                "newer, non-closing decision",
+                entity,
+            )
+
+    def _schedule_close_notice(self, entity: str, state: int) -> None:
+        """Fire EVENT_WILL_CLOSE, then apply the position after the delay."""
+        self.hass.bus.async_fire(
+            EVENT_WILL_CLOSE,
+            {
+                "entity_id": entity,
+                "target_position": state,
+                "reason": self.control_method,
+                "delay_seconds": self._notify_delay,
+            },
+        )
+        self.logger.debug(
+            "Delaying close of %s to %s%% by %ss (reason=%s)",
+            entity,
+            state,
+            self._notify_delay,
+            self.control_method,
+        )
+
+        async def _apply_after_delay(_now) -> None:
+            self._pending_close.pop(entity, None)
+            if not self.control_toggle:
+                # The whole point of the notice is to give someone a window
+                # to react — turning adaptive control off during that window
+                # is exactly the reaction it's meant to allow for.
+                self.logger.debug(
+                    "Skipping delayed close of %s: control toggle turned "
+                    "off during the notice delay",
+                    entity,
+                )
+                return
+            if self.manager.is_cover_manual(entity):
+                self.logger.debug(
+                    "Skipping delayed close of %s: manual override started "
+                    "during the notice delay",
+                    entity,
+                )
+                return
+            await self.async_set_manual_position(entity, state)
+
+        self._pending_close[entity] = async_call_later(
+            self.hass, self._notify_delay, _apply_after_delay
+        )
+
+    @callback
+    def _async_cancel_pending_close_notices(self) -> None:
+        """Cancel any pending delayed close when the entry unloads."""
+        for cancel in self._pending_close.values():
+            cancel()
+        self._pending_close.clear()
+
     async def async_set_manual_position(self, entity, state):
         """Call service to set cover position."""
         if self.check_position(entity, state):
@@ -713,12 +847,21 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         crossable regardless — and can trap a person. A security move that
         *opens* the cover (target above its current position) is never
         affected; only a close onto an open door is withheld.
+
+        It also does NOT go through the pre-close notification delay: security
+        mode means "nobody's home, secure the house now" — waiting out
+        CONF_NOTIFY_DELAY (up to 10 minutes) would defeat the point. It DOES
+        cancel any notice already counting down for this entity, so a stale
+        timer can't re-apply an outdated target position after security has
+        already moved the cover.
         """
         if self.manager.is_cover_manual(entity):
             self.logger.debug(
                 "Security mode: skipping %s (manual override active)", entity
             )
             return
+
+        self._cancel_pending_close(entity)
 
         if self._climate_mode and self.control_method in ("intermediate", "winter"):
             pos = self._min_position or 0
