@@ -14,6 +14,14 @@ CONF_BLUEPRINT = "blueprint"
 CONF_HEIGHT_WIN = "window_height"
 CONF_DISTANCE = "distance_shaded_area"
 CONF_DEFAULT_HEIGHT = "default_percentage"
+
+# Seasonal default position — see #497. Only reachable when climate mode is
+# on (ClimateCoverState.normal_with_presence); the plain, non-seasonal
+# default (this constant, CONF_DEFAULT_HEIGHT) is what every other code
+# path still uses, unchanged. Not configured (None) falls back to
+# CONF_DEFAULT_HEIGHT — see AdaptiveGeneralCover.default_for_season.
+CONF_DEFAULT_HEIGHT_WINTER = "default_percentage_winter"
+CONF_DEFAULT_HEIGHT_SUMMER = "default_percentage_summer"
 CONF_FOV_LEFT = "fov_left"
 CONF_FOV_RIGHT = "fov_right"
 CONF_ENTITIES = "group"

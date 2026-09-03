@@ -22,6 +22,8 @@ from .const import (
     CONF_BLIND_SPOT_RIGHT,
     CONF_CLIMATE_MODE,
     CONF_DEFAULT_HEIGHT,
+    CONF_DEFAULT_HEIGHT_SUMMER,
+    CONF_DEFAULT_HEIGHT_WINTER,
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
     CONF_DISTANCE,
@@ -237,6 +239,12 @@ CLIMATE_OPTIONS = vol.Schema(
             selector.NumberSelectorConfig(
                 min=0, max=90, step=1, mode="slider", unit_of_measurement="°"
             )
+        ),
+        vol.Optional(CONF_DEFAULT_HEIGHT_WINTER): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=100)
+        ),
+        vol.Optional(CONF_DEFAULT_HEIGHT_SUMMER): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=100)
         ),
         vol.Optional(
             CONF_OUTSIDETEMP_ENTITY, default=vol.UNDEFINED
@@ -628,6 +636,12 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_WEATHER_ENTITY: self.config.get(CONF_WEATHER_ENTITY),
                 CONF_TEMP_LOW: self.config.get(CONF_TEMP_LOW),
                 CONF_TEMP_HIGH: self.config.get(CONF_TEMP_HIGH),
+                CONF_DEFAULT_HEIGHT_WINTER: self.config.get(
+                    CONF_DEFAULT_HEIGHT_WINTER
+                ),
+                CONF_DEFAULT_HEIGHT_SUMMER: self.config.get(
+                    CONF_DEFAULT_HEIGHT_SUMMER
+                ),
                 CONF_OUTSIDETEMP_ENTITY: self.config.get(CONF_OUTSIDETEMP_ENTITY),
                 CONF_CLIMATE_MODE: self.config.get(CONF_CLIMATE_MODE),
                 CONF_WEATHER_STATE: self.config.get(CONF_WEATHER_STATE),
@@ -909,6 +923,13 @@ class OptionsFlowHandler(OptionsFlow):
                 CONF_PRESENCE_ENTITY,
                 CONF_LUX_ENTITY,
                 CONF_IRRADIANCE_ENTITY,
+                # Not entity selectors — optional_entities is reused here
+                # purely for its "set to None if absent from user_input"
+                # behavior, so clearing either field in the UI actually
+                # clears it rather than leaving the last saved value bound
+                # forever. See #497.
+                CONF_DEFAULT_HEIGHT_WINTER,
+                CONF_DEFAULT_HEIGHT_SUMMER,
             ]
             self.optional_entities(entities, user_input)
             self.options.update(user_input)

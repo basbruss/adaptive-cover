@@ -46,6 +46,8 @@ from .const import (
     CONF_BLIND_SPOT_RIGHT,
     CONF_CLIMATE_MODE,
     CONF_DEFAULT_HEIGHT,
+    CONF_DEFAULT_HEIGHT_SUMMER,
+    CONF_DEFAULT_HEIGHT_WINTER,
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
     CONF_DISTANCE,
@@ -674,6 +676,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             if state in [
                 options.get(CONF_SUNSET_POS),
                 options.get(CONF_DEFAULT_HEIGHT),
+                options.get(CONF_DEFAULT_HEIGHT_WINTER),
+                options.get(CONF_DEFAULT_HEIGHT_SUMMER),
                 0,
                 100,
             ]:
@@ -727,6 +731,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options.get(CONF_ENABLE_BLIND_SPOT, False),
             options.get(CONF_MIN_ELEVATION, None),
             options.get(CONF_MAX_ELEVATION, None),
+            options.get(CONF_DEFAULT_HEIGHT_WINTER),
+            options.get(CONF_DEFAULT_HEIGHT_SUMMER),
         ]
 
     def get_climate_data(self, options):
@@ -811,6 +817,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             "lux_below_threshold": climate_data.lux,
             "irradiance_below_threshold": climate_data.irradiance,
             "active_branch": self.control_method,
+            "default_winter": climate_state_obj.cover.h_def_winter,
+            "default_summer": climate_state_obj.cover.h_def_summer,
         }
 
     @staticmethod
