@@ -494,6 +494,15 @@ class ClimateCoverState(NormalCoverState):
 
         if is_summer:
             if self.climate_data.transparent_blind:
+                # Known #497 gap, left as-is: NormalCoverState.get_state()
+                # (super()) falls back to the plain cover.default when the
+                # sun is in a configured blind spot, not the seasonal one —
+                # it only holds `cover`, not is_summer/is_winter. Narrow in
+                # practice (needs a blind spot configured AND the sun
+                # currently in it, on top of summer+transparent), and
+                # debatable whether "sun blocked by an obstacle" should even
+                # count as the summer branch. Not fixed here to keep this PR
+                # to the cover.valid=False case #497 actually describes.
                 self.cover.logger.debug(
                     "n_w_p(): Summer + transparent blind → basic (shade only)"
                 )
@@ -532,6 +541,10 @@ class ClimateCoverState(NormalCoverState):
         ):
             if self.climate_data.is_summer:
                 return 45 / degrees * 100
+            # Same #497 blind-spot gap as the transparent-blind branch above
+            # (non-summer here includes winter): super().get_state() falls
+            # back to the plain default, not the seasonal one, if the sun is
+            # in a configured blind spot.
             return super().get_state()
         return 80 / degrees * 100
 
