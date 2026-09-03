@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime as dt
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import numpy as np
@@ -46,6 +47,7 @@ from .const import (
     CONF_BLIND_SPOT_RIGHT,
     CONF_CLIMATE_MODE,
     CONF_DEFAULT_HEIGHT,
+    CONF_DEFAULT_HEIGHT_ENTITY,
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
     CONF_DISTANCE,
@@ -75,8 +77,10 @@ from .const import (
     CONF_MANUAL_THRESHOLD,
     CONF_MAX_ELEVATION,
     CONF_MAX_POSITION,
+    CONF_MAX_POSITION_ENTITY,
     CONF_MIN_ELEVATION,
     CONF_MIN_POSITION,
+    CONF_MIN_POSITION_ENTITY,
     CONF_OUTSIDE_THRESHOLD,
     CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
@@ -98,7 +102,13 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .helpers import get_datetime_from_str, get_last_updated, get_safe_state, is_presence_detected
+from .helpers import (
+    get_datetime_from_str,
+    get_last_updated,
+    get_numeric_state,
+    get_safe_state,
+    is_presence_detected,
+)
 
 
 @dataclass
@@ -175,6 +185,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._scheduled_time = dt.datetime.now()
 
         self._cached_options = None
+
+        # See #496 / CONF_*_ENTITY in const.py. Resolved once per refresh in
+        # _update_options, read from everywhere else in the cycle — never
+        # options.get(CONF_DEFAULT_HEIGHT) etc. directly, or an entity-backed
+        # value would be silently ignored on that read path.
+        self._default_height: int | None = None
+        self._min_position: int | None = None
+        self._max_position: int | None = None
+        self._numeric_entity_warned: set[str] = set()
 
     async def async_config_entry_first_refresh(self) -> None:
         """Config entry first refresh."""
@@ -343,7 +362,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 "manual_list": self.manager.manual_controlled,
             },
             attributes={
-                "default": options.get(CONF_DEFAULT_HEIGHT),
+                "default": self._default_height,
                 "sunset_default": options.get(CONF_SUNSET_POS),
                 "sunset_offset": options.get(CONF_SUNSET_OFFSET),
                 "azimuth_window": options.get(CONF_AZIMUTH),
@@ -496,7 +515,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             return
 
         if self._climate_mode and self.control_method in ("intermediate", "winter"):
-            pos = options.get(CONF_MIN_POSITION) or 0
+            pos = self._min_position or 0
             self.logger.debug(
                 "Security mode: %s → min_position=%s (climate branch: %s)",
                 entity,
@@ -548,6 +567,18 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.end_value = options.get(CONF_INTERP_END)
         self.normal_list = options.get(CONF_INTERP_LIST)
         self.new_list = options.get(CONF_INTERP_LIST_NEW)
+        self._default_height = self._resolve_numeric_option(
+            options, CONF_DEFAULT_HEIGHT, CONF_DEFAULT_HEIGHT_ENTITY,
+            minimum=0, maximum=100,
+        )
+        self._min_position = self._resolve_numeric_option(
+            options, CONF_MIN_POSITION, CONF_MIN_POSITION_ENTITY,
+            minimum=0, maximum=100,
+        )
+        self._max_position = self._resolve_numeric_option(
+            options, CONF_MAX_POSITION, CONF_MAX_POSITION_ENTITY,
+            minimum=0, maximum=100,
+        )
 
     def _update_manager_and_covers(self):
         self.manager.add_covers(self.entities)
@@ -673,7 +704,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             )
             if state in [
                 options.get(CONF_SUNSET_POS),
-                options.get(CONF_DEFAULT_HEIGHT),
+                self._default_height,
                 0,
                 100,
             ]:
@@ -706,6 +737,53 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         attrs = state.attributes
         return [attrs.get("azimuth"), attrs.get("elevation")]
 
+    def _resolve_numeric_option(
+        self,
+        options,
+        conf_key: str,
+        entity_key: str,
+        *,
+        minimum: float | None = None,
+        maximum: float | None = None,
+        cast: Callable[[float], float] = round,
+    ) -> float | None:
+        """Return a numeric option, read from an entity when one is configured.
+
+        See #496 / CONF_*_ENTITY in const.py for the full contract. Short
+        version: no entity configured -> the literal `conf_key` value,
+        unchanged from today. Entity configured but unavailable or
+        non-numeric -> same literal fallback, logged once per outage (not
+        once per refresh) via _numeric_entity_warned.
+        """
+        fallback = options.get(conf_key)
+        entity_id = options.get(entity_key)
+        if entity_id is None:
+            return fallback
+
+        value = get_numeric_state(self.hass, entity_id)
+        if value is None:
+            if entity_id not in self._numeric_entity_warned:
+                self._numeric_entity_warned.add(entity_id)
+                self.logger.warning(
+                    "%s: entity %s is unavailable or non-numeric, falling "
+                    "back to the configured value (%s)",
+                    conf_key,
+                    entity_id,
+                    fallback,
+                )
+            return fallback
+        self._numeric_entity_warned.discard(entity_id)
+
+        if minimum is not None:
+            value = max(value, minimum)
+        if maximum is not None:
+            value = min(value, maximum)
+        value = cast(value)
+        self.logger.debug(
+            "%s resolved from entity %s to %s", conf_key, entity_id, value
+        )
+        return value
+
     def common_data(self, options):
         """Update shared parameters."""
         return [
@@ -716,9 +794,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options.get(CONF_FOV_LEFT),
             options.get(CONF_FOV_RIGHT),
             options.get(CONF_AZIMUTH),
-            options.get(CONF_DEFAULT_HEIGHT),
-            options.get(CONF_MAX_POSITION),
-            options.get(CONF_MIN_POSITION),
+            self._default_height,
+            self._max_position,
+            self._min_position,
             options.get(CONF_ENABLE_MAX_POSITION, False),
             options.get(CONF_ENABLE_MIN_POSITION, False),
             options.get(CONF_BLIND_SPOT_LEFT),

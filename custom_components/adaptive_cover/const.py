@@ -42,6 +42,40 @@ CONF_MAX_POSITION = "max_position"
 CONF_MIN_POSITION = "min_position"
 CONF_ENABLE_MAX_POSITION = "enable_max_position"
 CONF_ENABLE_MIN_POSITION = "enable_min_position"
+
+# Read a position from an entity instead of a fixed constant — see #496.
+# CONF_START_ENTITY/CONF_END_ENTITY already do this for the time-window
+# bounds; this extends the same pattern to the three position fields.
+#
+# Resolution, at every coordinator refresh (AdaptiveDataUpdateCoordinator.
+# _resolve_numeric_option):
+#   1. No entity configured -> the literal constant. Existing configs are
+#      untouched, byte-for-byte the same behavior as before this option
+#      existed.
+#   2. Entity configured and its state parses as a finite number -> that
+#      value, clamped to 0-100 and rounded to an int.
+#   3. Entity configured but unavailable/unknown/non-numeric -> falls back
+#      to the literal constant, NEVER to None and never raises. Falling
+#      back to "no limit" instead would silently disable min_position
+#      exactly when its user needs the floor most — a helper going
+#      unavailable is not a reason to let the guard it represents lapse.
+#
+# Note the clamp is 0-100 for all three, not the schema's own bounds
+# (min_position: 0-99, max_position: 1-100) — those exist to keep a
+# *static* config sane, not to constrain what a live entity may report.
+# calculation.py already treats min_position == 0 and max_position == 100
+# as "guard inactive" (see apply_min_position/apply_max_position), so an
+# entity reporting either edge value degrades to that existing, understood
+# behavior rather than being clamped into a different one.
+#
+# CONF_DEFAULT_HEIGHT_ENTITY intentionally mirrors the *option key* of its
+# base field ("default_percentage_entity" for CONF_DEFAULT_HEIGHT =
+# "default_percentage"), not the constant's own name — same naming quirk
+# the base constant already has, kept as-is rather than "fixed" here.
+CONF_DEFAULT_HEIGHT_ENTITY = "default_percentage_entity"
+CONF_MIN_POSITION_ENTITY = "min_position_entity"
+CONF_MAX_POSITION_ENTITY = "max_position_entity"
+
 CONF_OUTSIDETEMP_ENTITY = "outside_temp"
 CONF_ENABLE_BLIND_SPOT = "blind_spot"
 CONF_BLIND_SPOT_RIGHT = "blind_spot_right"

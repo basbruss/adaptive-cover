@@ -22,6 +22,7 @@ from .const import (
     CONF_BLIND_SPOT_RIGHT,
     CONF_CLIMATE_MODE,
     CONF_DEFAULT_HEIGHT,
+    CONF_DEFAULT_HEIGHT_ENTITY,
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
     CONF_DISTANCE,
@@ -49,6 +50,7 @@ from .const import (
     CONF_MANUAL_THRESHOLD,
     CONF_MAX_ELEVATION,
     CONF_MAX_POSITION,
+    CONF_MAX_POSITION_ENTITY,
     CONF_MIN_ELEVATION,
     CONF_MODE,
     CONF_OUTSIDETEMP_ENTITY,
@@ -73,6 +75,7 @@ from .const import (
     DOMAIN,
     SensorType,
     CONF_MIN_POSITION,
+    CONF_MIN_POSITION_ENTITY,
     CONF_ENABLE_MAX_POSITION,
     CONF_ENABLE_MIN_POSITION,
     CONF_IS_HUB,
@@ -113,12 +116,21 @@ OPTIONS = vol.Schema(
                 min=0, max=100, step=1, mode="slider", unit_of_measurement="%"
             )
         ),
+        vol.Optional(CONF_DEFAULT_HEIGHT_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["input_number", "number", "sensor"])
+        ),
         vol.Optional(CONF_MAX_POSITION): vol.All(
             vol.Coerce(int), vol.Range(min=1, max=100)
+        ),
+        vol.Optional(CONF_MAX_POSITION_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["input_number", "number", "sensor"])
         ),
         vol.Optional(CONF_ENABLE_MAX_POSITION, default=False): bool,
         vol.Optional(CONF_MIN_POSITION): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=99)
+        ),
+        vol.Optional(CONF_MIN_POSITION_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["input_number", "number", "sensor"])
         ),
         vol.Optional(CONF_ENABLE_MIN_POSITION, default=False): bool,
         vol.Optional(CONF_MIN_ELEVATION): vol.All(
@@ -609,8 +621,13 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_HEIGHT_WIN: self.config.get(CONF_HEIGHT_WIN),
                 CONF_DISTANCE: self.config.get(CONF_DISTANCE),
                 CONF_DEFAULT_HEIGHT: self.config.get(CONF_DEFAULT_HEIGHT),
+                CONF_DEFAULT_HEIGHT_ENTITY: self.config.get(
+                    CONF_DEFAULT_HEIGHT_ENTITY
+                ),
                 CONF_MAX_POSITION: self.config.get(CONF_MAX_POSITION),
+                CONF_MAX_POSITION_ENTITY: self.config.get(CONF_MAX_POSITION_ENTITY),
                 CONF_MIN_POSITION: self.config.get(CONF_MIN_POSITION),
+                CONF_MIN_POSITION_ENTITY: self.config.get(CONF_MIN_POSITION_ENTITY),
                 CONF_FOV_LEFT: self.config.get(CONF_FOV_LEFT),
                 CONF_FOV_RIGHT: self.config.get(CONF_FOV_RIGHT),
                 CONF_ENTITIES: self.config.get(CONF_ENTITIES),
@@ -741,6 +758,9 @@ class OptionsFlowHandler(OptionsFlow):
             keys = [
                 CONF_MIN_ELEVATION,
                 CONF_MAX_ELEVATION,
+                CONF_DEFAULT_HEIGHT_ENTITY,
+                CONF_MIN_POSITION_ENTITY,
+                CONF_MAX_POSITION_ENTITY,
             ]
             self.optional_entities(keys, user_input)
             if (
@@ -780,6 +800,9 @@ class OptionsFlowHandler(OptionsFlow):
             keys = [
                 CONF_MIN_ELEVATION,
                 CONF_MAX_ELEVATION,
+                CONF_DEFAULT_HEIGHT_ENTITY,
+                CONF_MIN_POSITION_ENTITY,
+                CONF_MAX_POSITION_ENTITY,
             ]
             self.optional_entities(keys, user_input)
             if (
@@ -815,6 +838,9 @@ class OptionsFlowHandler(OptionsFlow):
             keys = [
                 CONF_MIN_ELEVATION,
                 CONF_MAX_ELEVATION,
+                CONF_DEFAULT_HEIGHT_ENTITY,
+                CONF_MIN_POSITION_ENTITY,
+                CONF_MAX_POSITION_ENTITY,
             ]
             self.optional_entities(keys, user_input)
             if (

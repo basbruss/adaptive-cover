@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import math
 
 from dateutil import parser
 from homeassistant.core import HomeAssistant, split_entity_id
@@ -14,6 +15,31 @@ def get_safe_state(hass: HomeAssistant, entity_id: str) -> str | None:
     if not state or state.state in ("unknown", "unavailable"):
         return None
     return state.state
+
+
+def get_numeric_state(hass: HomeAssistant, entity_id: str | None) -> float | None:
+    """Return an entity's state as a float, or None when it isn't usable.
+
+    None covers every "can't use this" case alike — no entity configured,
+    unknown/unavailable (via get_safe_state), a state that doesn't parse as
+    a number, or one that parses but isn't finite (NaN, +-inf) — so callers
+    get one thing to check rather than several. NaN in particular matters:
+    float("nan") parses without error, but a caller that then rounds or
+    clamps it (as _resolve_numeric_option does) would raise, turning one
+    entity's weird state into a coordinator-wide crash. Screening it out
+    here keeps every caller's "falls back to the configured value" contract
+    genuinely exception-free.
+    """
+    if entity_id is None:
+        return None
+    state = get_safe_state(hass, entity_id)
+    if state is None:
+        return None
+    try:
+        value = float(state)
+    except (TypeError, ValueError):
+        return None
+    return value if math.isfinite(value) else None
 
 
 def state_attr(hass: HomeAssistant, entity_id: str, attribute: str):
