@@ -17,6 +17,24 @@ def get_safe_state(hass: HomeAssistant, entity_id: str) -> str | None:
     return state.state
 
 
+def get_numeric_state(hass: HomeAssistant, entity_id: str | None) -> float | None:
+    """Return an entity's state as a float, or None when it isn't usable.
+
+    None covers every "can't use this" case alike — no entity configured,
+    unknown/unavailable (via get_safe_state), or a state that doesn't parse
+    as a number — so callers get one thing to check rather than several.
+    """
+    if entity_id is None:
+        return None
+    state = get_safe_state(hass, entity_id)
+    if state is None:
+        return None
+    try:
+        return float(state)
+    except (TypeError, ValueError):
+        return None
+
+
 def state_attr(hass: HomeAssistant, entity_id: str, attribute: str):
     """Return an attribute of a state, or None if state/attribute is missing.
 
