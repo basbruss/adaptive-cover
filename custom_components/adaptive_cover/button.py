@@ -83,7 +83,12 @@ class AdaptiveCoverButton(
         for entity in self._entities:
             if self.coordinator.manager.is_cover_manual(entity):
                 _LOGGER.debug("Resetting manual override for: %s", entity)
-                await self.coordinator.async_set_position(
+                # The position applied here is the algorithm's own
+                # (coordinator.state), not a fresh user choice — this
+                # button means "resume automatic control", so it's guarded
+                # by the opening sensor like any other algorithmic move
+                # (#498). See async_set_adaptive_position.
+                await self.coordinator.async_set_adaptive_position(
                     entity, self.coordinator.state
                 )
                 while self.coordinator.wait_for_target.get(entity):

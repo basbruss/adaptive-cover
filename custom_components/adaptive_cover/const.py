@@ -95,6 +95,12 @@ CONF_MANUAL_IGNORE_INTERMEDIATE = "manual_ignore_intermediate"
 #   protection and one that doesn't can't share the same entry — give the
 #   protected cover(s) their own entry if that's not already the case.
 CONF_NEVER_AUTO_CORRECT = "never_auto_correct"
+# Optional window/door contact sensor — see #498. While it reports open,
+# algorithmic (not user-explicit) closing moves are withheld for this
+# entry's covers. An unknown/unavailable state counts as OPEN, never
+# closed — a dead battery must degrade to "no protection", not "lie
+# closed" (see helpers.is_opening_open for the full fail-safe contract).
+CONF_OPENING_ENTITY = "opening_entity"
 
 # Security mode — closes covers when nobody is home.
 # The value is NOT stored in config options; the switch entity manages the
