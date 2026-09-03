@@ -43,6 +43,14 @@ class AdaptiveGeneralCover(ABC):
     blind_spot_on: bool
     min_elevation: int
     max_elevation: int
+    # See #497. None means "not configured" — falls back to h_def in
+    # default_for_season(). Deliberately no dataclass default: a Python
+    # default here would have to precede AdaptiveVerticalCover's own
+    # no-default fields (distance, h_win) below it in the MRO, which raises
+    # TypeError at import time. options.get(...) in coordinator.py already
+    # supplies None for an unconfigured field, so this costs nothing.
+    h_def_winter: int | None
+    h_def_summer: int | None
     sun_data: SunData = field(init=False)
 
     def __post_init__(self):
@@ -154,13 +162,32 @@ class AdaptiveGeneralCover(ABC):
         )
         return after_sunset or before_sunrise
 
+    def default_for_season(
+        self, *, is_winter: bool = False, is_summer: bool = False
+    ) -> float:
+        """Return the default position, optionally season-aware.
+
+        See #497. The sunset position always wins — it's a time-of-day
+        override for after dark, not a fallback for "sun not currently in
+        front of the window", and both conditions reach this same call.
+        Summer takes priority over winter when both are somehow true at
+        once, matching the priority ClimateCoverState.normal_with_presence
+        already gives them a few lines below. A season whose value isn't
+        configured (None, not falsy — 0 is a legitimate closed position)
+        falls back to h_def, same as calling this with no arguments at all.
+        """
+        if self.sunset_valid:
+            return self.sunset_pos
+        if is_summer and self.h_def_summer is not None:
+            return self.h_def_summer
+        if is_winter and self.h_def_winter is not None:
+            return self.h_def_winter
+        return self.h_def
+
     @property
     def default(self) -> float:
         """Change default position at sunset."""
-        default = self.h_def
-        if self.sunset_valid:
-            default = self.sunset_pos
-        return default
+        return self.default_for_season()
 
     def fov(self) -> list:
         """Return field of view."""
@@ -434,7 +461,11 @@ class ClimateCoverState(NormalCoverState):
         Priority tree (presence=True):
 
         1. Sun NOT in window (cover.valid=False)
-               → default position
+               → seasonal default (winter/summer), else the plain default —
+                 see #497. The sunset position still overrides all of this,
+                 unconditionally (default_for_season checks it first): this
+                 branch is also how the cover reaches its after-dark
+                 position, since valid=False at night too.
         2. Sun in window (cover.valid=True)
            a. WINTER  → 100% open
            b. SUMMER  → 0% closed (opaque) or basic (transparent)
@@ -446,8 +477,14 @@ class ClimateCoverState(NormalCoverState):
         is_summer = self.climate_data.is_summer
 
         if not self.cover.valid:
-            self.cover.logger.debug("n_w_p(): sun not in window → default")
-            return self.cover.default
+            default = self.cover.default_for_season(
+                is_winter=self.climate_data.is_winter,
+                is_summer=is_summer,
+            )
+            self.cover.logger.debug(
+                "n_w_p(): sun not in window → seasonal default (%s)", default
+            )
+            return default
 
         if not is_summer and self.climate_data.is_winter:
             self.cover.logger.debug(
