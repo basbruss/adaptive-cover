@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 from dataclasses import dataclass
+from functools import partial
 
 import numpy as np
 import pytz
@@ -22,7 +23,7 @@ from homeassistant.core import (
     State,
     callback,
 )
-from homeassistant.helpers.event import async_track_point_in_time
+from homeassistant.helpers.event import async_call_later, async_track_point_in_time
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .config_context_adapter import ConfigContextAdapter
@@ -100,6 +101,19 @@ from .const import (
 )
 from .helpers import get_datetime_from_str, get_last_updated, get_safe_state, is_presence_detected
 
+TARGET_POSITION_TOLERANCE = 1.0
+TARGET_WAIT_TIMEOUT = 120
+
+
+def positions_match(position, target) -> bool:
+    """Return whether a reported position matches a target within rounding tolerance."""
+    if position is None or target is None:
+        return False
+    try:
+        return abs(float(position) - float(target)) <= TARGET_POSITION_TOLERANCE
+    except (TypeError, ValueError):
+        return position == target
+
 
 @dataclass
 class StateChangedData:
@@ -167,6 +181,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.manager = AdaptiveCoverManager(self.manual_duration, self.logger)
         self.wait_for_target = {}
         self.target_call = {}
+        self._target_wait_unsub = {}
         self._climate_debug: dict | None = None
         self.ignore_intermediate_states = self.config_entry.options.get(
             CONF_MANUAL_IGNORE_INTERMEDIATE, False
@@ -219,14 +234,22 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.state_change_data = StateChangedData(
             data["entity_id"], data["old_state"], data["new_state"]
         )
-        if self.state_change_data.old_state.state != "unknown":
+        if (
+            self.state_change_data.old_state.state not in ("unknown", "unavailable")
+            and self.state_change_data.new_state is not None
+            and self.state_change_data.new_state.state
+            not in ("unknown", "unavailable")
+        ):
+            entity_id = self.state_change_data.entity_id
             self.cover_state_change = True
-            self.process_entity_state_change()
+            target_reached = self.process_entity_state_change()
             await self.async_refresh()
+            if target_reached:
+                self._clear_target_wait(entity_id)
         else:
-            self.logger.debug("Old state is unknown, not processing")
+            self.logger.debug("Cover state is unknown or unavailable, not processing")
 
-    def process_entity_state_change(self):
+    def process_entity_state_change(self) -> bool:
         """Process state change event."""
         event = self.state_change_data
         self.logger.debug("Processing state change event: %s", event)
@@ -236,19 +259,39 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             "closing",
         ]:
             self.logger.debug("Ignoring intermediate state change for %s", entity_id)
-            return
+            return False
         if self.wait_for_target.get(entity_id):
             position = event.new_state.attributes.get(
                 "current_position"
                 if self._cover_type != "cover_tilt"
                 else "current_tilt_position"
             )
-            if position == self.target_call.get(entity_id):
-                self.wait_for_target[entity_id] = False
-                self.logger.debug("Position %s reached for %s", position, entity_id)
+            target = self.target_call.get(entity_id)
+            if positions_match(position, target):
+                self.logger.debug(
+                    "Position %s reached target %s for %s", position, target, entity_id
+                )
+                return True
             self.logger.debug("Wait for target: %s", self.wait_for_target)
         else:
             self.logger.debug("No wait for target call for %s", entity_id)
+        return False
+
+    @callback
+    def _clear_target_wait(self, entity_id: str, timed_out: bool = False) -> None:
+        """Stop suppressing manual detection for an automatic target command."""
+        cancel_timeout = self._target_wait_unsub.pop(entity_id, None)
+        if cancel_timeout is not None:
+            cancel_timeout()
+        self.wait_for_target[entity_id] = False
+        self.target_call.pop(entity_id, None)
+        if timed_out:
+            self.logger.debug("Timed out waiting for target position for %s", entity_id)
+
+    @callback
+    def _async_target_wait_timeout(self, entity_id: str, _now: dt.datetime) -> None:
+        """Release target waiting when a cover never acknowledges the command."""
+        self._clear_target_wait(entity_id, timed_out=True)
 
     @callback
     def _async_cancel_update_listener(self) -> None:
@@ -464,6 +507,14 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
             self.wait_for_target[entity] = True
             self.target_call[entity] = state
+            cancel_timeout = self._target_wait_unsub.pop(entity, None)
+            if cancel_timeout is not None:
+                cancel_timeout()
+            self._target_wait_unsub[entity] = async_call_later(
+                self.hass,
+                TARGET_WAIT_TIMEOUT,
+                partial(self._async_target_wait_timeout, entity),
+            )
             self.logger.debug(
                 "Set wait for target %s and target call %s",
                 self.wait_for_target,
@@ -999,7 +1050,7 @@ class AdaptiveCoverManager:
         else:
             new_position = new_state.attributes.get("current_position")
 
-        if new_position != our_state:
+        if not positions_match(new_position, our_state):
             if (
                 manual_threshold is not None
                 and abs(our_state - new_position) < manual_threshold
