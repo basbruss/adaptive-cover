@@ -1,4 +1,4 @@
-# Adaptive Cover rako Edition 1.6.0
+# Adaptive Cover rako Edition 1.6.1
 
 [Polski](#polski) | [English](#english)
 
