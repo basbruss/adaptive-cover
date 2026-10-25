@@ -43,6 +43,7 @@ _SENSOR_TYPE_LABEL = {
     "cover_blind": "Vertical",
     "cover_awning": "Horizontal",
     "cover_tilt": "Tilt",
+    "cover_sloped": "Sloped",
 }
 
 

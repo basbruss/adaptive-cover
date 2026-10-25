@@ -30,6 +30,7 @@ from .config_context_adapter import ConfigContextAdapter
 
 from .calculation import (
     AdaptiveHorizontalCover,
+    AdaptiveSlopedCover,
     AdaptiveTiltCover,
     AdaptiveVerticalCover,
     ClimateCoverData,
@@ -95,6 +96,7 @@ from .const import (
     CONF_TILT_DEPTH,
     CONF_TILT_DISTANCE,
     CONF_TILT_MODE,
+    CONF_SURFACE_TILT,
     CONF_TRANSPARENT_BLIND,
     CONF_WEATHER_ENTITY,
     CONF_WEATHER_STATE,
@@ -675,6 +677,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 *self.common_data(options),
                 *self.tilt_data(options),
             )
+        if self._cover_type == "cover_sloped":
+            cover_data = AdaptiveSlopedCover(
+                self.hass,
+                self.logger,
+                *self.pos_sun,
+                *self.common_data(options),
+                *self.vertical_data(options),
+                *self.sloped_data(options),
+            )
         return cover_data
 
     @property
@@ -929,6 +940,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options.get(CONF_TILT_DISTANCE),
             options.get(CONF_TILT_DEPTH),
             options.get(CONF_TILT_MODE),
+        ]
+
+    @staticmethod
+    def sloped_data(options):
+        """Update data for sloped (roof / Velux) covers."""
+        return [
+            options.get(CONF_SURFACE_TILT),
         ]
 
     @property
