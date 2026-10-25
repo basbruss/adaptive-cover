@@ -44,8 +44,8 @@
           "end_entity": "Entité représentant l'état de l'heure de fin, remplaçant l'heure de fin fixe définie ci-dessus. Utile pour automatiser l'heure de fin avec une entité",
           "never_auto_correct": "Le contrôle manuel des volets où cette option est activée n'est levé que par une action explicite, jamais par le délai automatique.",
           "opening_entity": "Capteur d'ouverture d'une fenêtre ou d'une porte. Tant qu'il indique « ouvert », l'intégration ne ferme plus ce volet automatiquement. Un capteur inconnu ou indisponible est compté comme ouvert : une pile vide dégrade la protection au lieu de fermer sur une porte ouverte.",
-          "notify_delay": "Secondes avant que le volet ne se ferme réellement. 0 désactive complètement l'alerte. Permet de déclencher un avertissement (voix, notification, ...) avant le mouvement.",
-          "notify_threshold": "Position à partir de laquelle l'alerte se déclenche. S'applique uniquement lors du passage d'une position au-dessus de ce seuil à une position à ce seuil ou en dessous."
+          "notify_delay": "Secondes entre l'événement adaptive_cover_will_close et le mouvement réel lorsque l'intégration ferme un volet automatiquement. Les commandes manuelles, les scènes et le mode sécurité ne sont jamais retardés. 0 désactive la fonction.",
+          "notify_threshold": "Position à partir de laquelle un mouvement est considéré comme une fermeture. L'alerte ne se déclenche que lors du passage d'une position au-dessus de ce seuil à une position à ce seuil ou en dessous."
         }
       },
       "vertical": {
@@ -362,8 +362,8 @@
             "end_entity": "Assurez-vous que la position est systématiquement ajustée au paramètre de coucher de soleil par défaut à l'heure de fin. Ceci est particulièrement utile lorsque l'heure de fin précède le coucher de soleil réel.",
             "never_auto_correct": "Le contrôle manuel des volets où cette option est activée n'est levé que par une action explicite, jamais par le délai automatique.",
             "opening_entity": "Capteur d'ouverture d'une fenêtre ou d'une porte. Tant qu'il indique « ouvert », l'intégration ne ferme plus ce volet automatiquement. Un capteur inconnu ou indisponible est compté comme ouvert : une pile vide dégrade la protection au lieu de fermer sur une porte ouverte.",
-            "notify_delay": "Secondes avant que le volet ne se ferme réellement. 0 désactive complètement l'alerte. Permet de déclencher un avertissement (voix, notification, ...) avant le mouvement.",
-            "notify_threshold": "Position à partir de laquelle l'alerte se déclenche. S'applique uniquement lors du passage d'une position au-dessus de ce seuil à une position à ce seuil ou en dessous."
+            "notify_delay": "Secondes entre l'événement adaptive_cover_will_close et le mouvement réel lorsque l'intégration ferme un volet automatiquement. Les commandes manuelles, les scènes et le mode sécurité ne sont jamais retardés. 0 désactive la fonction.",
+            "notify_threshold": "Position à partir de laquelle un mouvement est considéré comme une fermeture. L'alerte ne se déclenche que lors du passage d'une position au-dessus de ce seuil à une position à ce seuil ou en dessous."
           }
       },
       "vertical": {

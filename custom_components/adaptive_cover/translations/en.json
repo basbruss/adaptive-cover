@@ -44,8 +44,8 @@
           "end_entity": "Entity representing ending time state, overriding the fixed end time set above. Useful for automating the end time with an entity",
           "never_auto_correct": "Manual control on covers where this is enabled is only cleared by an explicit action, never by the automatic timer.",
           "opening_entity": "Contact sensor for a window or door. While it reports open, the integration will not close this cover automatically. An unknown or unavailable sensor counts as open, so a flat battery degrades the protection instead of closing on an open door.",
-          "notify_delay": "Seconds before the cover actually closes. 0 disables the pre-close event entirely. Lets you hook a warning (voice, push, ...) before the cover moves.",
-          "notify_threshold": "Position at or below which the notice fires. Only applies when the cover is moving from above this value to at or below it."
+          "notify_delay": "Seconds between the adaptive_cover_will_close event and the actual move when the integration closes a cover automatically. Manual commands, scenes and security mode are never delayed. 0 disables the feature.",
+          "notify_threshold": "Position at or below which a move counts as closing. The notice only fires when the cover moves from above this value to at or below it."
         }
       },
       "vertical": {
@@ -364,8 +364,8 @@
           "end_entity": "Ensure that the position is consistently adjusted to the default sunset setting by the end time. This is particularly beneficial when the end time precedes the actual sunset.",
           "never_auto_correct": "Manual control on covers where this is enabled is only cleared by an explicit action, never by the automatic timer.",
           "opening_entity": "Contact sensor for a window or door. While it reports open, the integration will not close this cover automatically. An unknown or unavailable sensor counts as open, so a flat battery degrades the protection instead of closing on an open door.",
-          "notify_delay": "Seconds before the cover actually closes. 0 disables the pre-close event entirely. Lets you hook a warning (voice, push, ...) before the cover moves.",
-          "notify_threshold": "Position at or below which the notice fires. Only applies when the cover is moving from above this value to at or below it."
+          "notify_delay": "Seconds between the adaptive_cover_will_close event and the actual move when the integration closes a cover automatically. Manual commands, scenes and security mode are never delayed. 0 disables the feature.",
+          "notify_threshold": "Position at or below which a move counts as closing. The notice only fires when the cover moves from above this value to at or below it."
         }
       },
       "vertical": {

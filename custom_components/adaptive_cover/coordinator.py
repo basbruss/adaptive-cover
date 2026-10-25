@@ -590,57 +590,11 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         is meant to intercept. See async_set_adaptive_position for the
         algorithm-chosen counterpart, which is guarded.
 
-        If pre-close notification is configured (CONF_NOTIFY_DELAY > 0) and
-        this move crosses into "closing" territory, the move is delayed and
-        EVENT_WILL_CLOSE is fired first — see _schedule_close_notice.
-
-        Three cases, handled in this order:
-
-        1. Target is above the notify threshold ("opening" or "not closing"
-           enough to matter): any pending close for this entity is a stale
-           decision that's just been superseded — cancel it, then apply the
-           new, safer position right away. This is deliberately unconditional
-           (not gated behind a threshold check first) so a legitimate "open
-           back up" decision is never swallowed by an in-flight close timer.
-        2. Target is at/below the threshold and a close is already counting
-           down for this entity: do nothing. Letting the existing timer run
-           to completion is the whole point — without this, the very next
-           refresh cycle that reaches the same "close" conclusion would
-           short-circuit the delay by falling through to case 3 below.
-        3. Target is at/below the threshold and nothing is pending: schedule
-           a new notice (or apply immediately if notifications are off).
-
-        Two known, deliberately-accepted limitations, rather than silently
-        left unhandled:
-
-        - If the cover's current position can't be read (case 3, ``current
-          is None``), a notice is fired on the safe assumption that it's
-          worth a heads-up. ``async_set_manual_position`` may then no-op at
-          apply time (it also can't confirm the position differs), so the
-          event can rarely announce a move that doesn't actually happen. The
-          alternative — staying silent whenever the position is unknown — was
-          judged worse: it would mean never warning at all for a cover whose
-          state is flaky, which is exactly when a warning matters most.
-        - A very long delay (up to 600s) applies the position computed
-          *when the notice was scheduled*; case 2 doesn't refresh it if the
-          decision's magnitude changes while still below the threshold (a
-          higher, still-closing value doesn't retrigger case 1). The error
-          this can introduce is bounded to the [0, notify_threshold] range,
-          and is expected to matter only at delays well past what anyone
-          would realistically configure for a "you're about to be shut out"
-          warning.
+        Also NOT subject to the pre-close notification (#494): that
+        warning exists for decisions the integration makes on its own. Any
+        pending automatic close for this cover is cancelled by
+        async_set_manual_position, so an explicit user move always wins.
         """
-        if state > self._notify_threshold:
-            self._cancel_pending_close(entity)
-            await self.async_set_manual_position(entity, state)
-            return
-        if entity in self._pending_close:
-            return
-        if self._notify_delay > 0:
-            current = self._get_current_position(entity)
-            if current is None or current > self._notify_threshold:
-                self._schedule_close_notice(entity, state)
-                return
         await self.async_set_manual_position(entity, state)
 
     def _closing_blocked_by_opening(self, options, entity: str, target: int) -> bool:
@@ -683,7 +637,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         return target < current
 
     async def async_set_adaptive_position(
-        self, entity, state: int, options=None
+        self, entity, state: int, options=None, *, notify: bool = True
     ) -> bool:
         """Apply an ALGORITHM-chosen position, honoring the opening guard.
 
@@ -707,8 +661,17 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         silently treated as closed), a move that would close this cover is
         withheld rather than sent.
 
-        Returns True if the move was actually sent (or bypassed the guard
-        because it wasn't a closing move), False if withheld. Callers that
+        Pre-close notification (#494): when CONF_NOTIFY_DELAY > 0 and this
+        move brings the cover into the closing zone (see _in_close_zone),
+        EVENT_WILL_CLOSE is fired and the move is applied after the delay
+        instead of now — see _schedule_close_notice. ``notify=False`` skips
+        this (security mode: "secure the house now" must not wait).
+        While a notice is pending, a later decision that is still in the
+        closing zone leaves the timer running; one that is not cancels it
+        and is applied immediately.
+
+        Returns True if the move was actually sent now, False if withheld
+        or deferred by a pre-close notice. Callers that
         wait on wait_for_target after this — currently only button.py's
         manual-override reset — must check this before waiting: a withheld
         move never sets wait_for_target (that only happens inside
@@ -724,8 +687,32 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 entity,
             )
             return False
+        if notify and self._notify_delay > 0 and self._in_close_zone(state):
+            if entity in self._pending_close:
+                self.logger.debug(
+                    "Close of %s already pending a pre-close notice", entity
+                )
+                return False
+            current = self._get_current_position(entity)
+            if current is None or not self._in_close_zone(current):
+                self._schedule_close_notice(entity, state)
+                return False
         await self.async_set_manual_position(entity, state)
         return True
+
+    def _in_close_zone(self, position) -> bool:
+        """Return True when a raw *position* is at or past the notify threshold.
+
+        CONF_NOTIFY_THRESHOLD is expressed on the integration's own scale
+        (0 = closed). For an inverted cover the raw scale is flipped, so
+        "at or below 20 %" becomes "at or above 80 %" in raw positions —
+        same convention as is_closing_move().
+        """
+        if position is None:
+            return False
+        if self._inverse_state:
+            return position >= 100 - self._notify_threshold
+        return position <= self._notify_threshold
 
     def _cancel_pending_close(self, entity: str) -> None:
         """Cancel and drop a pending close notice for entity, if any."""
@@ -734,7 +721,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             cancel()
             self.logger.debug(
                 "Cancelled pending close notice for %s: superseded by a "
-                "newer, non-closing decision",
+                "newer decision",
                 entity,
             )
 
@@ -776,6 +763,15 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     entity,
                 )
                 return
+            if self._closing_blocked_by_opening(
+                self.config_entry.options, entity, state
+            ):
+                self.logger.debug(
+                    "Skipping delayed close of %s: opening sensor reports "
+                    "open",
+                    entity,
+                )
+                return
             await self.async_set_manual_position(entity, state)
 
         self._pending_close[entity] = async_call_later(
@@ -790,7 +786,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._pending_close.clear()
 
     async def async_set_manual_position(self, entity, state):
-        """Call service to set cover position."""
+        """Call service to set cover position.
+
+        Any move requested here supersedes a pending pre-close notice for
+        the same cover (the delayed apply pops its own entry first).
+        """
+        self._cancel_pending_close(entity)
         if self.check_position(entity, state):
             service = SERVICE_SET_COVER_POSITION
             service_data = {}
@@ -878,7 +879,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 entity,
             )
 
-        await self.async_set_adaptive_position(entity, pos, options)
+        await self.async_set_adaptive_position(entity, pos, options, notify=False)
 
     @property
     def security_active(self) -> bool:
