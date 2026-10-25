@@ -558,10 +558,12 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     def _closing_blocked_by_opening(self, options, entity: str, target: int) -> bool:
         """Return True when *target* would close *entity* while its opening sensor is open.
 
-        Only downward moves are blocked (target < current position) —
-        opening moves and no-ops always pass, so this can never itself
-        cause a shutter to trap someone, only prevent one from closing on
-        an open door.
+        Only closing moves are blocked — opening moves and no-ops always
+        pass, so this can never itself cause a shutter to trap someone,
+        only prevent one from closing on an open door. "Closing" is decided
+        by is_closing_move(), which honors CONF_INVERSE_STATE: for an
+        inverted cover the raw position scale is flipped (100 = closed), so
+        a closing move is target > current there.
 
         current position unknown (None) -> returns False, i.e. not
         blocked. That's safe, not lax: check_position() already suppresses
@@ -574,12 +576,40 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         current = self._get_current_position(entity)
         if current is None:
             return False
+        return self.is_closing_move(current, target)
+
+    def is_closing_move(self, current, target) -> bool:
+        """Return True when moving from *current* to *target* closes the cover.
+
+        Both values are raw positions as sent to / reported by the cover
+        entity. With CONF_INVERSE_STATE the cover's scale is flipped
+        (0 = open, 100 = closed) — ``state`` already inverts the computed
+        position before it reaches any caller — so the comparison flips
+        too. check_position/check_position_delta compare with abs() and so
+        never needed this; a directional test does.
+        """
+        if current is None or target is None:
+            return False
+        if self._inverse_state:
+            return target > current
         return target < current
 
     async def async_set_adaptive_position(
         self, entity, state: int, options=None
     ) -> bool:
         """Apply an ALGORITHM-chosen position, honoring the opening guard.
+
+        This is the single entry point for every move the integration
+        decides on by itself. Features that should only ever affect
+        automatic moves (the opening guard here, and anything layered on
+        later) hook in here, never in async_set_position or
+        async_set_manual_position, which user-initiated paths (cover
+        entity, hub scenes/select) use.
+
+        It does not check manual override itself: callers already skip
+        covers under manual override (which, with never_auto_correct from
+        #501, can be indefinitely), except the reset button, whose whole
+        purpose is to hand a manual cover back to the algorithm.
 
         Counterpart of async_set_position, reserved for positions the
         integration itself decided on (state-change recompute, first
@@ -657,9 +687,10 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         must not block the automatic return to adaptive positioning when
         presence is restored.
 
-        Unlike #501's ``never_auto_correct`` guard, which security mode
-        deliberately overrides, the window/door opening guard (#498) DOES
-        apply here: security mode fires exactly when no presence is
+        Like every other algorithmic path, security mode skips covers under
+        manual override (see the check below) — so a cover held by #501's
+        ``never_auto_correct`` stays untouched here too. On top of that,
+        the window/door opening guard (#498) applies here as well: security mode fires exactly when no presence is
         detected, which is the canonical false-negative case (someone on
         the terrace, phone left indoors). Closing a shutter over a
         physically open door protects nothing — the opening stays
