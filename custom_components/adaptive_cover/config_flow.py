@@ -983,6 +983,9 @@ class OptionsFlowHandler(OptionsFlow):
             keys = [
                 CONF_MIN_ELEVATION,
                 CONF_MAX_ELEVATION,
+                CONF_DEFAULT_HEIGHT_ENTITY,
+                CONF_MIN_POSITION_ENTITY,
+                CONF_MAX_POSITION_ENTITY,
             ]
             self.optional_entities(keys, user_input)
             if (
