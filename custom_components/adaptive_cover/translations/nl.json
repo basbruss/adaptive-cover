@@ -228,7 +228,7 @@
       "sloped": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-          "window_height": "Glazing length (along the slope)",
+          "window_height": "Lengte van de beglazing (langs de helling)",
           "distance_shaded_area": "Beschaduwde gebied",
           "default_percentage": "Standaard positie",
           "min_position": "Minimale positie",
@@ -241,12 +241,13 @@
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
+          "sunrise_offset": "Afwijking Zonsopkomst",
           "climate_mode": "Klimaatmodus",
           "blind_spot": "Configureer schaduwzone",
           "min_elevation": "Minimale zonhoogte",
           "max_elevation": "Maximale zonhoogte",
           "interp": "Stel aangepaste open/sluit posities in voor jouw Cover, als deze niet volledig functioneert bij 0-100%",
-          "surface_tilt": "Roof pitch (tilt from horizontal)"
+          "surface_tilt": "Dakhelling (hoek ten opzichte van horizontaal)"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -262,10 +263,10 @@
           "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
           "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
           "climate_mode": "Configureer variabelen voor klimaatmodus",
-          "surface_tilt": "Glazing inclination: 90° = vertical window, 0° = flat skylight"
+          "surface_tilt": "Hellingshoek van de beglazing: 90° = verticaal raam, 0° = plat dakraam (lichtkoepel)"
         },
         "description": "Voeg configuratie variabelen toe",
-        "title": "Sloped cover (roof / Velux)"
+        "title": "Schuin scherm (dakraam / Velux)"
       }
     }
   },
@@ -492,7 +493,7 @@
       "sloped": {
         "data": {
           "set_azimuth": "Raam Azimuth",
-          "window_height": "Glazing length (along the slope)",
+          "window_height": "Lengte van de beglazing (langs de helling)",
           "distance_shaded_area": "Beschaduwde gebied",
           "default_percentage": "Standaard positie",
           "min_position": "Minimale positie",
@@ -505,12 +506,13 @@
           "inverse_state": "Draai de status om (nodig voor sommige covers die omgekeerde percentages hanteren)",
           "sunset_position": "Zonsondergang Posistie",
           "sunset_offset": "Afwijking Zonsondergang",
+          "sunrise_offset": "Afwijking Zonsopkomst",
           "climate_mode": "Klimaatmodus",
           "blind_spot": "Configureer schaduwzone",
           "min_elevation": "Minimale zonhoogte",
           "max_elevation": "Maximale zonhoogte",
           "interp": "Stel aangepaste open/sluit posities in voor jouw Cover, als deze niet volledig functioneert bij 0-100%",
-          "surface_tilt": "Roof pitch (tilt from horizontal)"
+          "surface_tilt": "Dakhelling (hoek ten opzichte van horizontaal)"
         },
         "data_description": {
           "set_azimuth": "Stel Azimuth in",
@@ -526,10 +528,10 @@
           "sunset_offset": "Verschil (±) vanaf zonsondergang in minuten",
           "sunrise_offset": "Verschil (±) vanaf zonsopkomst in minuten",
           "climate_mode": "Configureer variabelen voor klimaatmodus",
-          "surface_tilt": "Glazing inclination: 90° = vertical window, 0° = flat skylight"
+          "surface_tilt": "Hellingshoek van de beglazing: 90° = verticaal raam, 0° = plat dakraam (lichtkoepel)"
         },
         "description": "Voeg configuratie variabelen toe",
-        "title": "Sloped cover (roof / Velux)"
+        "title": "Schuin scherm (dakraam / Velux)"
       }
     }
   },
@@ -539,7 +541,7 @@
         "cover_blind": "Verticaal scherm",
         "cover_awning": "Horizontaal scherm",
         "cover_tilt": "Kantelbaar scherm",
-        "cover_sloped": "Roof window / skylight (Velux)"
+        "cover_sloped": "Dakraam / lichtkoepel (Velux)"
       }
     },
     "tilt_mode": {

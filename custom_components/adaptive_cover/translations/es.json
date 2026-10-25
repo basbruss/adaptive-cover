@@ -233,7 +233,7 @@
       "sloped": {
         "data": {
           "set_azimuth": "Azimut de la ventana",
-          "window_height": "Glazing length (along the slope)",
+          "window_height": "Longitud del acristalamiento (a lo largo de la pendiente)",
           "distance_shaded_area": "Área sombreada",
           "default_percentage": "Posición por defecto",
           "min_position": "Posición mínima",
@@ -252,7 +252,7 @@
           "min_elevation": "Elevación mínima del sol",
           "max_elevation": "Elevación máxima del sol",
           "interp": "Configurar posiciones personalizadas para posiciones abierto/cerrado de My Cover, si no funcionan sobre aperturas 0-100%",
-          "surface_tilt": "Roof pitch (tilt from horizontal)"
+          "surface_tilt": "Pendiente del tejado (inclinación respecto a la horizontal)"
         },
         "data_description": {
           "set_azimuth": "Indicar azimut",
@@ -268,10 +268,10 @@
           "sunset_offset": "Desfase (±) desde el Ocaso en minutos",
           "sunrise_offset": "Desfase (±) desde el Orto en minutos",
           "climate_mode": "Configurar variables para el modo clima",
-          "surface_tilt": "Glazing inclination: 90° = vertical window, 0° = flat skylight"
+          "surface_tilt": "Inclinación del acristalamiento: 90° = ventana vertical, 0° = claraboya plana"
         },
         "description": "Agregar variables de configuración al sensor",
-        "title": "Sloped cover (roof / Velux)"
+        "title": "Persiana de ventana de tejado (Velux)"
       }
     }
   },
@@ -511,7 +511,7 @@
       "sloped": {
         "data": {
           "set_azimuth": "Azimut de ventana",
-          "window_height": "Glazing length (along the slope)",
+          "window_height": "Longitud del acristalamiento (a lo largo de la pendiente)",
           "distance_shaded_area": "Área sombreada",
           "default_percentage": "Posición predeterminada",
           "min_position": "Posición mínima",
@@ -530,7 +530,7 @@
           "min_elevation": "Elevación mínima del sol",
           "max_elevation": "Elevación máxima del sol",
           "interp": "Establezca posiciones de apertura y cierre personalizadas para My Cover, si no funciona completamente al 0-100 %",
-          "surface_tilt": "Roof pitch (tilt from horizontal)"
+          "surface_tilt": "Pendiente del tejado (inclinación respecto a la horizontal)"
         },
         "data_description": {
           "set_azimuth": "Ajustar azimut",
@@ -546,10 +546,10 @@
           "sunset_offset": "Desfase (±) respecto del Ocaso en minutos",
           "sunrise_offset": "Desfase (±) respecto del Orto en minutos",
           "climate_mode": "Configurar variables para Modo Clima",
-          "surface_tilt": "Glazing inclination: 90° = vertical window, 0° = flat skylight"
+          "surface_tilt": "Inclinación del acristalamiento: 90° = ventana vertical, 0° = claraboya plana"
         },
         "description": "Agregar variables de configuración al sensor",
-        "title": "Sloped cover (roof / Velux)"
+        "title": "Persiana de ventana de tejado (Velux)"
       }
     }
   },
@@ -559,7 +559,7 @@
         "cover_blind": "Persiana vertical",
         "cover_awning": "Persiana horizontal",
         "cover_tilt": "Persiana inclinada",
-        "cover_sloped": "Roof window / skylight (Velux)"
+        "cover_sloped": "Ventana de tejado / claraboya (Velux)"
       }
     },
     "tilt_mode": {
