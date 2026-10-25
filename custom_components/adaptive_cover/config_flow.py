@@ -268,7 +268,7 @@ SLOPED_OPTIONS = vol.Schema(
             )
         ),
     }
-).extend(VERTICAL_OPTIONS.schema)
+).extend(_VERTICAL_BASE_OPTIONS.schema)
 
 CLIMATE_OPTIONS = vol.Schema(
     {
