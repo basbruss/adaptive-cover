@@ -598,24 +598,74 @@ class AdaptiveSlopedCover(AdaptiveVerticalCover):
     :class:`AdaptiveVerticalCover`), 0° a flat skylight. ``h_win`` is reused as
     the glazing length measured along the slope, ``distance`` as the depth of
     the work area to keep shaded.
+
+    Limitation: the shaded depth ``distance`` is measured on a plane level with
+    the *lower edge of the glazing*. There is no sill / light-well height
+    between the glazing and the work area, so for a flat skylight
+    (``surface_tilt = 0``) the position is always ``distance / h_win``,
+    independent of the sun elevation, and low-pitch roofs are only weakly
+    elevation dependent. Tune ``distance`` (glare zone) accordingly.
+
+    Sun validity is not limited by the 90° field-of-view cap used by the other
+    cover types: a low-pitch roof window also receives direct sun from behind
+    its azimuth (``|γ| > 90°``) as long as the sun is in front of the glazing
+    plane. A field of view set below 90° on a side still restricts that side.
     """
 
     surface_tilt: float
+
+    @property
+    def _incidence(self) -> float:
+        """Cosine of the angle between the sun and the glazing normal.
+
+        ``sin ε·cos θ + cos ε·sin θ·cos γ``; positive when the sun is in front
+        of the glazing plane. Equals ``cos ε`` times the position denominator
+        ``cos θ·tan ε + sin θ·cos γ``, so both share the same sign for ε < 90°.
+        """
+        tilt = rad(self.surface_tilt)
+        elev = rad(self.sol_elev)
+        return sin(elev) * cos(tilt) + cos(elev) * sin(tilt) * cos(rad(self.gamma))
+
+    @property
+    def valid(self) -> bool:
+        """Determine if the sun shines on the front of the glazing."""
+        gamma = self.gamma
+        # A field of view narrowed below 90° still limits the azimuth range
+        # (e.g. to exclude obstructions); at 90° (the maximum) a side is
+        # unrestricted, so the incidence check alone decides.
+        left_ok = self.fov_left is None or self.fov_left >= 90 or gamma < self.fov_left
+        right_ok = (
+            self.fov_right is None or self.fov_right >= 90 or gamma > -self.fov_right
+        )
+        valid = (
+            bool(self._incidence > 0)
+            and left_ok
+            and right_ok
+            and bool(self.valid_elevation)
+        )
+        self.logger.debug(
+            "Sun in front of sloped glazing (ignoring blindspot)? %s", valid
+        )
+        return valid
 
     def calculate_position(self) -> float:
         """Slope-distance to cover, measured from the lower edge.
 
         Derived from projecting the grazing ray through a point at slope
-        distance ``s`` onto the floor: ``d = s·cos(tilt) + (s·sin(tilt)/tan(ε))·cos(γ)``.
-        Solving for ``s`` and reducing to the vertical formula at ``tilt = 90°``.
+        distance ``s`` onto the plane of the lower glazing edge:
+        ``d = s·cos(tilt) + (s·sin(tilt)/tan(ε))·cos(γ)``. Solving for ``s``
+        gives ``s = d·tan(ε) / (cos(tilt)·tan(ε) + sin(tilt)·cos(γ))``, which
+        reduces to the vertical formula at ``tilt = 90°``.
+
+        When the sun grazes or sits behind the glazing plane there is no direct
+        beam, so the default position (expressed as slope distance) is used.
         """
         tilt = rad(self.surface_tilt)
         denominator = cos(tilt) * tan(rad(self.sol_elev)) + sin(tilt) * cos(
             rad(self.gamma)
         )
-        # Sun grazing the plane or behind it → no useful beam, cover fully.
         if denominator <= 0:
-            return self.h_win
+            return self.default / 100 * self.h_win
         position = np.clip(
             self.distance * tan(rad(self.sol_elev)) / denominator,
             0,
