@@ -86,6 +86,8 @@
           "outside_temp": "Buitentemperatuur sensor (optioneel)",
           "temp_low": "Minimale comfort temperatuur",
           "temp_high": "Maximale comfort temperatuur",
+          "default_percentage_winter": "Standaardpositie — winter (optioneel)",
+          "default_percentage_summer": "Standaardpositie — zomer (optioneel)",
           "lux_entity": "Lux sensor (optioneel)",
           "lux_threshold": "Lux drempelwaarde",
           "irradiance_entity": "Stralingsintensiteit sensor (optioneel)",
@@ -98,6 +100,8 @@
           "outside_temp": "Overschrijft de buitentemperatuur van de weerentiteit als beide zijn ingesteld",
           "temp_low": "Minimale comfortabele temperatuur",
           "temp_high": "Maximale comfortabele temperatuur",
+          "default_percentage_winter": "Positie wanneer de zon niet voor het raam staat en de winterstand (verwarmen) actief is. Laat leeg om de standaardpositie te gebruiken.",
+          "default_percentage_summer": "Positie wanneer de zon niet voor het raam staat en de zomerstand (koelen) actief is. Laat leeg om de standaardpositie te gebruiken.",
           "lux_entity": "Gebruik lux-sensor om te bepalen of de cover schittering moet verminderen in aanwezigheidsmodus",
           "lux_threshold": "Drempelwaarde voor lux-sensor, boven deze waarde moet schittering worden verminderd",
           "irradiance_entity": "Gebruik stralingsintensiteitssensor om te bepalen of de cover schittering moet verminderen in aanwezigheidsmodus",
@@ -363,6 +367,8 @@
           "outside_temp": "Buitentemperatuur sensor (optioneel)",
           "temp_low": "Minimale comfort temperatuur",
           "temp_high": "Maximale comfort temperatuur",
+          "default_percentage_winter": "Standaardpositie — winter (optioneel)",
+          "default_percentage_summer": "Standaardpositie — zomer (optioneel)",
           "outside_threshold": "Minimale buitentemperatuur voor zomermodus"
         },
         "data_description": {
@@ -370,7 +376,9 @@
           "weather_entity": "Controleert weersomstandigheden, en buitentemperatuur",
           "outside_temp": "Overschrijft de buitentemperatuur van de weerentiteit als beide zijn ingesteld",
           "temp_low": "Minimale comfortabele temperatuur",
-          "temp_high": "Maximale comfortabele temperatuur"
+          "temp_high": "Maximale comfortabele temperatuur",
+          "default_percentage_winter": "Positie wanneer de zon niet voor het raam staat en de winterstand (verwarmen) actief is. Laat leeg om de standaardpositie te gebruiken.",
+          "default_percentage_summer": "Positie wanneer de zon niet voor het raam staat en de zomerstand (koelen) actief is. Laat leeg om de standaardpositie te gebruiken."
         },
         "description": "Voeg additionele klimaat configuratie variabelen toe. Weer and Aanwezigheid entiteiten zijn optioneel",
         "title": "Klimaat instellingen"

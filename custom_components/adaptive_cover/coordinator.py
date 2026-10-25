@@ -777,6 +777,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 *self.common_data(options),
                 *self.vertical_data(options),
                 shaded_height_delta=options.get(CONF_SHADED_HEIGHT_DELTA, 0.0),
+                **self.seasonal_defaults(options),
             )
         if self._cover_type == "cover_awning":
             cover_data = AdaptiveHorizontalCover(
@@ -786,6 +787,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 *self.common_data(options),
                 *self.vertical_data(options),
                 *self.horizontal_data(options),
+                **self.seasonal_defaults(options),
             )
         if self._cover_type == "cover_tilt":
             cover_data = AdaptiveTiltCover(
@@ -794,6 +796,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 *self.pos_sun,
                 *self.common_data(options),
                 *self.tilt_data(options),
+                **self.seasonal_defaults(options),
             )
         if self._cover_type == "cover_sloped":
             cover_data = AdaptiveSlopedCover(
@@ -803,6 +806,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 *self.common_data(options),
                 *self.vertical_data(options),
                 *self.sloped_data(options),
+                **self.seasonal_defaults(options),
             )
         return cover_data
 
@@ -951,9 +955,19 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options.get(CONF_ENABLE_BLIND_SPOT, False),
             options.get(CONF_MIN_ELEVATION, None),
             options.get(CONF_MAX_ELEVATION, None),
-            options.get(CONF_DEFAULT_HEIGHT_WINTER),
-            options.get(CONF_DEFAULT_HEIGHT_SUMMER),
         ]
+
+    @staticmethod
+    def seasonal_defaults(options) -> dict:
+        """Keyword arguments for the seasonal default positions (#497).
+
+        Passed by keyword, not appended to common_data's positional list,
+        so adding or reordering cover fields can't silently shift them.
+        """
+        return {
+            "h_def_winter": options.get(CONF_DEFAULT_HEIGHT_WINTER),
+            "h_def_summer": options.get(CONF_DEFAULT_HEIGHT_SUMMER),
+        }
 
     def get_climate_data(self, options):
         """Update climate data."""

@@ -44,13 +44,12 @@ class AdaptiveGeneralCover(ABC):
     min_elevation: int
     max_elevation: int
     # See #497. None means "not configured" — falls back to h_def in
-    # default_for_season(). Deliberately no dataclass default: a Python
-    # default here would have to precede AdaptiveVerticalCover's own
-    # no-default fields (distance, h_win) below it in the MRO, which raises
-    # TypeError at import time. options.get(...) in coordinator.py already
-    # supplies None for an unconfigured field, so this costs nothing.
-    h_def_winter: int | None
-    h_def_summer: int | None
+    # default_for_season(). Keyword-only with a default: kw_only fields are
+    # moved to the end of __init__, so they neither shift the positional
+    # arguments the coordinator passes nor clash with the no-default fields
+    # subclasses (distance, h_win, ...) add after them.
+    h_def_winter: int | None = field(default=None, kw_only=True)
+    h_def_summer: int | None = field(default=None, kw_only=True)
     sun_data: SunData = field(init=False)
 
     def __post_init__(self):
