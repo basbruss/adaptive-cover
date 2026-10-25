@@ -786,6 +786,9 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options, CONF_MAX_POSITION, CONF_MAX_POSITION_ENTITY,
             minimum=0, maximum=100,
         )
+        self._min_position, self._max_position = self._validate_position_bounds(
+            options, self._min_position, self._max_position
+        )
 
     def _update_manager_and_covers(self):
         self.manager.add_covers(self.entities)
@@ -1006,6 +1009,51 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             "%s resolved from entity %s to %s", conf_key, entity_id, value
         )
         return value
+
+    def _validate_position_bounds(self, options, min_pos, max_pos):
+        """Return a consistent (min_position, max_position) pair.
+
+        Only relevant when at least one bound comes from an entity (#496):
+        two live helpers can drift so that min >= max, which would make
+        calculation.py clamp to max for high targets and to min for low
+        ones — the cover would jump between two contradictory limits.
+
+        Resolution when min >= max:
+          1. Replace every entity-sourced bound with its configured value.
+          2. If the pair is still inconsistent (or a configured value is
+             missing), keep the floor and drop the ceiling: min_position is
+             the safety-relevant guard (a cover that must never fully
+             close), max_position only limits how far it opens.
+        A warning is logged once per conflict, not on every refresh.
+        Purely static configurations are returned unchanged.
+        """
+        from_entity = options.get(CONF_MIN_POSITION_ENTITY) or options.get(
+            CONF_MAX_POSITION_ENTITY
+        )
+        warn_key = "position_bounds"
+        if not from_entity or min_pos is None or max_pos is None or min_pos < max_pos:
+            self._numeric_entity_warned.discard(warn_key)
+            return min_pos, max_pos
+
+        new_min, new_max = min_pos, max_pos
+        if options.get(CONF_MIN_POSITION_ENTITY):
+            new_min = options.get(CONF_MIN_POSITION)
+        if options.get(CONF_MAX_POSITION_ENTITY):
+            new_max = options.get(CONF_MAX_POSITION)
+        if new_min is None or new_max is None or new_min >= new_max:
+            new_min, new_max = min_pos, None
+
+        if warn_key not in self._numeric_entity_warned:
+            self._numeric_entity_warned.add(warn_key)
+            self.logger.warning(
+                "min_position (%s) is not below max_position (%s); "
+                "using min_position=%s, max_position=%s instead",
+                min_pos,
+                max_pos,
+                new_min,
+                new_max,
+            )
+        return new_min, new_max
 
     def common_data(self, options):
         """Update shared parameters."""
