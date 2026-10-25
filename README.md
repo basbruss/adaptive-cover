@@ -274,6 +274,7 @@ Security mode closes covers automatically when nobody is home, regardless of the
 | ----------------- | ------- | ----- | ------------------------------------------------------------------------------------------- |
 | Window Height     | 2.1     | 0.1-6 | Length of fully extended cover/window                                                       |
 | Glare Zone        | 0.5     | 0.1-2 | Objects within this distance of the cover receive direct sunlight |
+| Shaded Area Height Adjustment | 0 | -3-3 | Height (m) of the shaded area relative to the bottom of the closed blind; positive keeps the blind further open when the area to protect (e.g. a desk) is higher up. Vertical blinds only |
 
 ### Horizontal
 
