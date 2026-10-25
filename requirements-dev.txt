@@ -5,3 +5,5 @@ colorlog~=6.10
 pvlib~=0.15
 matplotlib~=3.11
 ipykernel~=7.3
+pytest~=9.1
+pytest-asyncio~=1.4

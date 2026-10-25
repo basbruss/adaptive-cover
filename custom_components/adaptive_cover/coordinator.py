@@ -60,6 +60,7 @@ from .const import (
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
     CONF_HEIGHT_WIN,
+    CONF_SHADED_HEIGHT_DELTA,
     CONF_INTERP,
     CONF_INTERP_END,
     CONF_INTERP_LIST,
@@ -299,6 +300,21 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
     def _async_target_wait_timeout(self, entity_id: str, _now: dt.datetime) -> None:
         """Release target waiting when a cover never acknowledges the command."""
         self._clear_target_wait(entity_id, timed_out=True)
+
+    @callback
+    def _async_cancel_target_wait_timers(self) -> None:
+        """Cancel all pending target-wait release timers."""
+        for cancel_timeout in self._target_wait_unsub.values():
+            cancel_timeout()
+        self._target_wait_unsub.clear()
+
+    async def async_shutdown(self) -> None:
+        """Cancel pending target-wait timers when the coordinator shuts down.
+
+        The base coordinator registers this on config entry unload.
+        """
+        self._async_cancel_target_wait_timers()
+        await super().async_shutdown()
 
     @callback
     def _async_cancel_update_listener(self) -> None:
@@ -642,6 +658,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 *self.pos_sun,
                 *self.common_data(options),
                 *self.vertical_data(options),
+                shaded_height_delta=options.get(CONF_SHADED_HEIGHT_DELTA, 0.0),
             )
         if self._cover_type == "cover_awning":
             cover_data = AdaptiveHorizontalCover(
@@ -1096,6 +1113,8 @@ class AdaptiveCoverManager:
         if not positions_match(new_position, our_state):
             if (
                 manual_threshold is not None
+                and new_position is not None
+                and our_state is not None
                 and abs(our_state - new_position) < manual_threshold
             ):
                 self.logger.debug(

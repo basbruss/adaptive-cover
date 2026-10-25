@@ -56,6 +56,7 @@ from .const import (
     CONF_PRESENCE_ENTITY,
     CONF_RETURN_SUNSET,
     CONF_SENSOR_TYPE,
+    CONF_SHADED_HEIGHT_DELTA,
     CONF_START_ENTITY,
     CONF_START_TIME,
     CONF_SUNRISE_OFFSET,
@@ -161,7 +162,8 @@ OPTIONS = vol.Schema(
     }
 )
 
-VERTICAL_OPTIONS = vol.Schema(
+# Fields shared by vertical blinds and awnings.
+_VERTICAL_BASE_OPTIONS = vol.Schema(
     {
         vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
             selector.EntitySelectorConfig(
@@ -185,21 +187,49 @@ VERTICAL_OPTIONS = vol.Schema(
     }
 ).extend(OPTIONS.schema)
 
-
-HORIZONTAL_OPTIONS = vol.Schema(
+# Vertical blinds only: awnings extend _VERTICAL_BASE_OPTIONS, not this.
+VERTICAL_OPTIONS = _VERTICAL_BASE_OPTIONS.extend(
     {
-        vol.Required(CONF_LENGTH_AWNING, default=2.1): selector.NumberSelector(
+        vol.Optional(CONF_SHADED_HEIGHT_DELTA, default=0.0): selector.NumberSelector(
             selector.NumberSelectorConfig(
-                min=0.3, max=6, step=0.01, mode="slider", unit_of_measurement="m"
-            )
-        ),
-        vol.Required(CONF_AWNING_ANGLE, default=0): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=0, max=45, mode="slider", unit_of_measurement="°"
+                min=-3, max=3, step=0.05, mode="slider", unit_of_measurement="m"
             )
         ),
     }
-).extend(VERTICAL_OPTIONS.schema)
+)
+
+
+HORIZONTAL_OPTIONS = (
+    vol.Schema(
+        {
+            vol.Required(CONF_LENGTH_AWNING, default=2.1): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0.3, max=6, step=0.01, mode="slider", unit_of_measurement="m"
+                )
+            ),
+            vol.Required(CONF_AWNING_ANGLE, default=0): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0, max=45, mode="slider", unit_of_measurement="°"
+                )
+            ),
+        }
+    )
+    .extend(_VERTICAL_BASE_OPTIONS.schema)
+    .extend(
+        {
+            vol.Required(CONF_FOV_LEFT, default=90): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1, max=180, step=1, mode="slider", unit_of_measurement="°"
+                )
+            ),
+            vol.Required(CONF_FOV_RIGHT, default=90): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1, max=180, step=1, mode="slider", unit_of_measurement="°"
+                )
+            ),
+        }
+    )
+)
 
 TILT_OPTIONS = vol.Schema(
     {
@@ -656,6 +686,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_AZIMUTH: self.config.get(CONF_AZIMUTH),
                 CONF_HEIGHT_WIN: self.config.get(CONF_HEIGHT_WIN),
                 CONF_DISTANCE: self.config.get(CONF_DISTANCE),
+                CONF_SHADED_HEIGHT_DELTA: self.config.get(CONF_SHADED_HEIGHT_DELTA, 0.0),
                 CONF_DEFAULT_HEIGHT: self.config.get(CONF_DEFAULT_HEIGHT),
                 CONF_MAX_POSITION: self.config.get(CONF_MAX_POSITION),
                 CONF_MIN_POSITION: self.config.get(CONF_MIN_POSITION),
