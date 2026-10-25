@@ -21,6 +21,7 @@
           "end_entity": "Entiteit die eindtijd aangeeft",
           "manual_threshold": "Minimale handmatige overschrijfdrempel",
           "manual_ignore_intermediate": "Negeer tussenliggende posities tijdens handmatige overschrijving (openen en sluiten)",
+          "opening_entity": "Raam- of deursensor (optioneel)",
           "return_sunset": "Zorg ervoor dat de positie altijd wordt aangepast naar de standaard zonsonderganginstelling tegen het eindtijdstip. Dit is vooral handig wanneer het eindtijdstip voor de daadwerkelijke zonsondergang valt."
         },
         "data_description": {
@@ -31,7 +32,8 @@
           "manual_override_duration": "De duur van handmatige bediening voordat wordt teruggekeerd naar automatische bediening",
           "manual_override_reset": "Optie om de duur van handmatige overschrijving na elke handmatige aanpassing te resetten; als dit is uitgeschakeld, geldt de duur alleen voor de eerste handmatige aanpassing",
           "end_time": "Eindtijd voor elke dag; na deze tijd blijft de bekleding stationair",
-          "end_entity": "Entiteit die de status van de eindtijd vertegenwoordigt, die de hierboven ingestelde statische eindtijd overschrijft. Handig voor het automatiseren van de eindtijd met een entiteit"
+          "end_entity": "Entiteit die de status van de eindtijd vertegenwoordigt, die de hierboven ingestelde statische eindtijd overschrijft. Handig voor het automatiseren van de eindtijd met een entiteit",
+          "opening_entity": "Contactsensor van een raam of deur. Zolang deze open meldt, sluit de integratie deze bekleding niet automatisch. Een onbekende of onbeschikbare sensor telt als open, zodat een lege batterij de bescherming verzwakt in plaats van te sluiten voor een open deur."
         }
       },
       "vertical": {
@@ -295,6 +297,7 @@
           "manual_override_reset": "Reset handmatige overschrijvingsduur",
           "manual_threshold": "Minimale handmatige overschrijfdrempel",
           "manual_ignore_intermediate": "Negeer tussenliggende posities tijdens handmatige overschrijving (openen en sluiten)",
+          "opening_entity": "Raam- of deursensor (optioneel)",
           "return_sunset": "Zorg ervoor dat de positie altijd wordt aangepast naar de standaard zonsonderganginstelling tegen het eindtijdstip. Dit is vooral handig wanneer het eindtijdstip voor de daadwerkelijke zonsondergang valt."
         },
         "data_description": {
@@ -306,7 +309,8 @@
           "manual_override_reset": "Optie om de duur van handmatige overschrijving na elke handmatige aanpassing te resetten; als dit is uitgeschakeld, geldt de duur alleen voor de eerste handmatige aanpassing",
           "return_sunset": "Zorg ervoor dat de positie altijd wordt aangepast naar de standaard zonsonderganginstelling tegen het eindtijdstip. Dit is vooral handig wanneer het eindtijdstip voor de daadwerkelijke zonsondergang valt.",
           "end_time": "Eindtijd voor elke dag; na deze tijd blijft de bekleding stationair",
-          "end_entity": "Entiteit die de status van de eindtijd vertegenwoordigt, die de hierboven ingestelde statische eindtijd overschrijft. Handig voor het automatiseren van de eindtijd met een entiteit"
+          "end_entity": "Entiteit die de status van de eindtijd vertegenwoordigt, die de hierboven ingestelde statische eindtijd overschrijft. Handig voor het automatiseren van de eindtijd met een entiteit",
+          "opening_entity": "Contactsensor van een raam of deur. Zolang deze open meldt, sluit de integratie deze bekleding niet automatisch. Een onbekende of onbeschikbare sensor telt als open, zodat een lege batterij de bescherming verzwakt in plaats van te sluiten voor een open deur."
         }
       },
       "vertical": {

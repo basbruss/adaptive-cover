@@ -21,6 +21,7 @@
           "end_entity": "Entidad para la hora de finalización",
           "manual_threshold": "Umbral de la anulación manual",
           "manual_ignore_intermediate": "Ignora las posiciones intermedias durante la anulación manual (apertura y cierre)",
+          "opening_entity": "Sensor de ventana o puerta (opcional)",
           "return_sunset": "Siempre ajusta la posición a la por defecto al ocaso en la hora de finalización; Útil si la hora de finalización es antes del ocaso"
         },
         "data_description": {
@@ -31,7 +32,8 @@
           "manual_override_duration": "Duración del control manual antes de volver a control automático",
           "manual_override_reset": "Opción para resetear la duración de la anulación manual después de cada ajuste manual; si se deshabilita, la duración solo se aplica al primer ajuste manual",
           "end_time": "Hora de finalización diaria; despues de esta hora, la persiana permanecerá estacionaria",
-          "end_entity": "Entidad que representa la hora de finalización, anulando lo hora de finalización configurada arriba. Útil para automatizar la hora de finalización con una entidad"
+          "end_entity": "Entidad que representa la hora de finalización, anulando lo hora de finalización configurada arriba. Útil para automatizar la hora de finalización con una entidad",
+          "opening_entity": "Sensor de contacto de una ventana o puerta. Mientras indique abierto, la integración no cerrará esta persiana automáticamente. Un sensor desconocido o no disponible cuenta como abierto, de modo que una batería agotada reduce la protección en lugar de cerrar sobre una puerta abierta."
         }
       },
       "vertical": {
@@ -301,6 +303,7 @@
           "end_entity": "Entidad que indica la hora de finalización",
           "manual_threshold": "Umbral de anulación manual",
           "manual_ignore_intermediate": "Ignorar posiciones intermedias durante la anulación manual (apertura y cierre)",
+          "opening_entity": "Sensor de ventana o puerta (opcional)",
           "return_sunset": "Ajustar siempre la posición a la predeterminada del Ocaso al momento de finalización; útil si el momento de finalización es anterior al Ocaso real"
         },
         "data_description": {
@@ -311,7 +314,8 @@
           "manual_override_duration": "La duración del control manual antes de restablecer el control automático",
           "manual_override_reset": "Opción para restablecer la duración de la anulación manual después de cada ajuste manual; si está deshabilitada, la duración solo se aplica al primer ajuste manual",
           "end_time": "Hora de finalización de cada día; después de esta hora, la cubierta permanecerá fija.",
-          "end_entity": "Asegúrese de que la posición se ajuste a la configuración predeterminada del Ocaso antes de la hora de finalización. Esto es especialmente beneficioso cuando la hora de finalización precede a la del Ocaso real."
+          "end_entity": "Asegúrese de que la posición se ajuste a la configuración predeterminada del Ocaso antes de la hora de finalización. Esto es especialmente beneficioso cuando la hora de finalización precede a la del Ocaso real.",
+          "opening_entity": "Sensor de contacto de una ventana o puerta. Mientras indique abierto, la integración no cerrará esta persiana automáticamente. Un sensor desconocido o no disponible cuenta como abierto, de modo que una batería agotada reduce la protección en lugar de cerrar sobre una puerta abierta."
         }
       },
       "vertical": {
