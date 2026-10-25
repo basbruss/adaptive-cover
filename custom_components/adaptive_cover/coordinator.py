@@ -48,6 +48,8 @@ from .const import (
     CONF_BLIND_SPOT_RIGHT,
     CONF_CLIMATE_MODE,
     CONF_DEFAULT_HEIGHT,
+    CONF_DEFAULT_HEIGHT_SUMMER,
+    CONF_DEFAULT_HEIGHT_WINTER,
     CONF_DELTA_POSITION,
     CONF_DELTA_TIME,
     CONF_DISTANCE,
@@ -775,6 +777,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 *self.common_data(options),
                 *self.vertical_data(options),
                 shaded_height_delta=options.get(CONF_SHADED_HEIGHT_DELTA, 0.0),
+                **self.seasonal_defaults(options),
             )
         if self._cover_type == "cover_awning":
             cover_data = AdaptiveHorizontalCover(
@@ -784,6 +787,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 *self.common_data(options),
                 *self.vertical_data(options),
                 *self.horizontal_data(options),
+                **self.seasonal_defaults(options),
             )
         if self._cover_type == "cover_tilt":
             cover_data = AdaptiveTiltCover(
@@ -792,6 +796,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 *self.pos_sun,
                 *self.common_data(options),
                 *self.tilt_data(options),
+                **self.seasonal_defaults(options),
             )
         if self._cover_type == "cover_sloped":
             cover_data = AdaptiveSlopedCover(
@@ -801,6 +806,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 *self.common_data(options),
                 *self.vertical_data(options),
                 *self.sloped_data(options),
+                **self.seasonal_defaults(options),
             )
         return cover_data
 
@@ -894,6 +900,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             if state in [
                 options.get(CONF_SUNSET_POS),
                 options.get(CONF_DEFAULT_HEIGHT),
+                options.get(CONF_DEFAULT_HEIGHT_WINTER),
+                options.get(CONF_DEFAULT_HEIGHT_SUMMER),
                 0,
                 100,
             ]:
@@ -948,6 +956,18 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             options.get(CONF_MIN_ELEVATION, None),
             options.get(CONF_MAX_ELEVATION, None),
         ]
+
+    @staticmethod
+    def seasonal_defaults(options) -> dict:
+        """Keyword arguments for the seasonal default positions (#497).
+
+        Passed by keyword, not appended to common_data's positional list,
+        so adding or reordering cover fields can't silently shift them.
+        """
+        return {
+            "h_def_winter": options.get(CONF_DEFAULT_HEIGHT_WINTER),
+            "h_def_summer": options.get(CONF_DEFAULT_HEIGHT_SUMMER),
+        }
 
     def get_climate_data(self, options):
         """Update climate data."""
@@ -1031,6 +1051,8 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             "lux_below_threshold": climate_data.lux,
             "irradiance_below_threshold": climate_data.irradiance,
             "active_branch": self.control_method,
+            "default_winter": climate_state_obj.cover.h_def_winter,
+            "default_summer": climate_state_obj.cover.h_def_summer,
         }
 
     @staticmethod
