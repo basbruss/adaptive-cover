@@ -303,6 +303,11 @@ For roof / skylight windows (e.g. Velux) whose glazing is inclined from the hori
 | Glare Zone    | 0.5     | 0.1-2 | Objects within this distance of the cover receive direct sunlight                                 |
 | Surface Tilt  | 45      | 0-90  | Inclination of the glazing from the horizontal (90° = vertical window, 0° = flat skylight)        |
 
+**Sun in front of the glazing:** a sloped cover is considered in direct sun whenever the sun is above the horizon (and within the elevation limits) *and* in front of the glazing plane. Unlike the other types this is not capped at ±90° from the window azimuth: a low-pitch roof window also receives sun from behind (e.g. a north-facing skylight with a high summer sun). A field of view set below 90° still restricts that side. When the sun is behind the glazing plane the default position is used.
+
+> [!NOTE]
+> **Limitation — no sill / light-well height.** The glare zone is measured on a plane level with the *lower edge of the glazing*; the model has no parameter for the height between the glazing and the work area (sill, light-well depth or ceiling height). Consequently, for a flat skylight (`Surface Tilt = 0°`) the position is always `Glare Zone / Window Height`, regardless of the sun elevation, and on low-pitch roofs the result depends only weakly on elevation. Tune `Glare Zone` to compensate, or use the vertical model where it fits better.
+
 ### Automation
 
 | Variables                                  | Default      | Range | Description                                                                                    |

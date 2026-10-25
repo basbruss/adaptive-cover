@@ -303,6 +303,11 @@ Pour les fenêtres de toit / lucarnes (par ex. Velux) dont le vitrage est inclin
 | Zone d'éblouissement | 0,5 | 0,1-2 | Distance où la lumière directe atteint encore la zone |
 | Inclinaison de la surface | 45 | 0-90 | Inclinaison du vitrage par rapport à l'horizontale (90° = fenêtre verticale, 0° = lucarne plate) |
 
+**Soleil devant le vitrage :** un volet incliné est considéré au soleil direct dès que le soleil est au-dessus de l'horizon (et dans les limites d'élévation) *et* devant le plan du vitrage. Contrairement aux autres types, ce n'est pas limité à ±90° de l'azimut de la fenêtre : une fenêtre de toit peu inclinée reçoit aussi le soleil par l'arrière (par ex. une lucarne orientée nord avec un soleil d'été haut). Un champ de vision réglé sous 90° restreint toujours ce côté. Lorsque le soleil est derrière le plan du vitrage, la position par défaut est utilisée.
+
+> [!NOTE]
+> **Limitation — pas de hauteur d'allège / de puits de lumière.** La zone d'éblouissement est mesurée sur un plan au niveau du *bord inférieur du vitrage* ; le modèle n'a pas de paramètre pour la hauteur entre le vitrage et la zone de travail (allège, profondeur du puits de lumière ou hauteur sous plafond). Par conséquent, pour une lucarne plate (`Inclinaison de la surface = 0°`) la position vaut toujours `Zone d'éblouissement / Hauteur de fenêtre`, quelle que soit l'élévation du soleil, et sur les toits peu inclinés le résultat dépend peu de l'élévation. Ajustez la `Zone d'éblouissement` en conséquence.
+
 ### Automatisation
 
 | Paramètre | Défaut | Plage | Description |
