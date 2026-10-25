@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+import datetime as dt
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from custom_components.adaptive_cover.coordinator import (
     AdaptiveDataUpdateCoordinator,
@@ -132,3 +134,53 @@ async def test_transition_to_unavailable_is_not_manual():
     await coordinator.async_check_cover_state_change(event)
 
     coordinator.async_refresh.assert_not_awaited()
+
+
+def test_target_wait_timeout_releases_wait():
+    """The failsafe timer callback must clear the wait and drop the target."""
+    coordinator = _coordinator(35)
+    cancel_timeout = MagicMock()
+    coordinator._target_wait_unsub["cover.test"] = cancel_timeout
+
+    coordinator._async_target_wait_timeout("cover.test", dt.datetime.now())
+
+    assert coordinator.wait_for_target["cover.test"] is False
+    assert "cover.test" not in coordinator.target_call
+    assert "cover.test" not in coordinator._target_wait_unsub
+
+
+@pytest.mark.asyncio
+async def test_shutdown_cancels_pending_target_wait_timers():
+    """Unloading the entry (coordinator shutdown) must cancel pending timers."""
+    coordinator = _coordinator(35)
+    cancel_a = MagicMock()
+    cancel_b = MagicMock()
+    coordinator._target_wait_unsub = {"cover.a": cancel_a, "cover.b": cancel_b}
+
+    with patch.object(
+        DataUpdateCoordinator, "async_shutdown", new=AsyncMock()
+    ) as base_shutdown:
+        await coordinator.async_shutdown()
+
+    cancel_a.assert_called_once_with()
+    cancel_b.assert_called_once_with()
+    assert coordinator._target_wait_unsub == {}
+    base_shutdown.assert_awaited_once()
+
+
+def test_missing_position_with_threshold_does_not_raise():
+    """A state without position feedback must not crash the threshold check."""
+    manager = AdaptiveCoverManager({"minutes": 90}, MagicMock())
+    manager.add_covers(["cover.test"])
+    new_state = MagicMock()
+    new_state.attributes = {"current_position": None}
+    state_change = StateChangedData("cover.test", MagicMock(), new_state)
+
+    manager.handle_state_change(
+        state_change,
+        34.2,
+        "cover_blind",
+        False,
+        {"cover.test": False},
+        5,
+    )

@@ -300,6 +300,21 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self._clear_target_wait(entity_id, timed_out=True)
 
     @callback
+    def _async_cancel_target_wait_timers(self) -> None:
+        """Cancel all pending target-wait release timers."""
+        for cancel_timeout in self._target_wait_unsub.values():
+            cancel_timeout()
+        self._target_wait_unsub.clear()
+
+    async def async_shutdown(self) -> None:
+        """Cancel pending target-wait timers when the coordinator shuts down.
+
+        The base coordinator registers this on config entry unload.
+        """
+        self._async_cancel_target_wait_timers()
+        await super().async_shutdown()
+
+    @callback
     def _async_cancel_update_listener(self) -> None:
         """Cancel the scheduled update."""
         if self._update_listener:
@@ -1080,6 +1095,8 @@ class AdaptiveCoverManager:
         if not positions_match(new_position, our_state):
             if (
                 manual_threshold is not None
+                and new_position is not None
+                and our_state is not None
                 and abs(our_state - new_position) < manual_threshold
             ):
                 self.logger.debug(

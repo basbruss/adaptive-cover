@@ -259,8 +259,8 @@ Security mode closes covers automatically when nobody is home, regardless of the
 | Default Position              | 60      | 0-100 | Initial position of the cover in the absence of sunlight glare detection                                 |
 | Minimal Position              | 100     | 0-99  | Minimal opening position for the cover — also used by security mode in winter/intermediate               |
 | Maximum Position              | 100     | 1-100 | Maximum opening position for the cover                                                                   |
-| Field of view Left            | 90      | 1-90  | Unobstructed viewing angle from window center to the left, in degrees                                    |
-| Field of view Right           | 90      | 1-90  | Unobstructed viewing angle from window center to the right, in degrees                                   |
+| Field of view Left            | 90      | 1-90 (awning: 1-180) | Unobstructed viewing angle from window center to the left, in degrees. See note on awnings below        |
+| Field of view Right           | 90      | 1-90 (awning: 1-180) | Unobstructed viewing angle from window center to the right, in degrees. See note on awnings below       |
 | Minimal Elevation             | None    | 0-90  | Minimal elevation degree of the sun to be considered                                                     |
 | Maximum Elevation             | None    | 1-90  | Maximum elevation degree of the sun to be considered                                                     |
 | Default position after Sunset | 0       | 0-100 | Cover's default position from sunset to sunrise                                                          |
@@ -284,6 +284,9 @@ Security mode closes covers automatically when nobody is home, regardless of the
 | Awning Length (horizontal) | 2.1     | 0.3-6 | Length of the awning when fully extended       |
 | Awning Angle               | 0       | 0-45  | Angle of the awning from the wall              |
 | Glare Zone                 | 0.5     | 0.1-2 | Objects within this distance of the cover receive direct sunlight |
+
+> [!NOTE]
+> **Field of view above 90° on awnings shades the terrace, not the window.** For vertical and tilt covers the field of view is capped at 90°, because sun behind the window plane cannot enter the window. Awnings accept up to 180°. Setting a side above 90° opts into *terrace shading* for that side: when the sun is at or behind the wall plane (more than 90° from the window normal) but still inside the field of view, the awning extends fully to shade the terrace. In the last 10° before 90° the awning eases smoothly from the glare-zone position to full extension, so it does not snap between retracted and extended. With a field of view of 90° or less the awning behaves exactly as before.
 
 ### Tilt
 
