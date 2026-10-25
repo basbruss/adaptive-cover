@@ -571,17 +571,113 @@ class AdaptiveHorizontalCover(AdaptiveVerticalCover):
     awn_length: float
     awn_angle: float
 
+    @property
+    def valid(self) -> bool:
+        """Determine if sun is in front of awning.
+
+        Horizontal awnings shade outdoor areas where the sun can be effective
+        at angles beyond 90° from the window normal. The 90° cap from the base
+        class is intentionally removed here.
+        """
+        valid = (
+            (self.gamma < self.fov_left)
+            & (self.gamma > -self.fov_right)
+            & (self.valid_elevation)
+        )
+        self.logger.debug("Sun in front of awning (ignoring blindspot)? %s", valid)
+        return valid
+
+    # Width (degrees) of the band below 90° in which the awning ramps up to
+    # full extension when terrace shading (FOV > 90°) is enabled.
+    TERRACE_TRANSITION_DEG = 10.0
+
+    @property
+    def terrace_mode(self) -> bool:
+        """Return True if FOV on the sun's side extends beyond 90°.
+
+        A FOV above 90° can only be reached by sun positions behind the
+        window plane, so configuring it is an explicit opt-in to shading the
+        terrace in front of the awning instead of only the window zone.
+        """
+        fov_side = self.fov_left if self.gamma >= 0 else self.fov_right
+        return fov_side is not None and fov_side > 90
+
+    def _window_zone_length(self) -> float:
+        """Awning length needed to keep sun out of the zone at ``distance``.
+
+        Derived from the vertical model: the height at which the sun ray that
+        hits the ground at ``distance`` crosses the wall plane is
+        ``d / cos γ · tan ε``; the awning must reach that ray.
+        """
+        return self._window_zone_length_at(abs(self.gamma))
+
     def calculate_position(self) -> float:
-        """Calculate awn length from blind height."""
+        """Calculate awning extension (m).
+
+        Window-zone model (|γ| < 90°): the extension follows the vertical
+        model ``d / cos γ · tan ε``. As |γ| approaches 90° the sun grazes the
+        wall, ``1 / cos γ`` diverges, the ray to the shaded zone crosses the
+        wall above the awning and the model retracts to 0. Just past 90°
+        ``cos γ`` turns negative, so applying the same formula there would
+        flip the awning to full extension in one step (e.g. d=0.5 m,
+        ε=20°: 89° → 0 %, 90.1° → 100 %).
+
+        Terrace mode (FOV on the sun's side > 90°): the user asked the awning
+        to shade the terrace, not the window. Sun at or behind the wall plane
+        (|γ| ≥ 90°) shines across the terrace at a grazing angle that only a
+        fully extended awning can block, so the awning is fully extended.
+        Geometrically, the awning's shadow on the ground is offset from the
+        wall by ``-h · cos γ / tan ε``: for |γ| < 90° it shifts toward (and
+        into) the wall, at 90° it lies straight below the awning, and beyond
+        90° it shifts out over the terrace, so the most terrace is covered by
+        the longest awning.
+
+        Transition: inside the last ``TERRACE_TRANSITION_DEG`` before 90° the
+        window-zone model would retract toward 0 (the grazing-ray artefact
+        above) only to need full extension at 90°. Instead the extension is
+        held at the window-zone value at the start of the band and eased to
+        full extension with a smoothstep weight
+        ``w = 3x² - 2x³``, ``x = (|γ| - (90 - band)) / band``. The window-zone
+        length decreases monotonically with |γ|, so this never extends less
+        than the window zone needs, is continuous at both ends of the band,
+        and is monotonic, so the awning does not retract and re-extend.
+
+        Without terrace mode (FOV ≤ 90°) behaviour is unchanged.
+        """
+        abs_gamma = abs(self.gamma)
+        if not self.terrace_mode:
+            if abs_gamma >= 90:
+                # Outside the physical window FOV; never valid, but keep the
+                # result well-defined instead of relying on a negative cos γ.
+                return 0.0
+            return self._window_zone_length()
+
+        full = float(self.awn_length)
+        if abs_gamma >= 90:
+            return full
+
+        band_start = 90 - self.TERRACE_TRANSITION_DEG
+        if abs_gamma <= band_start:
+            return self._window_zone_length()
+        start_length = self._window_zone_length_at(band_start)
+        x = (abs_gamma - band_start) / self.TERRACE_TRANSITION_DEG
+        weight = x * x * (3 - 2 * x)
+        return start_length + weight * (full - start_length)
+
+    def _window_zone_length_at(self, abs_gamma: float) -> float:
+        """Window-zone awning length for the current elevation at ``|γ|``."""
+        blind_height = np.clip(
+            (self.distance / cos(rad(abs_gamma))) * tan(rad(self.sol_elev)),
+            0,
+            self.h_win,
+        )
         awn_angle = 90 - self.awn_angle
         a_angle = 90 - self.sol_elev
         c_angle = 180 - awn_angle - a_angle
-
-        vertical_position = super().calculate_position()
-        length = ((self.h_win - vertical_position) * sin(rad(a_angle))) / sin(
+        length = ((self.h_win - blind_height) * sin(rad(a_angle))) / sin(
             rad(c_angle)
         )
-        return length
+        return float(np.clip(length, 0, self.awn_length))
 
     def calculate_percentage(self) -> float:
         """Convert awn length to percentage or default value."""
