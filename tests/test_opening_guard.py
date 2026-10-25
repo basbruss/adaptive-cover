@@ -51,6 +51,9 @@ def _coordinator(
     coordinator._inverse_state = inverse
     coordinator.config_entry = MagicMock(options={CONF_OPENING_ENTITY: SENSOR})
     coordinator.async_set_manual_position = AsyncMock()
+    coordinator._notify_delay = 0
+    coordinator._notify_threshold = 20
+    coordinator._pending_close = {}
     return coordinator
 
 

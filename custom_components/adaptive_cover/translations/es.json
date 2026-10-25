@@ -22,7 +22,9 @@
           "manual_threshold": "Umbral de la anulación manual",
           "manual_ignore_intermediate": "Ignora las posiciones intermedias durante la anulación manual (apertura y cierre)",
           "opening_entity": "Sensor de ventana o puerta (opcional)",
-          "return_sunset": "Siempre ajusta la posición a la por defecto al ocaso en la hora de finalización; Útil si la hora de finalización es antes del ocaso"
+          "return_sunset": "Siempre ajusta la posición a la por defecto al ocaso en la hora de finalización; Útil si la hora de finalización es antes del ocaso",
+          "notify_delay": "Retardo del aviso previo al cierre",
+          "notify_threshold": "Umbral del aviso previo al cierre"
         },
         "data_description": {
           "delta_position": "Cambio mínimo de la posición requerido antes de aplicar cambios en la persiana",
@@ -33,6 +35,8 @@
           "manual_override_reset": "Opción para resetear la duración de la anulación manual después de cada ajuste manual; si se deshabilita, la duración solo se aplica al primer ajuste manual",
           "end_time": "Hora de finalización diaria; despues de esta hora, la persiana permanecerá estacionaria",
           "end_entity": "Entidad que representa la hora de finalización, anulando lo hora de finalización configurada arriba. Útil para automatizar la hora de finalización con una entidad",
+          "notify_delay": "Segundos entre el evento adaptive_cover_will_close y el movimiento real cuando la integración cierra una persiana automáticamente. Los comandos manuales, las escenas y el modo de seguridad nunca se retrasan. 0 desactiva la función.",
+          "notify_threshold": "Posición igual o inferior a la cual un movimiento se considera cierre. El aviso solo se emite cuando la persiana pasa de estar por encima de este valor a estar en él o por debajo.",
           "opening_entity": "Sensor de contacto de una ventana o puerta. Mientras indique abierto, la integración no cerrará esta persiana automáticamente. Un sensor desconocido o no disponible cuenta como abierto, de modo que una batería agotada reduce la protección en lugar de cerrar sobre una puerta abierta."
         }
       },
@@ -332,7 +336,9 @@
           "manual_threshold": "Umbral de anulación manual",
           "manual_ignore_intermediate": "Ignorar posiciones intermedias durante la anulación manual (apertura y cierre)",
           "opening_entity": "Sensor de ventana o puerta (opcional)",
-          "return_sunset": "Ajustar siempre la posición a la predeterminada del Ocaso al momento de finalización; útil si el momento de finalización es anterior al Ocaso real"
+          "return_sunset": "Ajustar siempre la posición a la predeterminada del Ocaso al momento de finalización; útil si el momento de finalización es anterior al Ocaso real",
+          "notify_delay": "Retardo del aviso previo al cierre",
+          "notify_threshold": "Umbral del aviso previo al cierre"
         },
         "data_description": {
           "delta_position": "Se requiere un cambio mínimo de posición antes de ajustar la posición de la persiana.",
@@ -343,6 +349,8 @@
           "manual_override_reset": "Opción para restablecer la duración de la anulación manual después de cada ajuste manual; si está deshabilitada, la duración solo se aplica al primer ajuste manual",
           "end_time": "Hora de finalización de cada día; después de esta hora, la cubierta permanecerá fija.",
           "end_entity": "Asegúrese de que la posición se ajuste a la configuración predeterminada del Ocaso antes de la hora de finalización. Esto es especialmente beneficioso cuando la hora de finalización precede a la del Ocaso real.",
+          "notify_delay": "Segundos entre el evento adaptive_cover_will_close y el movimiento real cuando la integración cierra una persiana automáticamente. Los comandos manuales, las escenas y el modo de seguridad nunca se retrasan. 0 desactiva la función.",
+          "notify_threshold": "Posición igual o inferior a la cual un movimiento se considera cierre. El aviso solo se emite cuando la persiana pasa de estar por encima de este valor a estar en él o por debajo.",
           "opening_entity": "Sensor de contacto de una ventana o puerta. Mientras indique abierto, la integración no cerrará esta persiana automáticamente. Un sensor desconocido o no disponible cuenta como abierto, de modo que una batería agotada reduce la protección en lugar de cerrar sobre una puerta abierta."
         }
       },
