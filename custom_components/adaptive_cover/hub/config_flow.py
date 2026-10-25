@@ -13,7 +13,7 @@ from ..const import ALL_BLINDS_TITLE, CONF_IS_HUB
 
 # Default data payload written to ConfigEntry.data when the hub entry
 # is created (either manually via the UI or auto-bootstrapped on first
-non-hub setup).
+# non-hub setup).
 HUB_ENTRY_DATA: dict = {
     "name": ALL_BLINDS_TITLE,
     CONF_IS_HUB: True,
