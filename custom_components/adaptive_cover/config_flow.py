@@ -56,6 +56,7 @@ from .const import (
     CONF_PRESENCE_ENTITY,
     CONF_RETURN_SUNSET,
     CONF_SENSOR_TYPE,
+    CONF_SHADED_HEIGHT_DELTA,
     CONF_START_ENTITY,
     CONF_START_TIME,
     CONF_SUNRISE_OFFSET,
@@ -155,7 +156,8 @@ OPTIONS = vol.Schema(
     }
 )
 
-VERTICAL_OPTIONS = vol.Schema(
+# Fields shared by vertical blinds and awnings.
+_VERTICAL_BASE_OPTIONS = vol.Schema(
     {
         vol.Optional(CONF_ENTITIES, default=[]): selector.EntitySelector(
             selector.EntitySelectorConfig(
@@ -179,6 +181,17 @@ VERTICAL_OPTIONS = vol.Schema(
     }
 ).extend(OPTIONS.schema)
 
+# Vertical blinds only: awnings extend _VERTICAL_BASE_OPTIONS, not this.
+VERTICAL_OPTIONS = _VERTICAL_BASE_OPTIONS.extend(
+    {
+        vol.Optional(CONF_SHADED_HEIGHT_DELTA, default=0.0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=-3, max=3, step=0.05, mode="slider", unit_of_measurement="m"
+            )
+        ),
+    }
+)
+
 
 HORIZONTAL_OPTIONS = (
     vol.Schema(
@@ -195,7 +208,7 @@ HORIZONTAL_OPTIONS = (
             ),
         }
     )
-    .extend(VERTICAL_OPTIONS.schema)
+    .extend(_VERTICAL_BASE_OPTIONS.schema)
     .extend(
         {
             vol.Required(CONF_FOV_LEFT, default=90): selector.NumberSelector(
@@ -627,6 +640,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_AZIMUTH: self.config.get(CONF_AZIMUTH),
                 CONF_HEIGHT_WIN: self.config.get(CONF_HEIGHT_WIN),
                 CONF_DISTANCE: self.config.get(CONF_DISTANCE),
+                CONF_SHADED_HEIGHT_DELTA: self.config.get(CONF_SHADED_HEIGHT_DELTA, 0.0),
                 CONF_DEFAULT_HEIGHT: self.config.get(CONF_DEFAULT_HEIGHT),
                 CONF_MAX_POSITION: self.config.get(CONF_MAX_POSITION),
                 CONF_MIN_POSITION: self.config.get(CONF_MIN_POSITION),

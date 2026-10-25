@@ -544,11 +544,23 @@ class AdaptiveVerticalCover(AdaptiveGeneralCover):
 
     distance: float
     h_win: float
+    # Height of the shaded area relative to the bottom of the closed blind (m).
+    # Positive when the area to keep out of the sun (e.g. a desk) is above the
+    # bottom of the window. Keyword-only with a default so subclasses
+    # (awnings) and existing callers are unaffected.
+    shaded_height_delta: float = field(default=0.0, kw_only=True)
 
     def calculate_position(self) -> float:
-        """Calculate blind height."""
+        """Calculate blind height.
+
+        The sun ray that reaches the shaded area at horizontal ``distance``
+        and height ``shaded_height_delta`` crosses the window plane at
+        ``shaded_height_delta + d / cos γ · tan ε``; the blind must come
+        down to that height.
+        """
         blind_height = np.clip(
-            (self.distance / cos(rad(self.gamma))) * tan(rad(self.sol_elev)),
+            (self.distance / cos(rad(self.gamma))) * tan(rad(self.sol_elev))
+            + (self.shaded_height_delta or 0.0),
             0,
             self.h_win,
         )

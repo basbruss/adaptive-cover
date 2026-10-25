@@ -59,6 +59,7 @@ from .const import (
     CONF_FOV_LEFT,
     CONF_FOV_RIGHT,
     CONF_HEIGHT_WIN,
+    CONF_SHADED_HEIGHT_DELTA,
     CONF_INTERP,
     CONF_INTERP_END,
     CONF_INTERP_LIST,
@@ -655,6 +656,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 *self.pos_sun,
                 *self.common_data(options),
                 *self.vertical_data(options),
+                shaded_height_delta=options.get(CONF_SHADED_HEIGHT_DELTA, 0.0),
             )
         if self._cover_type == "cover_awning":
             cover_data = AdaptiveHorizontalCover(
