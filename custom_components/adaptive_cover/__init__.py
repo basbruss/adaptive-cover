@@ -12,12 +12,15 @@ from homeassistant.helpers.event import (
 
 from .const import (
     ALL_BLINDS_TITLE,
+    CONF_DEFAULT_HEIGHT_ENTITY,
     CONF_END_ENTITY,
     CONF_ENTITIES,
     CONF_IRRADIANCE_ENTITY,
     CONF_IS_HUB,
     CONF_LUX_ENTITY,
     CONF_OPENING_ENTITY,
+    CONF_MAX_POSITION_ENTITY,
+    CONF_MIN_POSITION_ENTITY,
     CONF_OUTSIDETEMP_ENTITY,
     CONF_PRESENCE_ENTITY,
     CONF_START_ENTITY,
@@ -150,6 +153,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _outside_temp_entity = entry.options.get(CONF_OUTSIDETEMP_ENTITY)
     _start_time_entity = entry.options.get(CONF_START_ENTITY)
     _opening_entity = entry.options.get(CONF_OPENING_ENTITY)
+    _default_height_entity = entry.options.get(CONF_DEFAULT_HEIGHT_ENTITY)
+    _min_position_entity = entry.options.get(CONF_MIN_POSITION_ENTITY)
+    _max_position_entity = entry.options.get(CONF_MAX_POSITION_ENTITY)
     _entities = ["sun.sun"]
     for entity in [
         _temp_entity,
@@ -161,6 +167,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _outside_temp_entity,
         _start_time_entity,
         _opening_entity,
+        _default_height_entity,
+        _min_position_entity,
+        _max_position_entity,
     ]:
         if entity is not None:
             _entities.append(entity)
