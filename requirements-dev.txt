@@ -4,6 +4,6 @@ ruff~=0.15
 colorlog~=6.10
 pvlib~=0.15
 matplotlib~=3.11
-ipykernel~=7.3
+ipykernel~=7.4
 pytest~=9.1
 pytest-asyncio~=1.4
