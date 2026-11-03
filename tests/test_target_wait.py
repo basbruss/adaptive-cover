@@ -184,3 +184,59 @@ def test_missing_position_with_threshold_does_not_raise():
         {"cover.test": False},
         5,
     )
+
+
+def _moving_coordinator(old, new, position, target=40):
+    """Coordinator waiting for an automatic target, with a given transition."""
+    coordinator = _coordinator(position, target)
+    coordinator.state_change_data.old_state.state = old
+    coordinator.state_change_data.new_state.state = new
+    return coordinator
+
+
+def test_interrupted_move_releases_wait_before_refresh():
+    """A move stopped short of the target (wall button) must release the wait."""
+    coordinator = _moving_coordinator("closing", "open", 81)
+
+    assert coordinator.process_entity_state_change() is False
+    assert coordinator.wait_for_target["cover.test"] is False
+    assert "cover.test" not in coordinator.target_call
+
+
+def test_interrupted_move_cancels_target_wait_timeout():
+    """Releasing on interruption must also cancel the failsafe timer."""
+    coordinator = _moving_coordinator("closing", "open", 81)
+    cancel_timeout = MagicMock()
+    coordinator._target_wait_unsub["cover.test"] = cancel_timeout
+
+    coordinator.process_entity_state_change()
+
+    cancel_timeout.assert_called_once_with()
+
+
+@pytest.mark.parametrize(("old", "new"), [("closing", "closing"), ("open", "open")])
+def test_wait_kept_while_moving_or_without_movement_end(old, new):
+    """Intermediate positions and resting-to-resting updates keep the wait."""
+    coordinator = _moving_coordinator(old, new, 60)
+
+    assert coordinator.process_entity_state_change() is False
+    assert coordinator.wait_for_target["cover.test"] is True
+
+
+def test_interrupted_move_is_detected_as_manual():
+    """Once released, the interrupting move is classified as manual control."""
+    manager = AdaptiveCoverManager({"minutes": 60}, MagicMock())
+    manager.add_covers(["cover.test"])
+    coordinator = _moving_coordinator("opening", "open", 100)
+    coordinator.process_entity_state_change()
+
+    manager.handle_state_change(
+        coordinator.state_change_data,
+        40,
+        "cover_blind",
+        True,
+        coordinator.wait_for_target,
+        None,
+    )
+
+    assert manager.is_cover_manual("cover.test") is True
