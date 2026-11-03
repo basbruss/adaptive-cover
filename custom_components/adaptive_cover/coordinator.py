@@ -127,6 +127,19 @@ TARGET_POSITION_TOLERANCE = 1.0
 TARGET_WAIT_TIMEOUT = 120
 
 
+MOVING_STATES = ("opening", "closing")
+
+
+def movement_ended(old_state, new_state) -> bool:
+    """Return True when a cover goes from moving to a resting state."""
+    return (
+        old_state is not None
+        and new_state is not None
+        and old_state.state in MOVING_STATES
+        and new_state.state not in MOVING_STATES
+    )
+
+
 def positions_match(position, target) -> bool:
     """Return whether a reported position matches a target within rounding tolerance."""
     if position is None or target is None:
@@ -324,6 +337,21 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                     "Position %s reached target %s for %s", position, target, entity_id
                 )
                 return True
+            if movement_ended(event.old_state, event.new_state):
+                # The cover stopped somewhere other than our target, e.g. a
+                # wall button or remote interrupted the automatic move. Stop
+                # waiting now, before the refresh, so this same event is
+                # evaluated by manual override detection. Waiting for the
+                # timeout instead would discard the user's move and the next
+                # refresh would drive the cover back to the target.
+                self.logger.debug(
+                    "Movement of %s ended at %s before reaching target %s",
+                    entity_id,
+                    position,
+                    target,
+                )
+                self._clear_target_wait(entity_id)
+                return False
             self.logger.debug("Wait for target: %s", self.wait_for_target)
         else:
             self.logger.debug("No wait for target call for %s", entity_id)
