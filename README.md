@@ -424,7 +424,7 @@ Other attributes:
 - `default_source`: which default was used (`default`, `sunset`, `winter`, or `summer`).
 - `climate_branch`, `sun_azimuth`, `sun_elevation`, and `sun_in_field_of_view`.
 - `manual_override`: covers currently under manual override.
-- `covers`: for each cover, why it is or isn't at the target. One of `at_target`, `manual_override`, `close_pending` (pre-close notice counting down), `below_delta_position`, `waiting_delta_time`, `opening_open` (closing withheld while the door or window is open), `position_unknown`, or `moving_to_target`. This is how to tell apart covers that share settings but sit at different positions.
+- `covers`: for each cover, why it is or isn't at the target. One of `manual_override`, the active gate (`control_off`, `security`, or `outside_time_window`), `at_target`, `close_pending` (pre-close notice counting down), `below_delta_position`, `waiting_delta_time`, `opening_open` (closing withheld while the door or window is open), `position_unknown`, or `moving_to_target`. This is how to tell apart covers that share settings but sit at different positions.
 
 For the climate inputs (temperatures, presence, weather), see the Climate Debug sensor.
 

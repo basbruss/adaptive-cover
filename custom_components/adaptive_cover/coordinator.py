@@ -500,16 +500,16 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             source = self.climate_cover_state
         cover = source.cover
 
-        reason = source.reason
+        gate = None
         if not self.control_toggle:
-            reason = REASON_CONTROL_OFF
+            gate = REASON_CONTROL_OFF
         elif self.security_active:
-            reason = REASON_SECURITY
+            gate = REASON_SECURITY
         elif self._in_time_window() is False:
-            reason = REASON_OUTSIDE_TIME_WINDOW
+            gate = REASON_OUTSIDE_TIME_WINDOW
 
         return {
-            "reason": reason,
+            "reason": gate or source.reason,
             "position_reason": source.reason,
             "target_position": _position(state),
             "calculated_position": _position(
@@ -525,7 +525,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             "sun_in_field_of_view": _plain(cover.valid),
             "manual_override": self.manager.manual_controlled,
             "covers": {
-                entity: self.cover_status(entity, state, options)
+                entity: self.cover_status(entity, state, options, gate)
                 for entity in self.entities
             },
         }
@@ -543,16 +543,26 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         except (TypeError, ValueError):
             return None
 
-    def cover_status(self, entity: str, state: int, options) -> str:
+    def cover_status(
+        self, entity: str, state: int, options, gate: str | None = None
+    ) -> str:
         """Return why *entity* is or isn't at the target position.
 
         Mirrors the per-cover checks in async_handle_call_service and
         async_set_adaptive_position, in the same order, without moving
         anything. This is what tells apart covers that share one entry
         (and so one target) but sit at different positions.
+
+        Manual override comes first because every path, security
+        included, skips manual covers. An active *gate* (control off,
+        security, outside the time window) comes next: the cover isn't
+        being moved to the adaptive target, so comparing it against that
+        target would report a move that won't happen.
         """
         if self.manager.is_cover_manual(entity):
             return "manual_override"
+        if gate is not None:
+            return gate
         if entity in self._pending_close:
             return "close_pending"
         position = self._get_current_position(entity)

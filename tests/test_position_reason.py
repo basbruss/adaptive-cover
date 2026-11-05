@@ -374,6 +374,28 @@ def test_cover_status(kwargs, state, status):
     assert coordinator.cover_status(COVER, state, {}) == status
 
 
+@pytest.mark.parametrize(
+    "gate", [REASON_CONTROL_OFF, REASON_SECURITY, REASON_OUTSIDE_TIME_WINDOW]
+)
+def test_cover_status_reports_active_gate(gate):
+    """While a gate holds, a cover off target isn't 'moving_to_target'."""
+    coordinator = _coordinator(position=30)
+    assert coordinator.cover_status(COVER, 9, {}, gate) == gate
+
+
+def test_cover_status_manual_wins_over_gate():
+    """Security and the other gates skip manual covers, so manual wins."""
+    coordinator = _coordinator(position=30, manual=True)
+    assert coordinator.cover_status(COVER, 9, {}, REASON_SECURITY) == "manual_override"
+
+
+def test_reason_data_passes_gate_to_covers():
+    """The per-cover status follows the entry's gate."""
+    coordinator = _coordinator(position=30)
+    coordinator._control_toggle = False
+    assert coordinator.reason_data(9, {})["covers"] == {COVER: REASON_CONTROL_OFF}
+
+
 def test_cover_status_close_pending():
     """A pre-close notice counting down is reported as such."""
     coordinator = _coordinator(position=30)
