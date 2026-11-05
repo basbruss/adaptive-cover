@@ -161,6 +161,47 @@ CONF_NOTIFY_THRESHOLD = "notify_threshold"
 # The constant is kept here for translation key alignment and documentation.
 CONF_SECURITY_MODE = "security_mode"
 
+# Reason sensor (#295): why the target position is what it is. Each code is
+# recorded where that decision is made (calculation.py for the position
+# itself, coordinator.py for the gates that stop covers from moving) and is
+# the state of the "Position Reason" enum sensor, translated under
+# entity.sensor.reason.state in strings.json / translations/*.json.
+# Gates, highest precedence first: covers are not following the target.
+REASON_CONTROL_OFF = "control_off"
+REASON_SECURITY = "security"
+REASON_OUTSIDE_TIME_WINDOW = "outside_time_window"
+# Basic (sun) calculation.
+REASON_SUN_TRACKING = "sun_tracking"
+REASON_SUNSET_POSITION = "sunset_position"
+REASON_SUN_OUTSIDE_FOV = "sun_outside_fov"
+REASON_SUN_OUTSIDE_ELEVATION = "sun_outside_elevation"
+REASON_SUN_IN_BLIND_SPOT = "sun_in_blind_spot"
+# Climate mode.
+REASON_CLIMATE_NO_PRESENCE = "climate_no_presence"
+REASON_CLIMATE_WINTER_SUN = "climate_winter_sun"
+REASON_CLIMATE_SUMMER_CLOSED = "climate_summer_closed"
+REASON_CLIMATE_SUMMER_TRANSPARENT = "climate_summer_transparent"
+REASON_CLIMATE_LOW_LIGHT = "climate_low_light"
+REASON_CLIMATE_INTERMEDIATE_SUN = "climate_intermediate_sun"
+REASON_CLIMATE_TILT_PRESET = "climate_tilt_preset"
+REASONS = [
+    REASON_CONTROL_OFF,
+    REASON_SECURITY,
+    REASON_OUTSIDE_TIME_WINDOW,
+    REASON_SUN_TRACKING,
+    REASON_SUNSET_POSITION,
+    REASON_SUN_OUTSIDE_FOV,
+    REASON_SUN_OUTSIDE_ELEVATION,
+    REASON_SUN_IN_BLIND_SPOT,
+    REASON_CLIMATE_NO_PRESENCE,
+    REASON_CLIMATE_WINTER_SUN,
+    REASON_CLIMATE_SUMMER_CLOSED,
+    REASON_CLIMATE_SUMMER_TRANSPARENT,
+    REASON_CLIMATE_LOW_LIGHT,
+    REASON_CLIMATE_INTERMEDIATE_SUN,
+    REASON_CLIMATE_TILT_PRESET,
+]
+
 STRATEGY_MODE_BASIC = "basic"
 STRATEGY_MODE_CLIMATE = "climate"
 STRATEGY_MODES = [

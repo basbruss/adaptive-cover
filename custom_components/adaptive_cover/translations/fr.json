@@ -666,5 +666,29 @@
           }
         }
       }
+    },
+  "entity": {
+    "sensor": {
+      "reason": {
+        "name": "Raison de la position",
+        "state": {
+          "control_off": "Le contrôle automatique est désactivé",
+          "security": "Mode sécurité : personne à la maison",
+          "outside_time_window": "En dehors de la plage horaire de début/fin",
+          "sun_tracking": "Suit le soleil pour bloquer la lumière directe",
+          "sunset_position": "Après le coucher du soleil : position du coucher de soleil",
+          "sun_outside_fov": "Le soleil est hors du champ de vision de la fenêtre : position par défaut",
+          "sun_outside_elevation": "Le soleil est sous l'horizon ou hors des limites d'élévation : position par défaut",
+          "sun_in_blind_spot": "Le soleil est dans l'angle mort : position par défaut",
+          "climate_no_presence": "Climat : personne à la maison, le volet se ferme à la position minimale",
+          "climate_winter_sun": "Climat : la pièce est froide et le soleil est sur la fenêtre, le volet s'ouvre pour laisser entrer la chaleur",
+          "climate_summer_closed": "Climat : trop chaud, le volet se ferme pour garder la chaleur dehors",
+          "climate_summer_transparent": "Climat : trop chaud, le volet transparent suit le soleil",
+          "climate_low_light": "Climat : confortable, mais pas assez ensoleillé pour ombrager : position par défaut",
+          "climate_intermediate_sun": "Climat : confortable et ensoleillé, le volet suit le soleil",
+          "climate_tilt_preset": "Climat : angle de lames prédéfini"
+        }
+      }
     }
   }
+}
