@@ -22,6 +22,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     CONF_SENSOR_TYPE,
     DOMAIN,
+    REASONS,
 )
 from .coordinator import AdaptiveDataUpdateCoordinator
 
@@ -67,7 +68,10 @@ async def async_setup_entry(
     climate_diag = AdaptiveCoverClimateDiagSensor(
         config_entry.entry_id, hass, config_entry, name, coordinator
     )
-    async_add_entities([sensor, start, end, control, climate_diag])
+    reason = AdaptiveCoverReasonSensor(
+        config_entry.entry_id, hass, config_entry, name, coordinator
+    )
+    async_add_entities([sensor, start, end, control, climate_diag, reason])
 
 
 # ── Base mixin ───────────────────────────────────────────────────────────────
@@ -247,3 +251,50 @@ class AdaptiveCoverClimateDiagSensor(_AdaptiveCoverBase):
           active_branch          — str  : summer | winter | intermediate
         """
         return self.data.climate_debug
+
+
+class AdaptiveCoverReasonSensor(_AdaptiveCoverBase):
+    """Explains, in one translated word or phrase, why the target is what it is.
+
+    See #295. State = a REASON_* code from const.py: a gate that stops the
+    covers following the target (control off, security, outside the time
+    window) or else the calculation branch that produced the position.
+    Attributes = the inputs behind it: sun azimuth/elevation, calculated vs
+    final position, which min/max limit applied, which default was used, the
+    climate branch, and a per-cover status (manual override, below delta
+    position, waiting on delta time, ...) for covers that share this entry's
+    target but sit at different positions. Full climate inputs stay on the
+    Climate Debug sensor rather than being repeated here.
+
+    Not a diagnostic entity: it answers the everyday "why is my cover at
+    this position?" question, so it belongs where users look first.
+    """
+
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = REASONS
+    _attr_translation_key = "reason"
+
+    def __init__(self, unique_id, hass, config_entry, name, coordinator) -> None:
+        """Initialize the Position Reason sensor."""
+        super().__init__(unique_id, hass, config_entry, name, coordinator)
+        self._sensor_name = "Position Reason"
+        self._attr_unique_id = f"{unique_id}_reason"
+
+    @property
+    def name(self) -> str:
+        """Return the entity name."""
+        return f"{self._sensor_name} {self._name}"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the reason code, or None before the first calculation."""
+        if self.data.reason is None:
+            return None
+        return self.data.reason["reason"]
+
+    @property
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        """Return the inputs behind the reason (everything but the code)."""
+        if self.data.reason is None:
+            return None
+        return {k: v for k, v in self.data.reason.items() if k != "reason"}

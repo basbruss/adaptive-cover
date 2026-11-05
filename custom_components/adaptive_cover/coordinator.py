@@ -113,6 +113,9 @@ from .const import (
     DOMAIN,
     EVENT_WILL_CLOSE,
     LOGGER,
+    REASON_CONTROL_OFF,
+    REASON_OUTSIDE_TIME_WINDOW,
+    REASON_SECURITY,
 )
 from .helpers import (
     get_datetime_from_str,
@@ -154,6 +157,7 @@ class AdaptiveCoverData:
     states: dict
     attributes: dict
     climate_debug: dict | None = None
+    reason: dict | None = None
 
 
 class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
@@ -205,6 +209,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         self.target_call = {}
         self._target_wait_unsub = {}
         self._climate_debug: dict | None = None
+        self.climate_cover_state: ClimateCoverState | None = None
         self.ignore_intermediate_states = self.config_entry.options.get(
             CONF_MANUAL_IGNORE_INTERMEDIATE, False
         )
@@ -435,6 +440,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             await self.async_handle_timed_refresh(options)
 
         normal_cover = self.normal_cover_state.cover
+        try:
+            reason = self.reason_data(state, options)
+        except Exception:  # noqa: BLE001
+            # The reason sensor only explains; a bug in it must never fail
+            # the refresh that drives the covers.
+            self.logger.exception("Could not determine the position reason")
+            reason = None
         if (
             self.first_refresh
             or self._sun_start_time is None
@@ -476,7 +488,100 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
                 ),
             },
             climate_debug=self._climate_debug,
+            reason=reason,
         )
+
+    def reason_data(self, state: int, options) -> dict:
+        """Explain why the target position is what it is (#295).
+
+        ``reason`` is the state of the Position Reason sensor: a gate that
+        currently stops covers following the target (control switch off,
+        security mode, outside the start/end time window), in that order
+        of precedence, or else ``position_reason``, the branch of the
+        calculation that produced the position. ``position_reason`` is
+        always exposed too, so a gate never hides it.
+        """
+        source = self.normal_cover_state
+        if self._switch_mode and self.climate_cover_state is not None:
+            source = self.climate_cover_state
+        cover = source.cover
+
+        gate = None
+        if not self.control_toggle:
+            gate = REASON_CONTROL_OFF
+        elif self.security_active:
+            gate = REASON_SECURITY
+        elif self._in_time_window() is False:
+            gate = REASON_OUTSIDE_TIME_WINDOW
+
+        return {
+            "reason": gate or source.reason,
+            "position_reason": source.reason,
+            "target_position": _position(state),
+            "calculated_position": _position(
+                self.climate_state
+                if source is self.climate_cover_state
+                else self.default_state
+            ),
+            "limit_applied": source.limit,
+            "default_source": source.default_source,
+            "climate_branch": self.control_method if self._switch_mode else None,
+            "sun_in_field_of_view": _plain(cover.valid),
+            "covers": {
+                entity: self.cover_status(entity, state, options, gate)
+                for entity in self.entities
+            },
+        }
+
+    def _in_time_window(self) -> bool | None:
+        """Return whether now is inside the start/end window, or None if unknown.
+
+        Same test as check_adaptive_time, minus its "start time is after
+        end time" error log, which would otherwise repeat on every refresh.
+        after_start_time compares against None (and raises) when a start
+        time entity is unavailable; the move paths only reach it on a state
+        change, but the reason sensor reads it every refresh, so an
+        unavailable helper must not turn into a failed update.
+        """
+        try:
+            return bool(self.before_end_time and self.after_start_time)
+        except (TypeError, ValueError):
+            return None
+
+    def cover_status(
+        self, entity: str, state: int, options, gate: str | None = None
+    ) -> str:
+        """Return why *entity* is or isn't at the target position.
+
+        Mirrors the per-cover checks in async_handle_call_service and
+        async_set_adaptive_position, in the same order, without moving
+        anything. This is what tells apart covers that share one entry
+        (and so one target) but sit at different positions.
+
+        Manual override comes first because every path, security
+        included, skips manual covers. An active *gate* (control off,
+        security, outside the time window) comes next: the cover isn't
+        being moved to the adaptive target, so comparing it against that
+        target would report a move that won't happen.
+        """
+        if self.manager.is_cover_manual(entity):
+            return "manual_override"
+        if gate is not None:
+            return gate
+        if entity in self._pending_close:
+            return "close_pending"
+        position = self._get_current_position(entity)
+        if position is None:
+            return "position_unknown"
+        if positions_match(position, state):
+            return "at_target"
+        if not self.check_position_delta(entity, state, options):
+            return "below_delta_position"
+        if not self.check_time_delta(entity):
+            return "waiting_delta_time"
+        if self._closing_blocked_by_opening(options, entity, state):
+            return "opening_open"
+        return "moving_to_target"
 
     async def async_handle_state_change(self, state: int, options):
         """Handle state change from tracked entities.
@@ -1285,6 +1390,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
 
         climate_state_obj = ClimateCoverState(cover_data, climate)
         self.climate_state = round(climate_state_obj.get_state())
+        self.climate_cover_state = climate_state_obj
         climate_data = climate_state_obj.climate_data
 
         if climate_data.is_summer and self.switch_mode:
@@ -1594,6 +1700,20 @@ class AdaptiveCoverManager:
     def manual_controlled(self):
         """Get the list of covers under manual control."""
         return [k for k, v in self.manual_control.items() if v]
+
+
+def _plain(value):
+    """Return *value* as a plain Python bool/float, for state attributes."""
+    if value is None:
+        return None
+    if isinstance(value, bool | np.bool_):
+        return bool(value)
+    return float(value)
+
+
+def _position(value) -> int | None:
+    """Return a position as a plain int (numpy and float values included)."""
+    return None if value is None else round(float(value))
 
 
 def inverse_state(state: int) -> int:

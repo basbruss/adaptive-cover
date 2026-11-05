@@ -395,6 +395,7 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 | `sensor.cover_position_<nom>` | — | Position cible calculée (%) |
 | `sensor.start_sun_<nom>` / `end_sun` | — | Timestamps entrée/sortie du soleil dans le champ de vision |
 | `sensor.control_method_<nom>` | — | Branche active : `summer` / `winter` / `intermediate` |
+| `sensor.position_reason_<nom>` | — | Pourquoi la cible est ce qu'elle est (état), avec les entrées et un statut par volet (attributs) |
 | `sensor.climate_debug_<nom>` *(diag.)* | — | Snapshot complet de la décision climatique |
 | `binary_sensor.manual_control_<nom>` | — | ON si au moins un volet en override manuel |
 | `button.reset_manual_control_<nom>` | — | Réinitialise le contrôle manuel immédiatement |
@@ -420,6 +421,7 @@ Ajouter via **Paramètres → Appareils & Services → Ajouter → Adaptive Cove
 
 | Symptôme | Cause probable | Solution |
 |----------|---------------|----------|
+| Volet pas à la position attendue | Plusieurs causes possibles | Consulter `sensor.position_reason_<nom>` : son état donne la raison, son attribut `covers` indique pourquoi chaque volet est ou n'est pas à la cible |
 | Le volet ne bouge pas | `switch.toggle_control` est OFF | Activer l'interrupteur |
 | Volet bloqué en mode manuel | Override manuel actif | Bouton de réinitialisation |
 | Volet reste fermé malgré retour à la maison | Security switch ON + présence unavailable | Vérifier capteur de présence |

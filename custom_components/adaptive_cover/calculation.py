@@ -12,6 +12,20 @@ from homeassistant.core import HomeAssistant
 from numpy import cos, sin, tan
 from numpy import radians as rad
 
+from .const import (
+    REASON_CLIMATE_INTERMEDIATE_SUN,
+    REASON_CLIMATE_LOW_LIGHT,
+    REASON_CLIMATE_NO_PRESENCE,
+    REASON_CLIMATE_SUMMER_CLOSED,
+    REASON_CLIMATE_SUMMER_TRANSPARENT,
+    REASON_CLIMATE_TILT_PRESET,
+    REASON_CLIMATE_WINTER_SUN,
+    REASON_SUN_IN_BLIND_SPOT,
+    REASON_SUN_OUTSIDE_ELEVATION,
+    REASON_SUN_OUTSIDE_FOV,
+    REASON_SUN_TRACKING,
+    REASON_SUNSET_POSITION,
+)
 from .helpers import get_domain, get_safe_state, is_presence_detected, state_attr
 from .sun import SunData
 from .config_context_adapter import ConfigContextAdapter
@@ -166,6 +180,19 @@ class AdaptiveGeneralCover(ABC):
     ) -> float:
         """Return the default position, optionally season-aware.
 
+        See default_choice() for the rules; this returns only the position.
+        """
+        return self.default_choice(is_winter=is_winter, is_summer=is_summer)[1]
+
+    def default_choice(
+        self, *, is_winter: bool = False, is_summer: bool = False
+    ) -> tuple[str, float]:
+        """Return (source, position) for the default position.
+
+        ``source`` is "sunset", "summer", "winter" or "default" and feeds the
+        reason sensor (#295), so the rules live here once rather than being
+        re-derived there.
+
         See #497. The sunset position always wins — it's a time-of-day
         override for after dark, not a fallback for "sun not currently in
         front of the window", and both conditions reach this same call.
@@ -176,12 +203,12 @@ class AdaptiveGeneralCover(ABC):
         falls back to h_def, same as calling this with no arguments at all.
         """
         if self.sunset_valid:
-            return self.sunset_pos
+            return "sunset", self.sunset_pos
         if is_summer and self.h_def_summer is not None:
-            return self.h_def_summer
+            return "summer", self.h_def_summer
         if is_winter and self.h_def_winter is not None:
-            return self.h_def_winter
-        return self.h_def
+            return "winter", self.h_def_winter
+        return "default", self.h_def
 
     @property
     def default(self) -> float:
@@ -226,32 +253,69 @@ class AdaptiveGeneralCover(ABC):
 
 @dataclass
 class NormalCoverState:
-    """Compute state for normal operation."""
+    """Compute state for normal operation.
+
+    After get_state(), ``reason`` holds the REASON_* code for the branch that
+    produced the position, ``limit`` which configured bound clamped it
+    ("min_position" / "max_position" / None) and ``default_source`` which
+    default was used, if any (see AdaptiveGeneralCover.default_choice).
+    They live here, not on ``cover``, because the coordinator evaluates a
+    climate and a normal state against the same cover object.
+    """
 
     cover: AdaptiveGeneralCover
+    reason: str | None = field(default=None, init=False)
+    limit: str | None = field(default=None, init=False)
+    default_source: str | None = field(default=None, init=False)
+
+    def _default(self, *, is_winter: bool = False, is_summer: bool = False):
+        """Return the default position and record why the sun isn't used."""
+        source, position = self.cover.default_choice(
+            is_winter=is_winter, is_summer=is_summer
+        )
+        self.default_source = source
+        if source == "sunset":
+            self.reason = REASON_SUNSET_POSITION
+        elif not self.cover.valid:
+            self.reason = (
+                REASON_SUN_OUTSIDE_FOV
+                if self.cover.valid_elevation
+                else REASON_SUN_OUTSIDE_ELEVATION
+            )
+        else:
+            self.reason = REASON_SUN_IN_BLIND_SPOT
+        return position
+
+    def _clamp(self, result):
+        """Apply the configured max/min position and record which one fired."""
+        if self.cover.apply_max_position and result > self.cover.max_pos:
+            self.limit = "max_position"
+            return self.cover.max_pos
+        if self.cover.apply_min_position and result < self.cover.min_pos:
+            self.limit = "min_position"
+            return self.cover.min_pos
+        return result
 
     def get_state(self) -> int:
         """Return state."""
         self.cover.logger.debug("Determining normal position")
+        self.limit = None
+        self.default_source = None
         dsv = self.cover.direct_sun_valid
         self.cover.logger.debug(
             "Sun directly in front of window & before sunset + offset? %s", dsv
         )
         if dsv:
             state = self.cover.calculate_percentage()
+            self.reason = REASON_SUN_TRACKING
             self.cover.logger.debug(
                 "Yes sun in window: using calculated percentage (%s)", state
             )
         else:
-            state = self.cover.default
+            state = self._default()
             self.cover.logger.debug("No sun in window: using default value (%s)", state)
 
-        result = np.clip(state, 0, 100)
-        if self.cover.apply_max_position and result > self.cover.max_pos:
-            return self.cover.max_pos
-        if self.cover.apply_min_position and result < self.cover.min_pos:
-            return self.cover.min_pos
-        return result
+        return self._clamp(np.clip(state, 0, 100))
 
 
 @dataclass
@@ -476,7 +540,7 @@ class ClimateCoverState(NormalCoverState):
         is_summer = self.climate_data.is_summer
 
         if not self.cover.valid:
-            default = self.cover.default_for_season(
+            default = self._default(
                 is_winter=self.climate_data.is_winter,
                 is_summer=is_summer,
             )
@@ -489,6 +553,7 @@ class ClimateCoverState(NormalCoverState):
             self.cover.logger.debug(
                 "n_w_p(): Winter and sun is in front of window = use 100"
             )
+            self.reason = REASON_CLIMATE_WINTER_SUN
             return 100
 
         if is_summer:
@@ -505,10 +570,11 @@ class ClimateCoverState(NormalCoverState):
                 self.cover.logger.debug(
                     "n_w_p(): Summer + transparent blind → basic (shade only)"
                 )
-                return super().get_state()
+                return self._basic(REASON_CLIMATE_SUMMER_TRANSPARENT)
             self.cover.logger.debug(
                 "n_w_p(): Summer + opaque blind → 0% (fully closed)"
             )
+            self.reason = REASON_CLIMATE_SUMMER_CLOSED
             return 0
 
         if (
@@ -519,15 +585,36 @@ class ClimateCoverState(NormalCoverState):
             self.cover.logger.debug(
                 "n_w_p(): Intermediate + no direct sun → default"
             )
-            return self.cover.default
+            # Same value as cover.default; _default() is skipped here because
+            # the sun *is* in front of the window, so its reasons don't apply.
+            source, default = self.cover.default_choice()
+            self.default_source = source
+            self.reason = (
+                REASON_SUNSET_POSITION
+                if source == "sunset"
+                else REASON_CLIMATE_LOW_LIGHT
+            )
+            return default
 
         self.cover.logger.debug(
             "n_w_p(): Intermediate + sunny → basic calculated (shade only)"
         )
-        return super().get_state()
+        return self._basic(REASON_CLIMATE_INTERMEDIATE_SUN)
+
+    def _basic(self, reason: str) -> int:
+        """Return the basic (sun) position, labelled with a climate *reason*.
+
+        The basic calculation can still land on a default (blind spot,
+        sunset); that more specific reason is kept rather than overwritten.
+        """
+        result = super().get_state()
+        if self.reason == REASON_SUN_TRACKING:
+            self.reason = reason
+        return result
 
     def normal_without_presence(self) -> int:
         """Determine state without occupants → min_pos or 0 %."""
+        self.reason = REASON_CLIMATE_NO_PRESENCE
         min_pos = self.cover.min_pos
         return min_pos if min_pos is not None else 0
 
@@ -539,17 +626,20 @@ class ClimateCoverState(NormalCoverState):
             or not self.climate_data.is_sunny
         ):
             if self.climate_data.is_summer:
+                self.reason = REASON_CLIMATE_TILT_PRESET
                 return 45 / degrees * 100
             # Same #497 blind-spot gap as the transparent-blind branch above
             # (non-summer here includes winter): super().get_state() falls
             # back to the plain default, not the seasonal one, if the sun is
             # in a configured blind spot.
             return super().get_state()
+        self.reason = REASON_CLIMATE_TILT_PRESET
         return 80 / degrees * 100
 
     def tilt_without_presence(self, degrees: int) -> int:
         """Determine state for tilted blinds without occupants → min_pos or 0 %."""
         assert isinstance(self.cover, AdaptiveTiltCover)
+        self.reason = REASON_CLIMATE_NO_PRESENCE
         min_pos = self.cover.min_pos
         return min_pos if min_pos is not None else 0
 
@@ -561,30 +651,26 @@ class ClimateCoverState(NormalCoverState):
         degrees = 90
         if self.cover.mode == "mode2":
             degrees = 180
+        # Replaces normal_type_cover()'s result, so drop what it recorded.
+        self.limit = None
+        self.default_source = None
         if self.climate_data.is_presence:
             return self.tilt_with_presence(degrees)
         return self.tilt_without_presence(degrees)
 
     def get_state(self) -> int:
         """Return state."""
+        self.limit = None
+        self.default_source = None
         result = self.normal_type_cover()
         if self.climate_data.blind_type == "cover_tilt":
             result = self.tilt_state()
-        if self.cover.apply_max_position and result > self.cover.max_pos:
+        clamped = self._clamp(result)
+        if clamped != result:
             self.cover.logger.debug(
-                "Climate state: Max position applied (%s > %s)",
-                result,
-                self.cover.max_pos,
+                "Climate state: %s applied (%s -> %s)", self.limit, result, clamped
             )
-            return self.cover.max_pos
-        if self.cover.apply_min_position and result < self.cover.min_pos:
-            self.cover.logger.debug(
-                "Climate state: Min position applied (%s < %s)",
-                result,
-                self.cover.min_pos,
-            )
-            return self.cover.min_pos
-        return result
+        return clamped
 
 
 @dataclass

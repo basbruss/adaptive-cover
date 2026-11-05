@@ -622,5 +622,29 @@
         "mode2": "twee-richtings (0% = dicht / 50% = open / 100% = dicht)"
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "reason": {
+        "name": "Reden positie",
+        "state": {
+          "control_off": "Automatische bediening staat uit",
+          "security": "Beveiligingsmodus: niemand thuis",
+          "outside_time_window": "Buiten het start-/eindtijdvenster",
+          "sun_tracking": "Volgt de zon om direct licht buiten te houden",
+          "sunset_position": "Tussen zonsondergang en zonsopkomst (plus verschuivingen): zonsondergangpositie",
+          "sun_outside_fov": "De zon staat buiten het gezichtsveld van het raam: standaardpositie",
+          "sun_outside_elevation": "De zon staat onder de horizon of buiten de hoogtegrenzen: standaardpositie",
+          "sun_in_blind_spot": "De zon staat in de dode hoek: standaardpositie",
+          "climate_no_presence": "Klimaat: niemand thuis, de bekleding sluit tot de minimale positie",
+          "climate_winter_sun": "Klimaat: de kamer is koud en de zon schijnt op het raam, de bekleding opent om warmte binnen te laten",
+          "climate_summer_closed": "Klimaat: te warm, de bekleding sluit om warmte buiten te houden",
+          "climate_summer_transparent": "Klimaat: te warm, de transparante bekleding volgt de zon",
+          "climate_low_light": "Klimaat: comfortabel, maar niet zonnig genoeg voor schaduw: standaardpositie",
+          "climate_intermediate_sun": "Klimaat: comfortabel en zonnig, de bekleding volgt de zon",
+          "climate_tilt_preset": "Klimaat: vooraf ingestelde lamelhoek"
+        }
+      }
+    }
   }
 }

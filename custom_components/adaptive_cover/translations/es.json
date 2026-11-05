@@ -640,5 +640,29 @@
         "mode2": "bidireccional (0% = cerrado / 50% = abierto / 100% = cerrado)"
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "reason": {
+        "name": "Motivo de la posición",
+        "state": {
+          "control_off": "El control automático está desactivado",
+          "security": "Modo seguridad: no hay nadie en casa",
+          "outside_time_window": "Fuera del horario de inicio/fin",
+          "sun_tracking": "Sigue al sol para bloquear la luz directa",
+          "sunset_position": "Entre la puesta y la salida del sol (más los desfases): posición de puesta de sol",
+          "sun_outside_fov": "El sol está fuera del campo de visión de la ventana: posición predeterminada",
+          "sun_outside_elevation": "El sol está bajo el horizonte o fuera de los límites de elevación: posición predeterminada",
+          "sun_in_blind_spot": "El sol está en el punto ciego: posición predeterminada",
+          "climate_no_presence": "Clima: no hay nadie en casa, la cubierta se cierra a la posición mínima",
+          "climate_winter_sun": "Clima: la habitación está fría y el sol da en la ventana, la cubierta se abre para dejar entrar el calor",
+          "climate_summer_closed": "Clima: demasiado calor, la cubierta se cierra para mantener el calor fuera",
+          "climate_summer_transparent": "Clima: demasiado calor, la cubierta transparente sigue al sol",
+          "climate_low_light": "Clima: confortable, pero sin sol suficiente para dar sombra: posición predeterminada",
+          "climate_intermediate_sun": "Clima: confortable y soleado, la cubierta sigue al sol",
+          "climate_tilt_preset": "Clima: ángulo de lamas predefinido"
+        }
+      }
+    }
   }
 }

@@ -395,6 +395,7 @@ Enable via **Settings → [entry] → Configure → Climate settings**.
 | `sensor.cover_position_<name>` | — | Calculated target position (%) |
 | `sensor.start_sun_<name>` / `end_sun` | — | Timestamps when sun enters/leaves FOV |
 | `sensor.control_method_<name>` | — | Active branch: `summer` / `winter` / `intermediate` |
+| `sensor.position_reason_<name>` | — | Why the target is what it is (state), with inputs and a per-cover status (attributes) |
 | `sensor.climate_debug_<name>` *(diag.)* | — | Full snapshot of climate decision inputs |
 | `binary_sensor.manual_control_<name>` | — | ON when any cover is in manual override |
 | `button.reset_manual_control_<name>` | — | Immediately clear manual override |
@@ -456,6 +457,7 @@ automation:
 
 | Symptom | Likely cause | Fix |
 |---------|-------------|-----|
+| Cover not where you expect | Many possible causes | Check `sensor.position_reason_<name>`: its state names the reason, its `covers` attribute says why each cover is or isn't at the target |
 | Cover doesn't move | `switch.toggle_control` is OFF | Turn the switch ON |
 | Cover stuck in manual | Manual override active | Press reset button or wait |
 | Cover stays closed after returning home | Security switch ON + presence unavailable | Check presence sensor |
