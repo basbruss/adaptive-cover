@@ -192,9 +192,24 @@ class AdaptiveCoverSwitch(
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
         self.coordinator.logger.debug("Turning on")
+        # Already on only if both this entity and the coordinator say so: the
+        # All Blinds hub's switch, Control mode select and cover all write
+        # coordinator.control_toggle directly, which can leave this entity
+        # stale in either direction. When they disagree, resume as before.
+        was_on = bool(self._attr_is_on) and bool(
+            getattr(self.coordinator, self._key, False)
+        )
         self._attr_is_on = True
         setattr(self.coordinator, self._key, True)
-        if self._key == "control_toggle" and kwargs.get("added") is not True:
+        # Resuming automatic control moves the covers to the computed position,
+        # bypassing the delta checks. Only do that on an actual off -> on
+        # transition: an automation re-asserting "on" (or a repeated service
+        # call) would otherwise send a redundant move every time.
+        if (
+            self._key == "control_toggle"
+            and kwargs.get("added") is not True
+            and not was_on
+        ):
             for entity in self.coordinator.entities:
                 if (
                     not self.coordinator.manager.is_cover_manual(entity)
