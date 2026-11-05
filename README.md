@@ -401,9 +401,9 @@ Its state is the first of these that applies:
 | ----- | ------- |
 | `control_off` | The automatic control switch is off, so covers aren't moved |
 | `security` | Security mode is on and nobody is home |
-| `outside_time_window` | It's before the start time or after the end time |
+| `outside_time_window` | It's before the start time or after the end time. With return-to-sunset on, covers sit at the sunset position after the end time while `position_reason` may still show a daytime code |
 | `sun_tracking` | The sun is in front of the window; the position keeps direct light out |
-| `sunset_position` | After sunset (plus offset): the sunset position |
+| `sunset_position` | Between sunset and sunrise (plus offsets): the sunset position |
 | `sun_outside_fov` | The sun is outside the window's field of view: the default position |
 | `sun_outside_elevation` | The sun is below the horizon or outside the min/max elevation: the default position |
 | `sun_in_blind_spot` | The sun is in the blind spot: the default position |
@@ -422,9 +422,8 @@ Other attributes:
 - `target_position` and `calculated_position`: the final target, and the position before interpolation or inverse state.
 - `limit_applied`: `min_position` or `max_position` when that limit changed the position.
 - `default_source`: which default was used (`default`, `sunset`, `winter`, or `summer`).
-- `climate_branch`, `sun_azimuth`, `sun_elevation`, and `sun_in_field_of_view`.
-- `manual_override`: covers currently under manual override.
-- `covers`: for each cover, why it is or isn't at the target. One of `manual_override`, the active gate (`control_off`, `security`, or `outside_time_window`), `at_target`, `close_pending` (pre-close notice counting down), `below_delta_position`, `waiting_delta_time`, `opening_open` (closing withheld while the door or window is open), `position_unknown`, or `moving_to_target`. This is how to tell apart covers that share settings but sit at different positions.
+- `climate_branch` and `sun_in_field_of_view`.
+- `covers`: for each cover, why it is or isn't at the target. One of `manual_override`, the active gate (`control_off`, `security`, or `outside_time_window`), `at_target`, `close_pending` (pre-close notice counting down), `below_delta_position`, `waiting_delta_time`, `opening_open` (closing withheld while the door or window is open), `position_unknown`, or `moving_to_target`. This is how to tell apart covers in the same entry that sit at different positions. For covers in separate entries, compare their Position Reason sensors side by side.
 
 For the climate inputs (temperatures, presence, weather), see the Climate Debug sensor.
 

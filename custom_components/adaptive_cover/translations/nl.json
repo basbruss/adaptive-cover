@@ -632,7 +632,7 @@
           "security": "Beveiligingsmodus: niemand thuis",
           "outside_time_window": "Buiten het start-/eindtijdvenster",
           "sun_tracking": "Volgt de zon om direct licht buiten te houden",
-          "sunset_position": "Na zonsondergang: zonsondergangpositie",
+          "sunset_position": "Tussen zonsondergang en zonsopkomst (plus verschuivingen): zonsondergangpositie",
           "sun_outside_fov": "De zon staat buiten het gezichtsveld van het raam: standaardpositie",
           "sun_outside_elevation": "De zon staat onder de horizon of buiten de hoogtegrenzen: standaardpositie",
           "sun_in_blind_spot": "De zon staat in de dode hoek: standaardpositie",

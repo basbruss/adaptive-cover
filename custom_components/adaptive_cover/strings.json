@@ -620,7 +620,7 @@
           "security": "Security mode: nobody is home",
           "outside_time_window": "Outside the start/end time window",
           "sun_tracking": "Following the sun to keep out direct light",
-          "sunset_position": "After sunset: using the sunset position",
+          "sunset_position": "Between sunset and sunrise (plus offsets): using the sunset position",
           "sun_outside_fov": "Sun is outside the window's field of view: using the default position",
           "sun_outside_elevation": "Sun is below the horizon or outside the elevation limits: using the default position",
           "sun_in_blind_spot": "Sun is in the blind spot: using the default position",

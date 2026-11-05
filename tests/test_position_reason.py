@@ -284,7 +284,7 @@ def test_reason_data_reports_calculation():
     assert data["position_reason"] == REASON_SUN_TRACKING
     assert data["target_position"] == 9
     assert data["calculated_position"] == 9
-    assert data["sun_azimuth"] == 180.0
+    assert "sun_azimuth" not in data  # already on sun.sun; avoid recorder churn
     assert data["sun_in_field_of_view"] is True
     assert data["covers"] == {COVER: "at_target"}
     json.dumps(data)  # attributes must be plain, serializable values
@@ -339,6 +339,15 @@ def test_reason_data_security():
         return_value=False,
     ):
         assert coordinator.reason_data(9, {})["reason"] == REASON_SECURITY
+
+
+def test_time_window_check_does_not_log_errors_every_refresh():
+    """A start after the end time is logged on the move path, not here."""
+    coordinator = _coordinator()
+    coordinator.start_time = "23:00:00"
+    coordinator.end_time = "01:00:00"
+    coordinator.reason_data(9, {})
+    coordinator.logger.error.assert_not_called()
 
 
 def test_unavailable_time_entity_does_not_break_the_update():
@@ -437,8 +446,17 @@ def test_reason_codes_are_unique_lowercase_slugs():
 )
 def test_every_reason_is_translated(path):
     """Every reason code has a state string in every language."""
-    states = json.loads(path.read_text())["entity"]["sensor"]["reason"]["state"]
+    data = json.loads(path.read_text(), object_pairs_hook=_no_duplicate_keys)
+    states = data["entity"]["sensor"]["reason"]["state"]
     assert set(states) == set(REASONS)
+
+
+def _no_duplicate_keys(pairs):
+    """Fail on a repeated JSON key, which would silently drop the first value."""
+    keys = [key for key, _ in pairs]
+    duplicates = {key for key in keys if keys.count(key) > 1}
+    assert not duplicates, f"duplicate JSON keys: {duplicates}"
+    return dict(pairs)
 
 
 def test_sensor_state_and_attributes():
@@ -452,3 +470,41 @@ def test_sensor_state_and_attributes():
     assert sensor.native_value == REASON_CONTROL_OFF
     assert sensor.native_value in sensor.options
     assert sensor.extra_state_attributes == {"target_position": 9}
+
+
+@pytest.mark.asyncio
+async def test_reason_failure_does_not_fail_the_refresh():
+    """A bug in the explanation must never stop the covers being driven."""
+    coordinator = object.__new__(AdaptiveDataUpdateCoordinator)
+    coordinator.logger = MagicMock()
+    coordinator.first_refresh = False
+    coordinator.state_change = False
+    coordinator.cover_state_change = False
+    coordinator.timed_refresh = False
+    coordinator.never_auto_correct = True
+    coordinator._climate_mode = False
+    coordinator._switch_mode = False
+    coordinator._use_interpolation = False
+    coordinator._inverse_state = False
+    coordinator._track_end_time = False
+    coordinator._default_height = 60
+    coordinator._climate_debug = None
+    coordinator.climate_state = None
+    coordinator.control_method = "intermediate"
+    coordinator.config_entry = MagicMock(options={})
+    coordinator.hass = MagicMock()
+    coordinator.manager = AdaptiveCoverManager({"minutes": 15}, MagicMock())
+    coordinator._sun_start_time = dt.datetime.now(dt.UTC)
+    coordinator._sun_end_time = None
+    coordinator.end_time = None
+    coordinator.end_time_entity = None
+    coordinator._update_options = MagicMock()
+    coordinator._update_manager_and_covers = MagicMock()
+    coordinator.get_blind_data = MagicMock(return_value=_cover())
+    coordinator.reason_data = MagicMock(side_effect=RuntimeError("boom"))
+
+    data = await coordinator._async_update_data()
+
+    assert data.reason is None
+    assert data.states["state"] == 9
+    coordinator.logger.exception.assert_called_once()

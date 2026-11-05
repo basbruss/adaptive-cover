@@ -21,6 +21,9 @@
           "winter": "mdi:snowflake",
           "summer": "mdi:heat-wave"
         }
+      },
+      "reason": {
+        "default": "mdi:help-circle-outline"
       }
     },
     "switch": {

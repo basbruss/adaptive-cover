@@ -273,7 +273,6 @@ class AdaptiveCoverReasonSensor(_AdaptiveCoverBase):
     _attr_device_class = SensorDeviceClass.ENUM
     _attr_options = REASONS
     _attr_translation_key = "reason"
-    _attr_icon = "mdi:help-circle-outline"
 
     def __init__(self, unique_id, hass, config_entry, name, coordinator) -> None:
         """Initialize the Position Reason sensor."""

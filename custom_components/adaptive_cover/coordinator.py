@@ -440,7 +440,13 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             await self.async_handle_timed_refresh(options)
 
         normal_cover = self.normal_cover_state.cover
-        reason = self.reason_data(state, options)
+        try:
+            reason = self.reason_data(state, options)
+        except Exception:  # noqa: BLE001
+            # The reason sensor only explains; a bug in it must never fail
+            # the refresh that drives the covers.
+            self.logger.exception("Could not determine the position reason")
+            reason = None
         if (
             self.first_refresh
             or self._sun_start_time is None
@@ -520,10 +526,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
             "limit_applied": source.limit,
             "default_source": source.default_source,
             "climate_branch": self.control_method if self._switch_mode else None,
-            "sun_azimuth": _plain(cover.sol_azi),
-            "sun_elevation": _plain(cover.sol_elev),
             "sun_in_field_of_view": _plain(cover.valid),
-            "manual_override": self.manager.manual_controlled,
             "covers": {
                 entity: self.cover_status(entity, state, options, gate)
                 for entity in self.entities
@@ -531,15 +534,17 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         }
 
     def _in_time_window(self) -> bool | None:
-        """Return check_adaptive_time, or None if a time entity can't be read.
+        """Return whether now is inside the start/end window, or None if unknown.
 
-        check_adaptive_time compares against None (and raises) when a
-        start/end time entity is unavailable; the move paths only reach it
-        on a state change, but the reason sensor reads it every refresh, so
-        it must not turn an unavailable helper into a failed update.
+        Same test as check_adaptive_time, minus its "start time is after
+        end time" error log, which would otherwise repeat on every refresh.
+        after_start_time compares against None (and raises) when a start
+        time entity is unavailable; the move paths only reach it on a state
+        change, but the reason sensor reads it every refresh, so an
+        unavailable helper must not turn into a failed update.
         """
         try:
-            return bool(self.check_adaptive_time)
+            return bool(self.before_end_time and self.after_start_time)
         except (TypeError, ValueError):
             return None
 
