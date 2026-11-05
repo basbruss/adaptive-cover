@@ -731,6 +731,8 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_MAX_POSITION_ENTITY: self.config.get(CONF_MAX_POSITION_ENTITY),
                 CONF_MIN_POSITION: self.config.get(CONF_MIN_POSITION),
                 CONF_MIN_POSITION_ENTITY: self.config.get(CONF_MIN_POSITION_ENTITY),
+                CONF_ENABLE_MAX_POSITION: self.config.get(CONF_ENABLE_MAX_POSITION),
+                CONF_ENABLE_MIN_POSITION: self.config.get(CONF_ENABLE_MIN_POSITION),
                 CONF_FOV_LEFT: self.config.get(CONF_FOV_LEFT),
                 CONF_FOV_RIGHT: self.config.get(CONF_FOV_RIGHT),
                 CONF_ENTITIES: self.config.get(CONF_ENTITIES),
@@ -762,6 +764,11 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_DELTA_TIME: self.config.get(CONF_DELTA_TIME),
                 CONF_START_TIME: self.config.get(CONF_START_TIME),
                 CONF_START_ENTITY: self.config.get(CONF_START_ENTITY),
+                CONF_END_TIME: self.config.get(CONF_END_TIME),
+                CONF_END_ENTITY: self.config.get(CONF_END_ENTITY),
+                CONF_RETURN_SUNSET: self.config.get(CONF_RETURN_SUNSET),
+                CONF_NOTIFY_DELAY: self.config.get(CONF_NOTIFY_DELAY),
+                CONF_NOTIFY_THRESHOLD: self.config.get(CONF_NOTIFY_THRESHOLD),
                 CONF_MANUAL_OVERRIDE_DURATION: self.config.get(
                     CONF_MANUAL_OVERRIDE_DURATION
                 ),
