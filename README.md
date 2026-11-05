@@ -369,6 +369,7 @@ These entities are always available for each cover group:
 | `sensor.{type}_control_method_{name}` | `intermediate` | Active strategy: `winter`, `summer`, `intermediate` |
 | `sensor.{type}_start_sun_{name}` | | Time when the sun enters the window's FOV (updated every 5 min) |
 | `sensor.{type}_end_sun_{name}` | | Time when the sun exits the window's FOV (updated every 5 min) |
+| `sensor.{type}_position_reason_{name}` | | Why the target position is what it is; see [Position reason](#position-reason) |
 | `binary_sensor.{type}_manual_override_{name}` | `off` | True when manual override is active for any blind in the group |
 | `switch.{type}_toggle_control_{name}` | `on` | Activates adaptive control |
 | `switch.{type}_manual_override_{name}` | `on` | Enables detection of manual overrides |
@@ -389,6 +390,43 @@ When a **presence entity** is configured:
 | Entity | Default | Description |
 | ------ | ------- | ----------- |
 | `switch.{type}_security_mode_{name}` | **`off`** | **Security mode** — closes covers when no presence detected |
+
+### Position reason
+
+`sensor.{type}_position_reason_{name}` answers "why is my cover at this position?" in plain language, in basic and climate mode alike.
+
+Its state is the first of these that applies:
+
+| State | Meaning |
+| ----- | ------- |
+| `control_off` | The automatic control switch is off, so covers aren't moved |
+| `security` | Security mode is on and nobody is home |
+| `outside_time_window` | It's before the start time or after the end time |
+| `sun_tracking` | The sun is in front of the window; the position keeps direct light out |
+| `sunset_position` | After sunset (plus offset): the sunset position |
+| `sun_outside_fov` | The sun is outside the window's field of view: the default position |
+| `sun_outside_elevation` | The sun is below the horizon or outside the min/max elevation: the default position |
+| `sun_in_blind_spot` | The sun is in the blind spot: the default position |
+| `climate_no_presence` | Climate mode, nobody home: minimum position (or closed) |
+| `climate_winter_sun` | Climate mode, room below the low temperature and sun on the window: fully open |
+| `climate_summer_closed` | Climate mode, above the high temperature: closed |
+| `climate_summer_transparent` | Climate mode, above the high temperature, transparent cover: follows the sun |
+| `climate_low_light` | Climate mode, comfortable, but cloudy or below the lux/irradiance threshold: the default position |
+| `climate_intermediate_sun` | Climate mode, comfortable and sunny: follows the sun |
+| `climate_tilt_preset` | Climate mode, tilt cover: a preset slat angle |
+
+The first three are gates: covers aren't following the target right now. The `position_reason` attribute always holds the calculation's own reason, so a gate never hides it.
+
+Other attributes:
+
+- `target_position` and `calculated_position`: the final target, and the position before interpolation or inverse state.
+- `limit_applied`: `min_position` or `max_position` when that limit changed the position.
+- `default_source`: which default was used (`default`, `sunset`, `winter`, or `summer`).
+- `climate_branch`, `sun_azimuth`, `sun_elevation`, and `sun_in_field_of_view`.
+- `manual_override`: covers currently under manual override.
+- `covers`: for each cover, why it is or isn't at the target. One of `at_target`, `manual_override`, `close_pending` (pre-close notice counting down), `below_delta_position`, `waiting_delta_time`, `opening_open` (closing withheld while the door or window is open), `position_unknown`, or `moving_to_target`. This is how to tell apart covers that share settings but sit at different positions.
+
+For the climate inputs (temperatures, presence, weather), see the Climate Debug sensor.
 
 ### All Blinds hub entities
 

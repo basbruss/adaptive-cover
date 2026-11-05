@@ -363,6 +363,7 @@ Ces entités sont toujours disponibles pour chaque groupe de volets :
 | `sensor.{type}_control_method_{nom}` | `intermediate` | Stratégie active : `winter`, `summer`, `intermediate` |
 | `sensor.{type}_start_sun_{nom}` | | Heure d'entrée du soleil dans le champ de vision (mise à jour toutes les 5 min) |
 | `sensor.{type}_end_sun_{nom}` | | Heure de sortie du soleil du champ de vision |
+| `sensor.{type}_position_reason_{nom}` | | Pourquoi la position cible est ce qu'elle est (voir [Position reason](README.md#position-reason)) |
 | `binary_sensor.{type}_manual_override_{nom}` | `off` | Vrai si un contrôle manuel est actif sur l'un des volets |
 | `switch.{type}_toggle_control_{nom}` | `on` | Active le contrôle adaptatif |
 | `switch.{type}_manual_override_{nom}` | `on` | Active la détection des contrôles manuels |
