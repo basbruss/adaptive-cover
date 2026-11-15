@@ -198,7 +198,7 @@ _VERTICAL_BASE_OPTIONS = vol.Schema(
         ),
         vol.Required(CONF_DISTANCE, default=0.5): selector.NumberSelector(
             selector.NumberSelectorConfig(
-                min=0.1, max=2, step=0.1, mode="slider", unit_of_measurement="m"
+                min=0.1, max=3.5, step=0.1, mode="slider", unit_of_measurement="m"
             )
         ),
     }
