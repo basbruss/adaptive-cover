@@ -80,11 +80,16 @@ def _cleanup_v18_leftover_device(hass: HomeAssistant) -> None:
     Safe and idempotent: if the device doesn't exist, this is a no-op.
     """
     dev_reg = dr.async_get(hass)
-    leftover = dev_reg.async_get_device(identifiers={_V18_LEFTOVER_IDENTIFIER})
-    if leftover is not None:
-        LOGGER.info(
-            "Removing v1.8.0 leftover 'All Blinds' device (%s)", leftover.id
-        )
+    if hasattr(dev_reg, "async_get_devices"):
+        # HA 2026.8+: async_get_device is deprecated (breaks in 2027.8) because
+        # identifiers are only unique per config entry. The leftover can belong
+        # to any of our entries, so look it up across all of them.
+        leftovers = dev_reg.async_get_devices(identifiers={_V18_LEFTOVER_IDENTIFIER})
+    else:
+        device = dev_reg.async_get_device(identifiers={_V18_LEFTOVER_IDENTIFIER})
+        leftovers = [device] if device is not None else []
+    for leftover in leftovers:
+        LOGGER.info("Removing v1.8.0 leftover 'All Blinds' device (%s)", leftover.id)
         dev_reg.async_remove_device(leftover.id)
 
 

@@ -4,7 +4,7 @@ These exercise the pure geometry of ``AdaptiveSlopedCover.calculate_position``
 without a running Home Assistant: the math depends only on ``distance``,
 ``h_win``, ``sol_elev`` and ``gamma`` (derived from ``win_azi`` / ``sol_azi``),
 none of which need ``sun_data``. Instances are therefore built bypassing the
-dataclass ``__init__`` (which would call ``get_astral_location``).
+dataclass ``__init__`` (which would build ``SunData`` from the HA config).
 """
 
 import logging
