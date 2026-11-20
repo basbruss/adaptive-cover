@@ -2,20 +2,33 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 import pandas as pd
+from astral import Observer
+from astral import sun as astral_sun
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.sun import get_astral_location
 
 
 class SunData:
     """Access local sun data."""
 
     def __init__(self, timezone: str, hass: HomeAssistant) -> None:
-        """Initialise location, elevation and timezone from HA config."""
+        """Initialise observer, elevation and timezone from HA config.
+
+        Builds the astral ``Observer`` directly from the HA config instead of
+        calling ``homeassistant.helpers.sun.get_astral_location`` (deprecated in
+        HA 2026.7, removed in 2027.7). ``get_astral_observer`` would do the same,
+        but only exists since 2026.7 and this integration supports 2026.5+.
+        """
         self.hass = hass
-        self.location, self.elevation = get_astral_location(self.hass)
+        latitude = hass.config.latitude
+        longitude = hass.config.longitude
+        self.elevation = hass.config.elevation
+        self.observer = Observer(latitude, longitude, self.elevation)
+        # Sunrise/sunset were computed at sea level (astral's
+        # Location.sunrise/sunset default observer_elevation=0); keep that.
+        self._horizon_observer = Observer(latitude, longitude, 0)
         self.timezone = timezone
 
     @property
@@ -31,27 +44,29 @@ class SunData:
         )
 
     @property
+    def _utc_times(self) -> list[datetime]:
+        """Today's slots in UTC.
+
+        astral.sun gives wrong results for local times whose UTC date differs
+        (e.g. 19:00 in New York); astral's Location converted to UTC first, so
+        do the same.
+        """
+        return [t.astimezone(UTC) for t in self.times]
+
+    @property
     def solar_azimuth(self) -> list[float]:
         """Return solar azimuth for each 5-minute slot today."""
-        # OPTIM: list comprehension — eliminates manual index for-loop
-        return [
-            self.location.solar_azimuth(t, self.elevation)
-            for t in self.times
-        ]
+        return [astral_sun.azimuth(self.observer, t) for t in self._utc_times]
 
     @property
     def solar_elevation(self) -> list[float]:
         """Return solar elevation for each 5-minute slot today."""
-        # OPTIM: list comprehension — eliminates manual index for-loop
-        return [
-            self.location.solar_elevation(t, self.elevation)
-            for t in self.times
-        ]
+        return [astral_sun.elevation(self.observer, t) for t in self._utc_times]
 
     def sunset(self) -> datetime:
         """Return today's sunset time (UTC)."""
-        return self.location.sunset(date.today(), local=False)
+        return astral_sun.sunset(self._horizon_observer, date.today())
 
     def sunrise(self) -> datetime:
         """Return today's sunrise time (UTC)."""
-        return self.location.sunrise(date.today(), local=False)
+        return astral_sun.sunrise(self._horizon_observer, date.today())
