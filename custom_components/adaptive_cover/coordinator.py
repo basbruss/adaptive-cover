@@ -595,6 +595,7 @@ class AdaptiveDataUpdateCoordinator(DataUpdateCoordinator[AdaptiveCoverData]):
         pending automatic close for this cover is cancelled by
         async_set_manual_position, so an explicit user move always wins.
         """
+        self.manager.start_manual_control(entity, self.manual_reset)
         await self.async_set_manual_position(entity, state)
 
     def _closing_blocked_by_opening(self, options, entity: str, target: int) -> bool:
@@ -1562,6 +1563,12 @@ class AdaptiveCoverManager:
     def mark_manual_control(self, cover: str) -> None:
         """Mark cover as under manual control."""
         self.manual_control[cover] = True
+
+    def start_manual_control(self, cover: str, allow_reset: bool = False) -> None:
+        """Start a timed manual override for an explicit user command."""
+        self.mark_manual_control(cover)
+        if cover not in self.manual_control_time or allow_reset:
+            self.manual_control_time[cover] = dt.datetime.now(dt.UTC)
 
     async def reset_if_needed(self):
         """Reset manual control state of the covers."""

@@ -339,12 +339,9 @@ class AdaptiveCoverAll(CoverEntity):
     async def _move_all(self, position: int) -> None:
         """Mark every cover as manual then move it to ``position``."""
         for coord in _iter_coordinators(self.hass):
-            manager = getattr(coord, "manager", None)
             entities = getattr(coord, "entities", None) or ()
             for entity_id in entities:
-                if manager is not None:
-                    manager.mark_manual_control(entity_id)
-                await coord.async_set_manual_position(entity_id, position)
+                await coord.async_set_position(entity_id, position)
         self.async_write_ha_state()
 
     # ------------------------------------------------------------------
